@@ -55,6 +55,14 @@ export class ServerCanvasHelper {
 
   private registerFonts() {
     try {
+      // Sur Vercel, utiliser les polices système disponibles
+      if (process.env.VERCEL) {
+        console.log(
+          "🚀 Environnement Vercel détecté - Utilisation des polices système"
+        );
+        return;
+      }
+
       // Enregistrer les polices Noto qui supportent les caractères Unicode
       const fontPath = path.join(
         process.cwd(),
@@ -65,27 +73,22 @@ export class ServerCanvasHelper {
         "node_modules/@fontsource/noto-color-emoji/files"
       );
 
-      // Noto Sans (pour le texte normal) - utiliser TTF sur Vercel
-      const notoSansFile = process.env.VERCEL
-        ? "noto-sans-latin-400-normal.ttf"
-        : "noto-sans-latin-400-normal.woff2";
-
-      registerFont(path.join(fontPath, notoSansFile), {
+      // Noto Sans (pour le texte normal)
+      registerFont(path.join(fontPath, "noto-sans-latin-400-normal.woff2"), {
         family: "Noto Sans",
         weight: "400",
         style: "normal",
       });
 
-      // Noto Color Emoji (pour les emojis) - utiliser TTF sur Vercel
-      const notoEmojiFile = process.env.VERCEL
-        ? "noto-color-emoji-latin-400-normal.ttf"
-        : "noto-color-emoji-latin-400-normal.woff2";
-
-      registerFont(path.join(emojiPath, notoEmojiFile), {
-        family: "Noto Color Emoji",
-        weight: "400",
-        style: "normal",
-      });
+      // Noto Color Emoji (pour les emojis) - utiliser le fichier principal
+      registerFont(
+        path.join(emojiPath, "noto-color-emoji-0-400-normal.woff2"),
+        {
+          family: "Noto Color Emoji",
+          weight: "400",
+          style: "normal",
+        }
+      );
 
       console.log("✅ Polices Unicode enregistrées avec succès");
     } catch (error) {
@@ -135,16 +138,22 @@ export class ServerCanvasHelper {
   drawText(config: TextConfig) {
     this.ctx.save();
 
-    // Détecter si le texte contient des emojis
-    const hasEmojis = /\p{Emoji}/u.test(config.text);
-
-    // Choisir la police appropriée
+    // Sur Vercel, utiliser des polices système qui supportent Unicode
     let fontFamily = config.fontFamily || "Arial, sans-serif";
 
-    if (hasEmojis) {
-      fontFamily = "Noto Color Emoji, Noto Sans, Arial, sans-serif";
+    if (process.env.VERCEL) {
+      // Polices système disponibles sur Vercel qui supportent Unicode
+      fontFamily = "DejaVu Sans, Arial, Helvetica, sans-serif";
     } else {
-      fontFamily = "Noto Sans, Arial, sans-serif";
+      // Détecter si le texte contient des emojis
+      const hasEmojis = /\p{Emoji}/u.test(config.text);
+
+      // Choisir la police appropriée
+      if (hasEmojis) {
+        fontFamily = "Noto Color Emoji, Noto Sans, Arial, sans-serif";
+      } else {
+        fontFamily = "Noto Sans, Arial, sans-serif";
+      }
     }
 
     this.ctx.font = `${config.fontSize}px ${fontFamily}`;
@@ -202,16 +211,22 @@ export class ServerCanvasHelper {
   ) {
     this.ctx.save();
 
-    // Détecter si le texte contient des emojis
-    const hasEmojis = /\p{Emoji}/u.test(text);
-
-    // Choisir la police appropriée
+    // Sur Vercel, utiliser des polices système qui supportent Unicode
     let finalFontFamily = fontFamily;
 
-    if (hasEmojis) {
-      finalFontFamily = "Noto Color Emoji, Noto Sans, Arial, sans-serif";
+    if (process.env.VERCEL) {
+      // Polices système disponibles sur Vercel qui supportent Unicode
+      finalFontFamily = "DejaVu Sans, Arial, Helvetica, sans-serif";
     } else {
-      finalFontFamily = "Noto Sans, Arial, sans-serif";
+      // Détecter si le texte contient des emojis
+      const hasEmojis = /\p{Emoji}/u.test(text);
+
+      // Choisir la police appropriée
+      if (hasEmojis) {
+        finalFontFamily = "Noto Color Emoji, Noto Sans, Arial, sans-serif";
+      } else {
+        finalFontFamily = "Noto Sans, Arial, sans-serif";
+      }
     }
 
     this.ctx.font = `${fontSize}px ${finalFontFamily}`;
