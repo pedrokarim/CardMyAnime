@@ -1,0 +1,20 @@
+[install]
+# Utiliser Bun comme gestionnaire de paquets par défaut
+packageManager = "bun"
+
+[install.scopes]
+# Configuration des scopes si nécessaire
+
+[test]
+# Configuration des tests
+preload = ["./test/setup.ts"]
+
+[run]
+# Scripts personnalisés
+dev = "next dev"
+build = "next build"
+start = "next start"
+lint = "next lint"
+db:generate = "prisma generate"
+db:push = "prisma db push"
+db:studio = "prisma studio"
