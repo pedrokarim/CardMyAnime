@@ -141,33 +141,11 @@ export class ServerCanvasHelper {
   drawText(config: TextConfig) {
     this.ctx.save();
 
-    // Utiliser des polices appropriées selon l'environnement
-    let fontFamily = config.fontFamily || "Arial, sans-serif";
-
-    if (process.env.VERCEL) {
-      // // Sur Vercel, utiliser des polices système Linux qui supportent les emojis
-      // const hasEmojis = /\p{Emoji}/u.test(config.text);
-      // if (hasEmojis) {
-      //   fontFamily =
-      //     "Noto Color Emoji, Noto Sans, Liberation Sans, Arial, sans-serif";
-      // } else {
-      //   fontFamily =
-      //     "Noto Sans, Liberation Sans, DejaVu Sans, Arial, sans-serif";
-      // }
-      fontFamily =
-        "Noto Color Emoji, Noto Sans, Liberation Sans, Arial, sans-serif";
-    } else {
-      // En local, utiliser nos polices TTF
-      const hasEmojis = /\p{Emoji}/u.test(config.text);
-      if (hasEmojis) {
-        fontFamily = "Noto Color Emoji, Noto Sans, Arial, sans-serif";
-      } else {
-        fontFamily = "Noto Sans, Arial, sans-serif";
-      }
-    }
+    // Utiliser une police très basique qui fonctionne partout
+    const fontFamily = "Arial";
 
     this.ctx.font = `${config.fontSize}px ${fontFamily}`;
-    this.ctx.fillStyle = config.color || "#000000";
+    this.ctx.fillStyle = config.color || "#ffffff";
     this.ctx.textAlign = config.textAlign || "left";
 
     if (config.maxWidth) {
@@ -216,37 +194,14 @@ export class ServerCanvasHelper {
     y: number,
     maxWidth: number,
     fontSize: number,
-    color: string = "#ffffff",
-    fontFamily: string = "Arial, sans-serif"
+    color: string = "#ffffff"
   ) {
     this.ctx.save();
 
-    // Utiliser des polices appropriées selon l'environnement
-    let finalFontFamily = fontFamily;
+    // Utiliser une police très basique qui fonctionne partout
+    const fontFamily = "Arial";
 
-    if (process.env.VERCEL) {
-      // Sur Vercel, utiliser des polices système Linux qui supportent les emojis
-      // const hasEmojis = /\p{Emoji}/u.test(text);
-      // if (hasEmojis) {
-      //   finalFontFamily =
-      //     "Noto Color Emoji, Noto Sans, Liberation Sans, Arial, sans-serif";
-      // } else {
-      //   finalFontFamily =
-      //     "Noto Sans, Liberation Sans, DejaVu Sans, Arial, sans-serif";
-      // }
-      finalFontFamily =
-        "Noto Color Emoji, Noto Sans, Liberation Sans, Arial, sans-serif";
-    } else {
-      // En local, utiliser nos polices TTF
-      const hasEmojis = /\p{Emoji}/u.test(text);
-      if (hasEmojis) {
-        finalFontFamily = "Noto Color Emoji, Noto Sans, Arial, sans-serif";
-      } else {
-        finalFontFamily = "Noto Sans, Arial, sans-serif";
-      }
-    }
-
-    this.ctx.font = `${fontSize}px ${finalFontFamily}`;
+    this.ctx.font = `${fontSize}px ${fontFamily}`;
     this.ctx.fillStyle = color;
     this.ctx.textAlign = "left";
 
