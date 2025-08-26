@@ -14,7 +14,7 @@ const searchParamsSchema = z.object({
   platform: z.enum(["anilist", "mal", "nautiljon"]),
   username: z.string().min(1),
   type: z.enum(["small", "medium", "large", "summary"]),
-  background: z.string().optional(), // Nouveau paramètre
+  background: z.string().nullable().optional(), // Accepter null ou undefined
 });
 
 export async function GET(request: NextRequest) {
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
       platform,
       username,
       type,
-      background,
+      background: background || undefined, // Convertir null en undefined
     });
     if (!result.success) {
       return NextResponse.json(
@@ -48,8 +48,9 @@ export async function GET(request: NextRequest) {
       background: validBackground,
     } = result.data;
 
-    // Convertir le paramètre background en booléen
-    const useLastAnimeBackground = validBackground !== "0";
+    // Convertir le paramètre background en booléen (activé par défaut si non spécifié)
+    const useLastAnimeBackground =
+      validBackground === undefined || validBackground !== "0";
 
     // Vérifier si la carte existe déjà en base
     const existingCard = await prisma.cardGeneration.findFirst({
