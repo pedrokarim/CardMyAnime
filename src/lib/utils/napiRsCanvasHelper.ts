@@ -153,18 +153,20 @@ export class NapiRsCanvasHelper {
 
   drawText(config: TextConfig) {
     this.ctx.save();
-    let fontFamily = config.fontFamily || "Arial, sans-serif";
+
+    // Utiliser des polices système simples qui fonctionnent sur Vercel
+    let fontFamily = "Arial, Helvetica, sans-serif";
 
     if (process.env.VERCEL) {
+      // Sur Vercel, utiliser des polices système Linux
       const hasEmojis = /\p{Emoji}/u.test(config.text);
       if (hasEmojis) {
-        fontFamily =
-          "Noto Color Emoji, Noto Sans, Liberation Sans, Arial, sans-serif";
+        fontFamily = "DejaVu Sans, Arial, sans-serif";
       } else {
-        fontFamily =
-          "Noto Sans, Liberation Sans, DejaVu Sans, Arial, sans-serif";
+        fontFamily = "DejaVu Sans, Arial, sans-serif";
       }
     } else {
+      // En local, essayer les polices Noto
       const hasEmojis = /\p{Emoji}/u.test(config.text);
       if (hasEmojis) {
         fontFamily = "Noto Color Emoji, Noto Sans, Arial, sans-serif";
@@ -202,7 +204,14 @@ export class NapiRsCanvasHelper {
     color: string = "#ffffff"
   ) {
     this.ctx.fillStyle = color;
-    this.ctx.font = `${fontSize}px Arial, sans-serif`;
+
+    // Utiliser les mêmes polices que drawText
+    let fontFamily = "Arial, Helvetica, sans-serif";
+    if (process.env.VERCEL) {
+      fontFamily = "DejaVu Sans, Arial, sans-serif";
+    }
+
+    this.ctx.font = `${fontSize}px ${fontFamily}`;
 
     if (this.ctx.measureText(text).width <= maxWidth) {
       this.ctx.fillText(text, x, y);
