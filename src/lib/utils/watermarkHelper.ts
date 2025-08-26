@@ -1,5 +1,7 @@
 import { ServerCanvasHelper } from "./serverCanvasHelpers";
-import { loadImage } from "canvas";
+import { NapiRsCanvasHelper } from "./napiRsCanvasHelper";
+import { loadImage as canvasLoadImage } from "canvas";
+import { loadImage as napiRsLoadImage } from "@napi-rs/canvas";
 
 export interface WatermarkOptions {
   position?:
@@ -14,7 +16,7 @@ export interface WatermarkOptions {
 }
 
 export async function addWatermark(
-  helper: ServerCanvasHelper,
+  helper: ServerCanvasHelper | NapiRsCanvasHelper,
   options: WatermarkOptions = {}
 ): Promise<void> {
   const {
@@ -36,7 +38,10 @@ export async function addWatermark(
   // Charger le logo CMA
   try {
     const logoPath = process.cwd() + "/public/images/cma-logo-watermark.png";
-    const logo = await loadImage(logoPath);
+    const logo =
+      helper instanceof NapiRsCanvasHelper
+        ? await napiRsLoadImage(logoPath)
+        : await canvasLoadImage(logoPath);
 
     // Calculer la position du watermark
     let x: number, y: number;

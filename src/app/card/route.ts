@@ -7,7 +7,10 @@ import { generateSmallCard } from "@/lib/cards/smallCard";
 import { generateMediumCard } from "@/lib/cards/mediumCard";
 import { generateLargeCard } from "@/lib/cards/largeCard";
 import { generateSummaryCard } from "@/lib/cards/summaryCard";
-import { VercelOgHelper } from "@/lib/utils/vercelOgHelper";
+import { generateNapiRsSmallCard } from "@/lib/cards/napiRsSmallCard";
+import { generateNapiRsMediumCard } from "@/lib/cards/napiRsMediumCard";
+import { generateNapiRsLargeCard } from "@/lib/cards/napiRsLargeCard";
+import { generateNapiRsSummaryCard } from "@/lib/cards/napiRsSummaryCard";
 
 const prisma = new PrismaClient();
 
@@ -97,28 +100,51 @@ export async function GET(request: NextRequest) {
 
     // Générer la carte
     if (process.env.VERCEL) {
-      // Utiliser @vercel/og sur Vercel
-      const lastAnime = userData.lastAnimes?.[0];
-      const config = {
-        title: lastAnime?.title || "Anime Title",
-        username: validUsername,
-        platform:
-          validPlatform === "mal"
-            ? "MyAnimeList"
-            : validPlatform === "anilist"
-            ? "AniList"
-            : "Nautiljon",
-        score: lastAnime?.score,
-        status: lastAnime?.status,
-        episodes: lastAnime?.totalEpisodes,
-        imageUrl:
-          useLastAnimeBackground && lastAnime?.coverUrl
-            ? lastAnime.coverUrl
-            : undefined,
-        type: validType,
-      };
+      // Utiliser @napi-rs/canvas sur Vercel (remplace @vercel/og)
+      let cardDataUrl: string;
+      switch (validType) {
+        case "small":
+          cardDataUrl = await generateNapiRsSmallCard(
+            userData,
+            useLastAnimeBackground
+          );
+          break;
+        case "medium":
+          cardDataUrl = await generateNapiRsMediumCard(
+            userData,
+            useLastAnimeBackground
+          );
+          break;
+        case "large":
+          cardDataUrl = await generateNapiRsLargeCard(
+            userData,
+            useLastAnimeBackground
+          );
+          break;
+        case "summary":
+          cardDataUrl = await generateNapiRsSummaryCard(
+            userData,
+            useLastAnimeBackground
+          );
+          break;
+        default:
+          return NextResponse.json(
+            { error: "Type de carte non supporté" },
+            { status: 400 }
+          );
+      }
 
-      return await VercelOgHelper.generateCard(config);
+      // Convertir le data URL en buffer
+      const base64Data = cardDataUrl.replace(/^data:image\/[a-z]+;base64,/, "");
+      const buffer = Buffer.from(base64Data, "base64");
+
+      // Retourner l'image
+      return new NextResponse(buffer, {
+        headers: {
+          "Content-Type": "image/png",
+          "Cache-Control": "public, max-age=3600", // Cache 1 heure
+        },
+      });
     } else {
       // Utiliser node-canvas en local
       let cardDataUrl: string;
