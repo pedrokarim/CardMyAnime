@@ -4,11 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
+    "build": "prisma generate && next build --turbopack",
     "start": "next start",
     "lint": "eslint",
     "reset-views24h": "node scripts/reset-views24h.js",
-    "cleanup-view-logs": "node scripts/cleanup-view-logs.js"
+    "cleanup-view-logs": "node scripts/cleanup-view-logs.js",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@auth/core": "^0.40.0",

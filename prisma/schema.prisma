@@ -1,4 +1,4 @@
-// This is your Prisma schema file,
+// This is your Prisma schema file for PostgreSQL,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -27,6 +27,7 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@index([userId])
 }
 
 model Session {
@@ -35,6 +36,8 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model User {
@@ -46,6 +49,8 @@ model User {
   accounts      Account[]
   sessions      Session[]
   cardGenerations CardGeneration[]
+
+  @@index([email])
 }
 
 model VerificationToken {
@@ -54,6 +59,7 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+  @@index([expires])
 }
 
 model CardGeneration {
@@ -69,6 +75,11 @@ model CardGeneration {
   user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@unique([platform, username, cardType])
+  @@index([userId])
+  @@index([platform, username])
+  @@index([createdAt])
+  @@index([views])
+  @@index([views24h])
 }
 
 model UserDataCache {
@@ -81,6 +92,8 @@ model UserDataCache {
   
   @@unique([platform, username])
   @@index([expiresAt]) // Pour nettoyer facilement les données expirées
+  @@index([platform, username])
+  @@index([lastFetched])
 }
 
 model ViewLog {
@@ -95,4 +108,6 @@ model ViewLog {
   @@unique([cardId, fingerprint]) // Une vue unique par carte/fingerprint
   @@index([expiresAt]) // Pour nettoyage efficace
   @@index([cardId]) // Pour requêtes par carte
+  @@index([createdAt])
+  @@index([ip])
 }
