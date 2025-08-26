@@ -98,100 +98,45 @@ export async function GET(request: NextRequest) {
       validUsername
     );
 
-    // Générer la carte
-    if (process.env.VERCEL) {
-      // Utiliser @napi-rs/canvas sur Vercel (remplace @vercel/og)
-      let cardDataUrl: string;
-      switch (validType) {
-        case "small":
-          cardDataUrl = await generateNapiRsSmallCard(
-            userData,
-            useLastAnimeBackground
-          );
-          break;
-        case "medium":
-          cardDataUrl = await generateNapiRsMediumCard(
-            userData,
-            useLastAnimeBackground
-          );
-          break;
-        case "large":
-          cardDataUrl = await generateNapiRsLargeCard(
-            userData,
-            useLastAnimeBackground
-          );
-          break;
-        case "summary":
-          cardDataUrl = await generateNapiRsSummaryCard(
-            userData,
-            useLastAnimeBackground
-          );
-          break;
-        default:
-          return NextResponse.json(
-            { error: "Type de carte non supporté" },
-            { status: 400 }
-          );
-      }
-
-      // Convertir le data URL en buffer
-      const base64Data = cardDataUrl.replace(/^data:image\/[a-z]+;base64,/, "");
-      const buffer = Buffer.from(base64Data, "base64");
-
-      // Retourner l'image
-      return new NextResponse(buffer, {
-        headers: {
-          "Content-Type": "image/png",
-          "Cache-Control": "public, max-age=3600", // Cache 1 heure
-        },
-      });
-    } else {
-      // Utiliser node-canvas en local
-      let cardDataUrl: string;
-      switch (validType) {
-        case "small":
-          cardDataUrl = await generateSmallCard(
-            userData,
-            useLastAnimeBackground
-          );
-          break;
-        case "medium":
-          cardDataUrl = await generateMediumCard(
-            userData,
-            useLastAnimeBackground
-          );
-          break;
-        case "large":
-          cardDataUrl = await generateLargeCard(
-            userData,
-            useLastAnimeBackground
-          );
-          break;
-        case "summary":
-          cardDataUrl = await generateSummaryCard(
-            userData,
-            useLastAnimeBackground
-          );
-          break;
-        default:
-          return NextResponse.json(
-            { error: "Type de carte non supporté" },
-            { status: 400 }
-          );
-      }
-
-      // Convertir le data URL en buffer
-      const base64Data = cardDataUrl.replace(/^data:image\/[a-z]+;base64,/, "");
-      const buffer = Buffer.from(base64Data, "base64");
-
-      // Retourner l'image
-      return new NextResponse(buffer, {
-        headers: {
-          "Content-Type": "image/png",
-          "Cache-Control": "public, max-age=3600", // Cache 1 heure
-        },
-      });
+    // Générer la carte avec node-canvas (Vercel + local)
+    let cardDataUrl: string;
+    switch (validType) {
+      case "small":
+        cardDataUrl = await generateSmallCard(userData, useLastAnimeBackground);
+        break;
+      case "medium":
+        cardDataUrl = await generateMediumCard(
+          userData,
+          useLastAnimeBackground
+        );
+        break;
+      case "large":
+        cardDataUrl = await generateLargeCard(userData, useLastAnimeBackground);
+        break;
+      case "summary":
+        cardDataUrl = await generateSummaryCard(
+          userData,
+          useLastAnimeBackground
+        );
+        break;
+      default:
+        return NextResponse.json(
+          { error: "Type de carte non supporté" },
+          { status: 400 }
+        );
     }
+
+    // Convertir le data URL en buffer
+    const base64Data = cardDataUrl.replace(/^data:image\/[a-z]+;base64,/, "");
+    const buffer = Buffer.from(base64Data, "base64");
+
+    // Retourner l'image
+    return new NextResponse(buffer, {
+      headers: {
+        "Content-Type": "image/png",
+        "Cache-Control": "public, max-age=3600", // Cache 1 heure
+      },
+    });
   } catch (error) {
     console.error("Erreur lors de la génération de la carte:", error);
     return NextResponse.json(

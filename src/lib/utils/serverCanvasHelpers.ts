@@ -145,15 +145,17 @@ export class ServerCanvasHelper {
     let fontFamily = config.fontFamily || "Arial, sans-serif";
 
     if (process.env.VERCEL) {
-      // Sur Vercel, utiliser des polices système Linux qui supportent les emojis
-      const hasEmojis = /\p{Emoji}/u.test(config.text);
-      if (hasEmojis) {
-        fontFamily =
-          "Noto Color Emoji, Noto Sans, Liberation Sans, Arial, sans-serif";
-      } else {
-        fontFamily =
-          "Noto Sans, Liberation Sans, DejaVu Sans, Arial, sans-serif";
-      }
+      // // Sur Vercel, utiliser des polices système Linux qui supportent les emojis
+      // const hasEmojis = /\p{Emoji}/u.test(config.text);
+      // if (hasEmojis) {
+      //   fontFamily =
+      //     "Noto Color Emoji, Noto Sans, Liberation Sans, Arial, sans-serif";
+      // } else {
+      //   fontFamily =
+      //     "Noto Sans, Liberation Sans, DejaVu Sans, Arial, sans-serif";
+      // }
+      fontFamily =
+        "Noto Color Emoji, Noto Sans, Liberation Sans, Arial, sans-serif";
     } else {
       // En local, utiliser nos polices TTF
       const hasEmojis = /\p{Emoji}/u.test(config.text);
@@ -224,14 +226,16 @@ export class ServerCanvasHelper {
 
     if (process.env.VERCEL) {
       // Sur Vercel, utiliser des polices système Linux qui supportent les emojis
-      const hasEmojis = /\p{Emoji}/u.test(text);
-      if (hasEmojis) {
-        finalFontFamily =
-          "Noto Color Emoji, Noto Sans, Liberation Sans, Arial, sans-serif";
-      } else {
-        finalFontFamily =
-          "Noto Sans, Liberation Sans, DejaVu Sans, Arial, sans-serif";
-      }
+      // const hasEmojis = /\p{Emoji}/u.test(text);
+      // if (hasEmojis) {
+      //   finalFontFamily =
+      //     "Noto Color Emoji, Noto Sans, Liberation Sans, Arial, sans-serif";
+      // } else {
+      //   finalFontFamily =
+      //     "Noto Sans, Liberation Sans, DejaVu Sans, Arial, sans-serif";
+      // }
+      finalFontFamily =
+        "Noto Color Emoji, Noto Sans, Liberation Sans, Arial, sans-serif";
     } else {
       // En local, utiliser nos polices TTF
       const hasEmojis = /\p{Emoji}/u.test(text);
