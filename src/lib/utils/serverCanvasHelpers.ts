@@ -62,25 +62,27 @@ export class ServerCanvasHelper {
       );
       const emojiPath = path.join(
         process.cwd(),
-        "node_modules/@fontsource/noto-emoji/files"
+        "node_modules/@fontsource/noto-color-emoji/files"
       );
 
-      // Noto Sans (pour le texte normal)
-      registerFont(path.join(fontPath, "noto-sans-latin-400-normal.woff2"), {
+      // Noto Sans (pour le texte normal) - utiliser TTF sur Vercel
+      const notoSansFile = process.env.VERCEL
+        ? "noto-sans-latin-400-normal.ttf"
+        : "noto-sans-latin-400-normal.woff2";
+
+      registerFont(path.join(fontPath, notoSansFile), {
         family: "Noto Sans",
         weight: "400",
         style: "normal",
       });
 
-      registerFont(path.join(fontPath, "noto-sans-latin-700-normal.woff2"), {
-        family: "Noto Sans",
-        weight: "700",
-        style: "normal",
-      });
+      // Noto Color Emoji (pour les emojis) - utiliser TTF sur Vercel
+      const notoEmojiFile = process.env.VERCEL
+        ? "noto-color-emoji-latin-400-normal.ttf"
+        : "noto-color-emoji-latin-400-normal.woff2";
 
-      // Noto Emoji (pour les emojis)
-      registerFont(path.join(emojiPath, "noto-emoji-latin-400-normal.woff2"), {
-        family: "Noto Emoji",
+      registerFont(path.join(emojiPath, notoEmojiFile), {
+        family: "Noto Color Emoji",
         weight: "400",
         style: "normal",
       });
@@ -137,9 +139,13 @@ export class ServerCanvasHelper {
     const hasEmojis = /\p{Emoji}/u.test(config.text);
 
     // Choisir la police appropriée
-    const fontFamily = hasEmojis
-      ? "Noto Emoji, Noto Sans, Arial, sans-serif"
-      : config.fontFamily || "Noto Sans, Arial, sans-serif";
+    let fontFamily = config.fontFamily || "Arial, sans-serif";
+
+    if (hasEmojis) {
+      fontFamily = "Noto Color Emoji, Noto Sans, Arial, sans-serif";
+    } else {
+      fontFamily = "Noto Sans, Arial, sans-serif";
+    }
 
     this.ctx.font = `${config.fontSize}px ${fontFamily}`;
     this.ctx.fillStyle = config.color || "#000000";
@@ -192,7 +198,7 @@ export class ServerCanvasHelper {
     maxWidth: number,
     fontSize: number,
     color: string = "#ffffff",
-    fontFamily: string = "Noto Sans, Arial, sans-serif"
+    fontFamily: string = "Arial, sans-serif"
   ) {
     this.ctx.save();
 
@@ -200,9 +206,13 @@ export class ServerCanvasHelper {
     const hasEmojis = /\p{Emoji}/u.test(text);
 
     // Choisir la police appropriée
-    const finalFontFamily = hasEmojis
-      ? "Noto Emoji, Noto Sans, Arial, sans-serif"
-      : fontFamily;
+    let finalFontFamily = fontFamily;
+
+    if (hasEmojis) {
+      finalFontFamily = "Noto Color Emoji, Noto Sans, Arial, sans-serif";
+    } else {
+      finalFontFamily = "Noto Sans, Arial, sans-serif";
+    }
 
     this.ctx.font = `${fontSize}px ${finalFontFamily}`;
     this.ctx.fillStyle = color;
