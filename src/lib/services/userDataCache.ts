@@ -20,8 +20,7 @@ export class UserDataCacheService {
    * Récupère les données utilisateur depuis le cache ou les APIs
    */
   async getUserData(platform: Platform, username: string): Promise<UserData> {
-    const { PrismaClient } = await import("@prisma/client");
-    const prisma = new PrismaClient();
+    const { prisma } = await import("../prisma");
 
     try {
       // Vérifier si on a des données en cache
@@ -179,8 +178,7 @@ export class UserDataCacheService {
    * Nettoie les données expirées (peut être appelé périodiquement)
    */
   async cleanupExpiredData(): Promise<number> {
-    const { PrismaClient } = await import("@prisma/client");
-    const prisma = new PrismaClient();
+    const { prisma } = await import("../prisma");
 
     try {
       const result = await prisma.userDataCache.deleteMany({
@@ -208,8 +206,7 @@ export class UserDataCacheService {
     expiredEntries: number;
     validEntries: number;
   }> {
-    const { PrismaClient } = await import("@prisma/client");
-    const prisma = new PrismaClient();
+    const { prisma } = await import("../prisma");
 
     try {
       const now = new Date();

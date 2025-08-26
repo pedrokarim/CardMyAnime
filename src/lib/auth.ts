@@ -1,10 +1,8 @@
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import Discord from "next-auth/providers/discord";
-import { PrismaClient } from "@prisma/client";
 import type { NextAuthConfig } from "next-auth";
 import NextAuth from "next-auth";
-
-const prisma = new PrismaClient();
+import { prisma } from "./prisma";
 
 // Récupérer la liste des utilisateurs autorisés depuis les variables d'environnement
 const AUTHORIZED_USERS =

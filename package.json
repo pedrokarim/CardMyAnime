@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "prisma generate && next build --turbopack",
+    "build": "prisma generate && prisma db push --skip-generate && next build --turbopack",
     "start": "next start",
     "lint": "eslint",
     "reset-views24h": "node scripts/reset-views24h.js",
