@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: cardmyanime-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: cardmyanime
+      POSTGRES_USER: cardmyanime
+      POSTGRES_PASSWORD: cardmyanime123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - cardmyanime-network
+
+  # Optionnel : pgAdmin pour gérer la base de données
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: cardmyanime-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@cardmyanime.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "8080:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - cardmyanime-network
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+networks:
+  cardmyanime-network:
+    driver: bridge

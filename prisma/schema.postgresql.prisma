@@ -1,0 +1,113 @@
+// This is your Prisma schema file for PostgreSQL,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  cardGenerations CardGeneration[]
+
+  @@index([email])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@index([expires])
+}
+
+model CardGeneration {
+  id        String   @id @default(cuid())
+  userId    String?
+  platform  String   // "anilist", "mal", "nautiljon"
+  username  String
+  cardType  String   // "small", "medium", "large", "summary"
+  views     Int      @default(0) // Compteur de vues externes
+  views24h  Int      @default(0) // Compteur de vues des dernières 24h
+  createdAt DateTime @default(now())
+  
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([platform, username, cardType])
+  @@index([userId])
+  @@index([platform, username])
+  @@index([createdAt])
+  @@index([views])
+  @@index([views24h])
+}
+
+model UserDataCache {
+  id        String   @id @default(cuid())
+  platform  String   // "anilist", "mal", "nautiljon"
+  username  String
+  data      String // JSON stringifié des données utilisateur
+  lastFetched DateTime @default(now())
+  expiresAt DateTime // Quand les données expirent
+  
+  @@unique([platform, username])
+  @@index([expiresAt]) // Pour nettoyer facilement les données expirées
+  @@index([platform, username])
+  @@index([lastFetched])
+}
+
+model ViewLog {
+  id        String   @id @default(cuid())
+  cardId    String
+  fingerprint String
+  ip        String
+  userAgent String
+  createdAt DateTime @default(now())
+  expiresAt DateTime // TTL pour nettoyage automatique
+  
+  @@unique([cardId, fingerprint]) // Une vue unique par carte/fingerprint
+  @@index([expiresAt]) // Pour nettoyage efficace
+  @@index([cardId]) // Pour requêtes par carte
+  @@index([createdAt])
+  @@index([ip])
+}

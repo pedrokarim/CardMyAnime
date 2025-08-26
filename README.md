@@ -1,6 +1,17 @@
 # CardMyAnime 🎌
 
-Une application web moderne pour créer des cartes de profil dynamiques à partir de vos données sur différentes plateformes d'anime.
+<div align="center">
+  <img src="public/images/cma-logo.png" alt="CardMyAnime Logo" width="200" height="200">
+  
+  **Une application web moderne pour créer des cartes de profil dynamiques à partir de vos données sur différentes plateformes d'anime.**
+  
+  [![Next.js](https://img.shields.io/badge/Next.js-15.5.0-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+  [![React](https://img.shields.io/badge/React-19.1.0-blue?style=for-the-badge&logo=react)](https://reactjs.org/)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+  [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.0-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
+  [![tRPC](https://img.shields.io/badge/tRPC-11.5.0-2596BE?style=for-the-badge)](https://trpc.io/)
+  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+</div>
 
 ## ✨ Fonctionnalités
 
@@ -10,17 +21,29 @@ Une application web moderne pour créer des cartes de profil dynamiques à parti
 - **Export facile** : Téléchargement en PNG avec un clic
 - **Interface moderne** : Design épuré avec Tailwind CSS et shadcn/ui
 - **API typée** : Communication front/back sécurisée avec tRPC
+- **Authentification** : Système d'auth prêt pour OAuth (Auth.js)
+- **Base de données** : SQLite avec Prisma ORM
+- **Performance** : Optimisé avec Turbopack et React 19
 
 ## 🛠️ Stack Technique
 
-- **Frontend** : Next.js 14 (React 19, App Router)
-- **Styling** : Tailwind CSS + shadcn/ui
-- **Backend/API** : tRPC (typage fort)
-- **Scraping** : JSDOM (pour Nautiljon)
-- **Cartes** : HTML5 Canvas (génération côté client)
-- **Base de données** : SQLite + Prisma ORM
+### Frontend
+- **Framework** : Next.js 15.5.0 (React 19, App Router)
+- **Styling** : Tailwind CSS 4.0 + shadcn/ui
+- **Animations** : Framer Motion
+- **Gestion d'état** : TanStack Query + tRPC
+
+### Backend
+- **API** : tRPC 11.5.0 (typage fort)
+- **Base de données** : SQLite + Prisma 6.14.0
 - **Authentification** : Auth.js (prêt pour OAuth)
+- **Validation** : Zod
+
+### Outils
+- **Scraping** : JSDOM (pour Nautiljon)
+- **Cartes** : HTML5 Canvas + Sharp
 - **Gestionnaire de paquets** : Bun
+- **Linting** : ESLint 9
 
 ## 🚀 Installation
 
@@ -33,7 +56,7 @@ Une application web moderne pour créer des cartes de profil dynamiques à parti
 
 1. **Cloner le projet**
    ```bash
-   git clone <votre-repo>
+   git clone https://github.com/pedrokarim/CardMyAnime.git
    cd cardmyanime
    ```
 
@@ -111,6 +134,20 @@ GOOGLE_ID=""
 GOOGLE_SECRET=""
 ```
 
+### Scripts disponibles
+
+```bash
+# Développement
+bun dev                    # Lance le serveur de développement avec Turbopack
+bun build                  # Build de production avec Turbopack
+bun start                  # Lance le serveur de production
+
+# Maintenance
+bun run reset-views24h     # Reset des vues quotidiennes
+bun run cleanup-view-logs  # Nettoyage des logs de vues
+bun lint                   # Linting avec ESLint
+```
+
 ### Ajouter un nouveau provider
 
 1. Créer un fichier dans `src/lib/providers/`
@@ -123,15 +160,24 @@ GOOGLE_SECRET=""
 ```
 src/
 ├── app/                    # App Router Next.js
-│   ├── api/trpc/          # Routes API tRPC
+│   ├── api/               # Routes API
+│   │   ├── trpc/          # Routes API tRPC
+│   │   ├── auth/          # Routes d'authentification
+│   │   └── admin/         # Routes d'administration
+│   ├── auth/              # Pages d'authentification
+│   ├── admin/             # Interface d'administration
 │   └── page.tsx           # Page principale
 ├── components/            # Composants React
 │   ├── ui/               # Composants shadcn/ui
-│   └── CardPreview.tsx   # Prévisualisation des cartes
+│   ├── CardPreview.tsx   # Prévisualisation des cartes
+│   ├── Navbar.tsx        # Navigation
+│   └── ShareOptions.tsx  # Options de partage
 ├── lib/                  # Utilitaires et configuration
-│   ├── providers/        # Providers de données
+│   ├── providers/        # Providers de données (AniList, MAL, Nautiljon)
 │   ├── cards/           # Générateurs de cartes
-│   ├── utils/           # Utilitaires Canvas
+│   ├── services/        # Services (cache, tracking)
+│   ├── utils/           # Utilitaires Canvas et images
+│   ├── trpc/            # Configuration tRPC
 │   └── types.ts         # Types TypeScript
 └── server/              # Configuration serveur
     └── trpc.ts          # Router tRPC
@@ -190,6 +236,8 @@ Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
 - [Nautiljon](https://www.nautiljon.com/) pour leur plateforme
 - [shadcn/ui](https://ui.shadcn.com/) pour les composants UI
 - [tRPC](https://trpc.io/) pour l'API typée
+- [Next.js](https://nextjs.org/) pour le framework React
+- [Tailwind CSS](https://tailwindcss.com/) pour le styling
 
 ## 📞 Support
 
@@ -199,4 +247,8 @@ Pour toute question ou problème :
 
 ---
 
-**CardMyAnime** - Créez des cartes de profil uniques pour vos plateformes d'anime préférées ! 🎌✨
+<div align="center">
+  **CardMyAnime** - Créez des cartes de profil uniques pour vos plateformes d'anime préférées ! 🎌✨
+  
+  *Version 0.1.0 - Développé avec ❤️*
+</div>
