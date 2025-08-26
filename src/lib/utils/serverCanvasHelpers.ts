@@ -55,19 +55,19 @@ export class ServerCanvasHelper {
 
   private registerFonts() {
     try {
-      // Enregistrer les polices Unicode depuis public/fonts
+      // Enregistrer les polices TTF depuis public/fonts
       const notoSansPath = path.join(
         process.cwd(),
         "public",
         "fonts",
-        "noto-sans-latin-400-normal.woff2"
+        "NotoSans-Regular.ttf"
       );
 
       const emojiPath = path.join(
         process.cwd(),
         "public",
         "fonts",
-        "noto-color-emoji-0-400-normal.woff2"
+        "NotoColorEmoji-Regular.ttf"
       );
 
       // Enregistrer Noto Sans
@@ -85,10 +85,10 @@ export class ServerCanvasHelper {
       });
 
       console.log(
-        "✅ Polices Unicode enregistrées avec succès depuis public/fonts"
+        "✅ Polices TTF enregistrées avec succès depuis public/fonts"
       );
     } catch (error) {
-      console.warn("⚠️ Impossible d'enregistrer les polices Unicode:", error);
+      console.warn("⚠️ Impossible d'enregistrer les polices TTF:", error);
     }
   }
 
@@ -133,7 +133,7 @@ export class ServerCanvasHelper {
   drawText(config: TextConfig) {
     this.ctx.save();
 
-    // Utiliser nos polices personnalisées qui supportent Unicode
+    // Utiliser nos polices TTF qui supportent Unicode
     let fontFamily = config.fontFamily || "Arial, sans-serif";
 
     // Détecter si le texte contient des emojis
@@ -201,7 +201,7 @@ export class ServerCanvasHelper {
   ) {
     this.ctx.save();
 
-    // Utiliser nos polices personnalisées qui supportent Unicode
+    // Utiliser nos polices TTF qui supportent Unicode
     let finalFontFamily = fontFamily;
 
     // Détecter si le texte contient des emojis

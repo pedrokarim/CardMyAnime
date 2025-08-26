@@ -10,6 +10,7 @@
         "@fontsource/noto-color-emoji": "^5.2.8",
         "@fontsource/noto-emoji": "^5.2.6",
         "@fontsource/noto-sans": "^5.2.7",
+        "@fontsource/roboto": "^5.2.6",
         "@prisma/client": "^6.14.0",
         "@radix-ui/react-select": "^2.2.6",
         "@radix-ui/react-slot": "^1.2.3",
@@ -110,6 +111,8 @@
     "@fontsource/noto-emoji": ["@fontsource/noto-emoji@5.2.6", "", {}, "sha512-bOAvXrys3TfjvG7xkUTk4NYVA5fYwRFp4xcpaVQDJ1x4jsnkUcpOH6KZzL2X7j0f20TvyCikImtDAb6EOi2cZw=="],
 
     "@fontsource/noto-sans": ["@fontsource/noto-sans@5.2.7", "", {}, "sha512-mTpMSMft6Nb+ZSF4DSiJVYnLzKCRjHNFieZ/swuxSDQK+v1hjUeDTBxLHKUdfmC+ZPg6TUEWw4oRq2ltnDbSjQ=="],
+
+    "@fontsource/roboto": ["@fontsource/roboto@5.2.6", "", {}, "sha512-hzarG7yAhMoP418smNgfY4fO7UmuUEm5JUtbxCoCcFHT0hOJB+d/qAEyoNjz7YkPU5OjM2LM8rJnW8hfm0JLaA=="],
 
     "@humanfs/core": ["@humanfs/core@0.19.1", "", {}, "sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA=="],
 
