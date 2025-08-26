@@ -1,7 +1,21 @@
 import { ServerCanvasHelper } from "./serverCanvasHelpers";
-import { NapiRsCanvasHelper } from "./napiRsCanvasHelper";
 import { loadImage as canvasLoadImage } from "canvas";
-import { loadImage as napiRsLoadImage } from "@napi-rs/canvas";
+
+// Import dynamique pour éviter les problèmes de build
+let NapiRsCanvasHelper: any;
+let napiRsLoadImage: any;
+
+if (typeof window === "undefined") {
+  // Côté serveur seulement
+  try {
+    const napiRsModule = require("@napi-rs/canvas");
+    napiRsLoadImage = napiRsModule.loadImage;
+    const napiRsHelperModule = require("./napiRsCanvasHelper");
+    NapiRsCanvasHelper = napiRsHelperModule.NapiRsCanvasHelper;
+  } catch (error) {
+    console.warn("⚠️ @napi-rs/canvas non disponible:", error);
+  }
+}
 
 export interface WatermarkOptions {
   position?:
@@ -16,7 +30,7 @@ export interface WatermarkOptions {
 }
 
 export async function addWatermark(
-  helper: ServerCanvasHelper | NapiRsCanvasHelper,
+  helper: ServerCanvasHelper | any,
   options: WatermarkOptions = {}
 ): Promise<void> {
   const {
