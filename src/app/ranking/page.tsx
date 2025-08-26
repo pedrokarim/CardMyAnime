@@ -14,6 +14,7 @@ import { useQueryState } from "nuqs";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { PlatformIcon } from "@/components/ui/platform-icon";
+import { PageLoading } from "@/components/ui/loading";
 
 const ITEMS_PER_PAGE = 20;
 
@@ -107,16 +108,7 @@ export default function RankingPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">
-            Chargement du classement...
-          </p>
-        </div>
-      </div>
-    );
+    return <PageLoading message="Chargement du classement..." />;
   }
 
   if (error) {

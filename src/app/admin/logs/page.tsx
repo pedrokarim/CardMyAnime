@@ -16,6 +16,11 @@ import {
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
+import {
+  PageLoading,
+  ButtonLoading,
+  InlineLoading,
+} from "@/components/ui/loading";
 
 interface ViewLog {
   id: string;
@@ -128,16 +133,7 @@ export default function LogsPage() {
   }, [session]);
 
   if (status === "loading") {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">
-            Vérification de l'authentification...
-          </p>
-        </div>
-      </div>
-    );
+    return <PageLoading message="Vérification de l'authentification..." />;
   }
 
   if (!session) {
@@ -188,9 +184,11 @@ export default function LogsPage() {
                 disabled={loading}
                 className="flex items-center gap-2 bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground px-4 py-2 rounded-lg transition-colors"
               >
-                <RefreshCw
-                  className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
-                />
+                {loading ? (
+                  <ButtonLoading size="sm" />
+                ) : (
+                  <RefreshCw className="w-4 h-4" />
+                )}
                 Actualiser
               </button>
               <button
@@ -207,8 +205,10 @@ export default function LogsPage() {
           {/* Table des logs */}
           {loading ? (
             <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-muted-foreground">Chargement des logs...</p>
+              <InlineLoading size="md" />
+              <p className="text-muted-foreground mt-2">
+                Chargement des logs...
+              </p>
             </div>
           ) : logs.length > 0 ? (
             <div className="overflow-x-auto">

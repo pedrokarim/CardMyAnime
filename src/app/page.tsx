@@ -10,6 +10,7 @@ import { useQueryState } from "nuqs";
 import Image from "next/image";
 import { PlatformIcon } from "@/components/ui/platform-icon";
 import { motion, AnimatePresence } from "framer-motion";
+import { ButtonLoading } from "@/components/ui/loading";
 
 type Step = "platform" | "cardType" | "username" | "preview";
 
@@ -504,7 +505,7 @@ export default function HomePage() {
                   >
                     {isLoading ? (
                       <div className="flex items-center gap-2">
-                        <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                        <ButtonLoading size="sm" />
                         Récupération...
                       </div>
                     ) : (
