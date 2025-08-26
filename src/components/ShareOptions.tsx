@@ -25,10 +25,7 @@ export default function ShareOptions({
     typeof window !== "undefined"
       ? window.location.origin
       : "http://localhost:3000";
-  const backgroundParam = useLastAnimeBackground
-    ? "&background=1"
-    : "&background=0";
-  const fullUrl = `${baseUrl}${shareableUrl}${backgroundParam}`;
+  const fullUrl = `${baseUrl}${shareableUrl}`;
 
   const copyToClipboard = async (content: string, type: string) => {
     try {

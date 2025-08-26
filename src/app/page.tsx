@@ -562,6 +562,16 @@ export default function HomePage() {
                       useLastAnimeBackground: useLastAnimeBackground === "1",
                     });
                   }}
+                  onBackgroundToggle={(useBackground) => {
+                    setUseLastAnimeBackground(useBackground ? "1" : "0");
+                    // Régénérer la carte avec le nouveau background
+                    generateCardMutation.mutate({
+                      platform: platform as Platform,
+                      username: userData.username,
+                      cardType: cardType as CardType,
+                      useLastAnimeBackground: useBackground,
+                    });
+                  }}
                   preGeneratedCard={generatedCardData}
                 />
               )}

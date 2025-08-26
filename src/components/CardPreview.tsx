@@ -10,6 +10,7 @@ import { generateSummaryCard } from "@/lib/cards/summaryCard";
 import ShareOptions from "./ShareOptions";
 import { trpc } from "@/lib/trpc/client";
 import { PlatformIcon } from "@/components/ui/platform-icon";
+import { CardLoading } from "@/components/ui/loading";
 
 interface CardPreviewProps {
   userData: UserData;
@@ -18,6 +19,7 @@ interface CardPreviewProps {
   useLastAnimeBackground: boolean;
   onCardGenerated: (cardUrl: string, shareableUrl: string) => void;
   onCardTypeChange?: (cardType: CardType) => void;
+  onBackgroundToggle?: (useBackground: boolean) => void;
   preGeneratedCard?: {
     cardUrl: string;
     shareableUrl: string;
@@ -76,10 +78,14 @@ export function CardPreview({
   useLastAnimeBackground,
   onCardGenerated,
   onCardTypeChange,
+  onBackgroundToggle,
   preGeneratedCard,
 }: CardPreviewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isInitialGeneration, setIsInitialGeneration] = useState(
+    !preGeneratedCard?.cardUrl
+  );
   const [showCardTypeSelector, setShowCardTypeSelector] = useState(false);
   const [generatedCardUrl, setGeneratedCardUrl] = useState<string | null>(
     preGeneratedCard?.cardUrl || null
@@ -93,8 +99,16 @@ export function CardPreview({
     if (preGeneratedCard) {
       setGeneratedCardUrl(preGeneratedCard.cardUrl);
       setShareableUrl(preGeneratedCard.shareableUrl);
+      setIsInitialGeneration(false);
     }
   }, [preGeneratedCard]);
+
+  // Génération automatique si aucune carte n'est pré-générée
+  useEffect(() => {
+    if (isInitialGeneration && userData && !isGenerating) {
+      generateCard();
+    }
+  }, [isInitialGeneration, userData]);
 
   const generateCardMutation = trpc.generateCard.useMutation({
     onSuccess: (result) => {
@@ -104,10 +118,12 @@ export function CardPreview({
         onCardGenerated?.(result.cardUrl, result.shareableUrl);
       }
       setIsGenerating(false);
+      setIsInitialGeneration(false);
     },
     onError: (error) => {
       console.error("Erreur lors de la génération:", error);
       setIsGenerating(false);
+      setIsInitialGeneration(false);
     },
   });
 
@@ -121,6 +137,21 @@ export function CardPreview({
       cardType: cardType,
       useLastAnimeBackground: useLastAnimeBackground,
     });
+  };
+
+  const handleBackgroundToggle = (newBackgroundValue: boolean) => {
+    onBackgroundToggle?.(newBackgroundValue);
+
+    // Régénérer automatiquement la carte avec le nouveau background
+    if (userData) {
+      setIsGenerating(true);
+      generateCardMutation.mutate({
+        platform: platform as any,
+        username: userData.username,
+        cardType: cardType,
+        useLastAnimeBackground: newBackgroundValue,
+      });
+    }
   };
 
   const downloadCard = () => {
@@ -138,6 +169,17 @@ export function CardPreview({
     <div className="space-y-8">
       {/* Informations utilisateur */}
       <div className="bg-card rounded-xl p-8 border border-border">
+        {isGenerating && (
+          <div className="mb-4 p-4 bg-primary/10 border border-primary/20 rounded-lg">
+            <div className="flex items-center gap-3">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
+              <span className="text-primary font-medium">
+                Régénération de la carte en cours...
+              </span>
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center gap-6 mb-6">
           <img
             src={userData?.avatarUrl}
@@ -209,18 +251,48 @@ export function CardPreview({
         </div>
       </div>
 
-      {/* Bouton pour afficher/masquer le sélecteur de type de carte */}
-      <div className="flex justify-center">
+      {/* Boutons de configuration */}
+      <div className="flex gap-4 justify-center">
         <Button
           onClick={() => setShowCardTypeSelector(!showCardTypeSelector)}
           variant="outline"
           className="px-6 py-3"
+          disabled={isGenerating}
         >
           <div className="flex items-center gap-2">
-            <span className="text-lg">🎨</span>
-            {showCardTypeSelector
+            {isGenerating ? (
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current"></div>
+            ) : (
+              <span className="text-lg">🎨</span>
+            )}
+            {isGenerating
+              ? "Génération..."
+              : showCardTypeSelector
               ? "Masquer les types de cartes"
               : "Changer le type de carte"}
+          </div>
+        </Button>
+
+        {/* Bouton pour activer/désactiver le background */}
+        <Button
+          onClick={() => handleBackgroundToggle(!useLastAnimeBackground)}
+          variant={useLastAnimeBackground ? "default" : "outline"}
+          className="px-6 py-3"
+          disabled={isGenerating}
+        >
+          <div className="flex items-center gap-2">
+            {isGenerating ? (
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current"></div>
+            ) : (
+              <span className="text-lg">
+                {useLastAnimeBackground ? "🖼️" : "🎭"}
+              </span>
+            )}
+            {isGenerating
+              ? "Génération..."
+              : useLastAnimeBackground
+              ? "Désactiver le background"
+              : "Activer le background"}
           </div>
         </Button>
       </div>
@@ -275,7 +347,17 @@ export function CardPreview({
               height: Math.min(dimensions.height, 500),
             }}
           >
-            {generatedCardUrl ? (
+            {isGenerating || isInitialGeneration ? (
+              <div className="w-full h-full flex items-center justify-center">
+                <CardLoading
+                  message={
+                    isInitialGeneration
+                      ? "Génération initiale de votre carte..."
+                      : "Régénération de votre carte..."
+                  }
+                />
+              </div>
+            ) : generatedCardUrl ? (
               <img
                 src={generatedCardUrl}
                 alt="Carte générée"
@@ -310,7 +392,7 @@ export function CardPreview({
 
       {/* Boutons d'action */}
       <div className="flex gap-6 justify-center">
-        {generatedCardUrl && (
+        {generatedCardUrl && shareableUrl && (
           <ShareOptions
             shareableUrl={shareableUrl}
             username={userData.username}
