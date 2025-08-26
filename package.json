@@ -15,6 +15,8 @@
     "@auth/core": "^0.40.0",
     "@auth/nextjs": "^0.0.0-380f8d56",
     "@auth/prisma-adapter": "^2.10.0",
+    "@fontsource/noto-emoji": "^5.2.6",
+    "@fontsource/noto-sans": "^5.2.7",
     "@prisma/client": "^6.14.0",
     "@radix-ui/react-select": "^2.2.6",
     "@radix-ui/react-slot": "^1.2.3",

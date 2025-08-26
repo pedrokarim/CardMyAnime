@@ -3,7 +3,9 @@ import {
   loadImage,
   Canvas,
   CanvasRenderingContext2D,
+  registerFont,
 } from "canvas";
+import path from "path";
 
 export interface CanvasConfig {
   width: number;
@@ -36,12 +38,58 @@ export class ServerCanvasHelper {
   private ctx: CanvasRenderingContext2D;
   private width: number;
   private height: number;
+  private static fontsRegistered = false;
 
   constructor(width: number, height: number) {
     this.canvas = createCanvas(width, height);
     this.ctx = this.canvas.getContext("2d");
     this.width = width;
     this.height = height;
+
+    // Enregistrer les polices une seule fois
+    if (!ServerCanvasHelper.fontsRegistered) {
+      this.registerFonts();
+      ServerCanvasHelper.fontsRegistered = true;
+    }
+  }
+
+  private registerFonts() {
+    try {
+      // Enregistrer les polices Noto qui supportent les caractères Unicode
+      const fontPath = path.join(
+        process.cwd(),
+        "node_modules/@fontsource/noto-sans/files"
+      );
+      const emojiPath = path.join(
+        process.cwd(),
+        "node_modules/@fontsource/noto-emoji/files"
+      );
+
+      // Noto Sans (pour le texte normal)
+      registerFont(path.join(fontPath, "noto-sans-latin-400-normal.woff2"), {
+        family: "Noto Sans",
+        weight: "400",
+        style: "normal",
+      });
+
+      registerFont(path.join(fontPath, "noto-sans-latin-700-normal.woff2"), {
+        family: "Noto Sans",
+        weight: "700",
+        style: "normal",
+      });
+
+      // Noto Emoji (pour les emojis)
+      registerFont(path.join(emojiPath, "noto-emoji-latin-400-normal.woff2"), {
+        family: "Noto Emoji",
+        weight: "400",
+        style: "normal",
+      });
+
+      console.log("✅ Polices Unicode enregistrées avec succès");
+    } catch (error) {
+      console.warn("⚠️ Impossible d'enregistrer les polices Unicode:", error);
+      // Fallback vers les polices système
+    }
   }
 
   // Configuration initiale du canvas
@@ -85,9 +133,15 @@ export class ServerCanvasHelper {
   drawText(config: TextConfig) {
     this.ctx.save();
 
-    this.ctx.font = `${config.fontSize}px ${
-      config.fontFamily || "Arial, sans-serif"
-    }`;
+    // Détecter si le texte contient des emojis
+    const hasEmojis = /\p{Emoji}/u.test(config.text);
+
+    // Choisir la police appropriée
+    const fontFamily = hasEmojis
+      ? "Noto Emoji, Noto Sans, Arial, sans-serif"
+      : config.fontFamily || "Noto Sans, Arial, sans-serif";
+
+    this.ctx.font = `${config.fontSize}px ${fontFamily}`;
     this.ctx.fillStyle = config.color || "#000000";
     this.ctx.textAlign = config.textAlign || "left";
 
@@ -138,11 +192,19 @@ export class ServerCanvasHelper {
     maxWidth: number,
     fontSize: number,
     color: string = "#ffffff",
-    fontFamily: string = "Arial, sans-serif"
+    fontFamily: string = "Noto Sans, Arial, sans-serif"
   ) {
     this.ctx.save();
 
-    this.ctx.font = `${fontSize}px ${fontFamily}`;
+    // Détecter si le texte contient des emojis
+    const hasEmojis = /\p{Emoji}/u.test(text);
+
+    // Choisir la police appropriée
+    const finalFontFamily = hasEmojis
+      ? "Noto Emoji, Noto Sans, Arial, sans-serif"
+      : fontFamily;
+
+    this.ctx.font = `${fontSize}px ${finalFontFamily}`;
     this.ctx.fillStyle = color;
     this.ctx.textAlign = "left";
 
@@ -208,7 +270,7 @@ export class ServerCanvasHelper {
           }
 
           const buffer = await response.arrayBuffer();
-          const imageBuffer = Buffer.from(new Uint8Array(buffer));
+          const imageBuffer = Buffer.from(buffer as ArrayBuffer);
 
           // Convertir WebP en PNG si nécessaire (côté serveur uniquement)
           let processedBuffer = imageBuffer;
@@ -324,7 +386,25 @@ export class ServerCanvasHelper {
   ) {
     this.ctx.save();
     this.ctx.fillStyle = color;
-    this.ctx.roundRect(x, y, width, height, radius);
+
+    // Dessiner un rectangle arrondi manuellement
+    this.ctx.beginPath();
+    this.ctx.moveTo(x + radius, y);
+    this.ctx.lineTo(x + width - radius, y);
+    this.ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    this.ctx.lineTo(x + width, y + height - radius);
+    this.ctx.quadraticCurveTo(
+      x + width,
+      y + height,
+      x + width - radius,
+      y + height
+    );
+    this.ctx.lineTo(x + radius, y + height);
+    this.ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    this.ctx.lineTo(x, y + radius);
+    this.ctx.quadraticCurveTo(x, y, x + radius, y);
+    this.ctx.closePath();
+
     this.ctx.fill();
     this.ctx.restore();
   }
