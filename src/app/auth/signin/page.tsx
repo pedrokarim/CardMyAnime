@@ -3,7 +3,7 @@
 import { signIn, getSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { MessageCircle } from "lucide-react";
+import { DiscordIcon } from "@/components/ui/discord-icon";
 
 export default function SignInPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -58,7 +58,7 @@ export default function SignInPage() {
             disabled={isLoading}
             className="w-full flex items-center justify-center gap-3 bg-[#5865F2] hover:bg-[#4752C4] disabled:opacity-50 text-white font-medium py-3 px-4 rounded-lg transition-colors"
           >
-            <MessageCircle className="w-5 h-5" />
+            <DiscordIcon className="w-5 h-5" />
             {isLoading ? "Connexion..." : "Se connecter avec Discord"}
           </button>
 

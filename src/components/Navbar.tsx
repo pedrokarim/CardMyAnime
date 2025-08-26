@@ -3,9 +3,10 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Home, Trophy, Mail, Info, Github, Twitter, Globe } from "lucide-react";
+import { Home, Trophy, Mail, Info, Github, Twitter } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PlatformIcon } from "@/components/ui/platform-icon";
+import { DiscordIcon } from "@/components/ui/discord-icon";
 import { Platform } from "@/lib/types";
 
 interface NavbarProps {
@@ -25,7 +26,7 @@ export function Navbar({ currentPlatform }: NavbarProps) {
   const socialLinks = [
     { href: "#", label: "GitHub", icon: Github },
     { href: "#", label: "Twitter", icon: Twitter },
-    { href: "#", label: "Discord", icon: Globe },
+    { href: "#", label: "Discord", icon: DiscordIcon },
   ];
 
   const isHomePage = pathname === "/";
