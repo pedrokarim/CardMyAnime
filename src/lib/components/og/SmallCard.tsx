@@ -40,7 +40,7 @@ export default function SmallCard({
           justifyContent: "center",
         }}
       >
-        <span style={{ fontSize: "24px" }}>👤</span>
+        <span style={{ fontSize: "24px", display: "block" }}>👤</span>
       </div>
 
       {/* Username */}
@@ -91,6 +91,7 @@ export default function SmallCard({
             right: "20px",
             fontSize: "16px",
             color: "#ffd700",
+            display: "block",
           }}
         >
           ★ {score}

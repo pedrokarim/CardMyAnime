@@ -57,7 +57,7 @@ export default function MediumCard({
           justifyContent: "center",
         }}
       >
-        <span style={{ fontSize: "48px" }}>👤</span>
+        <span style={{ fontSize: "48px", display: "block" }}>👤</span>
       </div>
 
       {/* Username */}

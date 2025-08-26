@@ -65,8 +65,10 @@ export default function SummaryCard({
               justifyContent: "center",
             }}
           >
-            <span style={{ fontSize: "24px" }}>★</span>
-            <span style={{ fontSize: "24px", fontWeight: "bold" }}>
+            <span style={{ fontSize: "24px", display: "block" }}>★</span>
+            <span
+              style={{ fontSize: "24px", fontWeight: "bold", display: "block" }}
+            >
               {score}/10
             </span>
           </div>
