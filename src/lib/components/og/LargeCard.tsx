@@ -25,78 +25,171 @@ export default function LargeCard({
         display: "flex",
         width: "100%",
         height: "100%",
-        backgroundColor: "#1a1a1a",
+        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
         color: "white",
         fontFamily: "Arial, sans-serif",
+        position: "relative",
       }}
     >
-      {imageUrl && (
-        <div style={{ width: "200px", height: "100%", position: "relative" }}>
-          <img
-            src={imageUrl}
-            alt={title}
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-            }}
-          />
-        </div>
-      )}
+      {/* Background overlay for header */}
       <div
         style={{
-          flex: 1,
-          padding: "40px",
+          position: "absolute",
+          top: "20px",
+          left: "20px",
+          right: "20px",
+          height: "170px",
+          backgroundColor: "rgba(0, 0, 0, 0.7)",
+          borderRadius: "10px",
+        }}
+      />
+
+      {/* Background overlay for content */}
+      <div
+        style={{
+          position: "absolute",
+          top: "190px",
+          left: "20px",
+          right: "20px",
+          bottom: "20px",
+          backgroundColor: "rgba(0, 0, 0, 0.7)",
+          borderRadius: "10px",
+        }}
+      />
+
+      {/* Avatar */}
+      <div
+        style={{
+          position: "absolute",
+          top: "40px",
+          left: "40px",
+          width: "120px",
+          height: "120px",
+          borderRadius: "60px",
+          backgroundColor: "rgba(255, 255, 255, 0.2)",
           display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
-        <div>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "20px",
-            }}
-          >
-            <span style={{ fontSize: "18px", color: "#888" }}>@{username}</span>
-            <span style={{ fontSize: "18px", color: "#888" }}>{platform}</span>
-          </div>
-          <div
-            style={{
-              fontSize: "32px",
-              fontWeight: "bold",
-              marginBottom: "25px",
-              lineHeight: "1.4",
-            }}
-          >
-            {title}
-          </div>
+        <span style={{ fontSize: "48px" }}>👤</span>
+      </div>
+
+      {/* Username */}
+      <div
+        style={{
+          position: "absolute",
+          top: "70px",
+          left: "180px",
+          fontSize: "36px",
+          fontWeight: "bold",
+        }}
+      >
+        {username}
+      </div>
+
+      {/* Stats */}
+      <div
+        style={{
+          position: "absolute",
+          top: "110px",
+          left: "180px",
+          fontSize: "18px",
+          color: "#e0e0e0",
+        }}
+      >
+        Animes vus: 0
+      </div>
+
+      <div
+        style={{
+          position: "absolute",
+          top: "135px",
+          left: "180px",
+          fontSize: "18px",
+          color: "#e0e0e0",
+        }}
+      >
+        Mangas lus: 0
+      </div>
+
+      {/* Score */}
+      {score ? (
+        <div
+          style={{
+            position: "absolute",
+            top: "160px",
+            left: "180px",
+            fontSize: "18px",
+            color: "#ffd700",
+          }}
+        >
+          Note moyenne: ★ {score}
         </div>
-        <div style={{ display: "flex", gap: "30px", alignItems: "center" }}>
-          {score && (
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <span style={{ fontSize: "24px" }}>★</span>
-              <span style={{ fontSize: "24px", fontWeight: "bold" }}>
-                {score}/10
-              </span>
-            </div>
-          )}
-          {status && (
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <span style={{ fontSize: "22px" }}>👤</span>
-              <span style={{ fontSize: "22px" }}>{status}</span>
-            </div>
-          )}
-          {episodes && (
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <span style={{ fontSize: "22px" }}>📺</span>
-              <span style={{ fontSize: "22px" }}>{episodes} épisodes</span>
-            </div>
-          )}
-        </div>
+      ) : null}
+
+      {/* Recent animes section */}
+      <div
+        style={{
+          position: "absolute",
+          top: "220px",
+          left: "40px",
+          fontSize: "20px",
+          fontWeight: "bold",
+        }}
+      >
+        Derniers animes:
+      </div>
+
+      <div
+        style={{
+          position: "absolute",
+          top: "250px",
+          left: "40px",
+          fontSize: "16px",
+          color: "#ffffff",
+        }}
+      >
+        1. {title}
+      </div>
+
+      {/* Status and episodes */}
+      <div
+        style={{
+          position: "absolute",
+          top: "270px",
+          left: "40px",
+          fontSize: "16px",
+          color: "#e0e0e0",
+        }}
+      >
+        {status ? `Status: ${status}` : ""}{" "}
+        {episodes ? `• ${episodes} épisodes` : ""}
+      </div>
+
+      {/* Recent mangas section */}
+      <div
+        style={{
+          position: "absolute",
+          top: "320px",
+          left: "40px",
+          fontSize: "20px",
+          fontWeight: "bold",
+        }}
+      >
+        Derniers mangas:
+      </div>
+
+      <div
+        style={{
+          position: "absolute",
+          top: "350px",
+          left: "40px",
+          fontSize: "16px",
+          color: "#ffffff",
+        }}
+      >
+        Aucun manga récent
       </div>
     </div>
   );
