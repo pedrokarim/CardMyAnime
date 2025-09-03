@@ -86,6 +86,48 @@ export default function TestImagesPage() {
       method: "Sharp + SVG",
       status: "loading",
     },
+    {
+      id: "medium-card-test",
+      name: "Carte Medium Test",
+      description: "Reproduction exacte de mediumCard.ts avec @vercel/og",
+      url: "/api/test-images/medium-card-test",
+      method: "@vercel/og",
+      status: "loading",
+    },
+    {
+      id: "playwright-test",
+      name: "Carte Medium Playwright",
+      description: "Reproduction exacte de mediumCard.ts avec Playwright",
+      url: "/api/test-images/playwright-test",
+      method: "Playwright",
+      status: "loading",
+    },
+    {
+      id: "puppeteer-test",
+      name: "🚫 Puppeteer Désinstallé",
+      description:
+        "Puppeteer supprimé pour optimiser Vercel - Utilisez Playwright",
+      url: "/api/test-images/puppeteer-test",
+      method: "🚫 Désinstallé",
+      status: "disabled",
+    },
+    {
+      id: "canvas-puppeteer",
+      name: "🚫 Canvas + Puppeteer Désinstallé",
+      description:
+        "Puppeteer supprimé pour optimiser Vercel - Utilisez Canvas + Playwright",
+      url: "/api/test-images/canvas-puppeteer",
+      method: "🚫 Désinstallé",
+      status: "disabled",
+    },
+    {
+      id: "canvas-playwright",
+      name: "Canvas + Playwright",
+      description: "Code Canvas EXACT de mediumCard.ts rendu avec Playwright",
+      url: "/api/test-images/canvas-playwright",
+      method: "Canvas + Playwright",
+      status: "loading",
+    },
   ]);
 
   const [overallStatus, setOverallStatus] = useState<
@@ -99,6 +141,12 @@ export default function TestImagesPage() {
 
       for (let i = 0; i < updatedImages.length; i++) {
         const image = updatedImages[i];
+
+        // Ignorer les routes désactivées
+        if (image.status === "disabled") {
+          continue;
+        }
+
         try {
           // Tester si l'image se charge
           const response = await fetch(image.url);
@@ -117,11 +165,14 @@ export default function TestImagesPage() {
         await new Promise((resolve) => setTimeout(resolve, 500));
       }
 
-      // Déterminer le statut global
-      const successCount = updatedImages.filter(
+      // Déterminer le statut global (ignorer les routes désactivées)
+      const activeImages = updatedImages.filter(
+        (img) => img.status !== "disabled"
+      );
+      const successCount = activeImages.filter(
         (img) => img.status === "success"
       ).length;
-      const errorCount = updatedImages.filter(
+      const errorCount = activeImages.filter(
         (img) => img.status === "error"
       ).length;
 
