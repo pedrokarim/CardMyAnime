@@ -19,6 +19,7 @@ export function Navbar({ currentPlatform }: NavbarProps) {
   const navLinks = [
     { href: "/", label: "Accueil" },
     { href: "/ranking", label: "Classement" },
+    { href: "/test-images", label: "Test Images" },
     { href: "/contact", label: "Contact" },
     { href: "/about", label: "À propos" },
   ];
