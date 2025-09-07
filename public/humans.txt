@@ -1,0 +1,30 @@
+# humanstxt.org/
+# The humans responsible & technology colophon
+
+# TEAM
+
+    Developer: Ahmed Karim (PedroKarim64)
+    Contact: https://discord.gg/rTd95UpUEb
+    From: France
+
+# THANKS
+
+    Community: Anime lovers worldwide
+    APIs: AniList, MyAnimeList, Nautiljon
+    Inspiration: Open source community
+
+# TECHNOLOGY COLOPHON
+
+    Frontend: Next.js 14, React 19, TypeScript, Tailwind CSS
+    Backend: tRPC, Prisma ORM, SQLite
+    APIs: AniList GraphQL, Jikan API, Web Scraping
+    Deployment: Vercel, Docker
+    Fonts: Geist Sans, Geist Mono
+    Icons: Lucide React
+    UI: shadcn/ui
+
+# SITE
+
+    Last update: 2025/09/07
+    Language: French
+    Doctype: HTML5

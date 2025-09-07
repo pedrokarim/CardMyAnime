@@ -1,0 +1,43 @@
+User-agent: *
+Allow: /
+
+# Pages principales
+Allow: /about
+Allow: /contact
+Allow: /ranking
+Allow: /terms
+Allow: /data-deletion
+
+# APIs publiques
+Allow: /api/og
+Allow: /api/health
+
+# Pages d'authentification (optionnel)
+Allow: /auth/signin
+Allow: /auth/error
+
+# Bloquer les pages d'administration
+Disallow: /admin
+Disallow: /admin/*
+
+# Bloquer les APIs privées
+Disallow: /api/admin
+Disallow: /api/admin/*
+Disallow: /api/auth
+Disallow: /api/auth/*
+Disallow: /api/trpc
+Disallow: /api/trpc/*
+
+# Bloquer les routes de génération de cartes (trop dynamiques)
+Disallow: /card
+Disallow: /card/*
+
+# Bloquer les pages de test
+Disallow: /test-images
+Disallow: /test-images/*
+
+# Sitemap
+Sitemap: https://cma.ascencia.re/sitemap.xml
+
+# Crawl-delay pour éviter de surcharger les APIs
+Crawl-delay: 1
