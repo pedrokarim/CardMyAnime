@@ -23,16 +23,19 @@ WORKDIR /app
 COPY package*.json ./
 COPY bun.lock ./
 
+# Copie le schéma Prisma pour le postinstall
+COPY prisma/ ./prisma/
+
 # Installe les dépendances avec Bun (plus rapide que npm)
 RUN bun install --frozen-lockfile
 
-# Copie le code source
+# Copie le reste du code source
 COPY . .
 
 # Copie le fichier .env pour le build (si il existe)
 COPY .env* ./
 
-# Générer le client Prisma
+# Générer le client Prisma (déjà fait dans postinstall, mais on le refait pour être sûr)
 RUN bunx prisma generate
 
 # Build de l'application
