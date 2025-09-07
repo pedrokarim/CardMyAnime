@@ -1,45 +1,47 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:15-alpine
-    container_name: cardmyanime-postgres
+  cardmyanime:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cardmyanime-app
     restart: unless-stopped
-    environment:
-      POSTGRES_DB: cardmyanime
-      POSTGRES_USER: cardmyanime
-      POSTGRES_PASSWORD: cardmyanime123
     ports:
-      - "5432:5432"
+      - "${PORT:-3000}:${PORT:-3000}"
+    environment:
+      - NODE_ENV=production
+      - PORT=${PORT:-3000}
+      - DATABASE_URL=${DATABASE_URL}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - NEXTAUTH_URL=${NEXTAUTH_URL}
+      - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID}
+      - DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET}
+    env_file:
+      - .env
+    # Configuration pour la santé de l'application
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:${PORT:-3000}/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    # Limites de ressources
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    # Volumes pour les logs uniquement
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./logs:/app/logs
+    # Réseau
     networks:
       - cardmyanime-network
-
-  # Optionnel : pgAdmin pour gérer la base de données
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: cardmyanime-pgadmin
-    restart: unless-stopped
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@cardmyanime.com
-      PGADMIN_DEFAULT_PASSWORD: admin123
-    ports:
-      - "8080:80"
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
-    networks:
-      - cardmyanime-network
-    depends_on:
-      - postgres
-
-volumes:
-  postgres_data:
-    driver: local
-  pgadmin_data:
-    driver: local
 
 networks:
   cardmyanime-network:
-    driver: bridge
+    driver: bridge 
