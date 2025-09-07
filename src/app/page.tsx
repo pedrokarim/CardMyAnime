@@ -614,14 +614,14 @@ export default function HomePage() {
             <div className="border-t border-border pt-4">
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-xs">
                 <p>
-                  © 2025 {SITE_CONFIG.company.name} -{" "}
+                  © 2025{" "}
                   <a
                     href={SITE_CONFIG.company.website}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-primary hover:underline"
                   >
-                    {SITE_CONFIG.company.website}
+                    {SITE_CONFIG.company.name}
                   </a>
                 </p>
                 <span className="hidden sm:inline">•</span>
