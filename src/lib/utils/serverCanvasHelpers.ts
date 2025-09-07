@@ -3,7 +3,6 @@ import {
   loadImage,
   Canvas,
   CanvasRenderingContext2D,
-  registerFont,
 } from "canvas";
 import path from "path";
 
@@ -81,23 +80,31 @@ export class ServerCanvasHelper {
       console.log("🔤 Enregistrement des polices TTF...");
       console.log("notoSansPath", notoSansPath);
       console.log("emojiPath", emojiPath);
-      // Enregistrer Noto Sans
-      registerFont(notoSansPath, {
-        family: "Noto Sans",
-        weight: "400",
-        style: "normal",
-      });
 
-      // Enregistrer Noto Color Emoji
-      registerFont(emojiPath, {
-        family: "Noto Color Emoji",
-        weight: "400",
-        style: "normal",
-      });
+      // Import dynamique de registerFont pour éviter les erreurs de build
+      import("canvas")
+        .then((canvas) => {
+          // Enregistrer Noto Sans
+          canvas.registerFont(notoSansPath, {
+            family: "Noto Sans",
+            weight: "400",
+            style: "normal",
+          });
 
-      console.log(
-        "✅ Polices TTF enregistrées avec succès depuis public/fonts"
-      );
+          // Enregistrer Noto Color Emoji
+          canvas.registerFont(emojiPath, {
+            family: "Noto Color Emoji",
+            weight: "400",
+            style: "normal",
+          });
+
+          console.log(
+            "✅ Polices TTF enregistrées avec succès depuis public/fonts"
+          );
+        })
+        .catch((importError) => {
+          console.warn("⚠️ Impossible d'importer registerFont:", importError);
+        });
     } catch (error) {
       console.warn("⚠️ Impossible d'enregistrer les polices TTF:", error);
     }

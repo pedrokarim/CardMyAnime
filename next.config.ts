@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
+  output: "standalone", // Activer le mode standalone pour Docker
   serverExternalPackages: ["@prisma/client", "prisma", "@napi-rs/canvas"],
   // Désactiver la validation TypeScript
   typescript: {
