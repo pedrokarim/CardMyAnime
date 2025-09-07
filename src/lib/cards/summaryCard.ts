@@ -26,9 +26,6 @@ export async function generateSummaryCard(
     await helper.createSimpleBackground();
   }
 
-  // Gros bloc noir transparent qui englobe tous les éléments
-  helper.drawRect(20, 20, 760, 560, "rgba(0, 0, 0, 0.7)");
-
   // En-tête avec avatar et nom
   if (userData.avatarUrl && userData.avatarUrl.trim() !== "") {
     try {
@@ -71,15 +68,14 @@ export async function generateSummaryCard(
         console.log("Avatar fallback chargé avec succès");
       } catch (fallbackError) {
         console.error("Erreur avatar fallback:", fallbackError);
-        // Dernier recours : rectangle blanc avec texte
-        helper.drawRoundedRect(30, 30, 80, 80, 40, "#ffffff");
+        // Dernier recours : texte simple sans fond
         helper.drawText({
           x: 70,
           y: 75,
           text: "USER",
           fontSize: 16,
           fontFamily: "Arial, sans-serif",
-          color: "#000000",
+          color: "#ffffff",
           textAlign: "center",
         });
       }
@@ -115,15 +111,14 @@ export async function generateSummaryCard(
       console.log("Avatar fallback chargé avec succès (direct)");
     } catch (fallbackError) {
       console.error("Erreur avatar fallback direct:", fallbackError);
-      // Dernier recours : rectangle blanc avec texte
-      helper.drawRoundedRect(30, 30, 80, 80, 40, "#ffffff");
+      // Dernier recours : texte simple sans fond
       helper.drawText({
         x: 70,
         y: 75,
         text: "USER",
         fontSize: 16,
         fontFamily: "Arial, sans-serif",
-        color: "#000000",
+        color: "#ffffff",
         textAlign: "center",
       });
     }
@@ -194,23 +189,8 @@ export async function generateSummaryCard(
   mainStats.forEach((stat, index) => {
     const statX = 30 + index * (mainCardWidth + spacing);
 
-    // Fond semi-transparent pour chaque stat
-    helper.drawRect(
-      statX + 20,
-      140,
-      mainCardWidth - 40,
-      120,
-      "rgba(255, 255, 255, 0.1)"
-    );
-
-    // Bordure colorée
-    helper.drawRect(statX + 20, 140, mainCardWidth - 40, 3, stat.color);
-
     // Valeur principale - plus grande et plus visible
     const valueText = stat.value.toString();
-
-    // Dessiner le texte avec un fond blanc pour le rendre plus visible
-    helper.drawRect(statX + 100, 160, 30, 30, "#ffffff");
 
     helper.drawText({
       x: statX + 115,
@@ -218,7 +198,7 @@ export async function generateSummaryCard(
       text: valueText,
       fontSize: 36,
       fontFamily: "Arial, sans-serif",
-      color: stat.color,
+      color: "#ffffff",
       textAlign: "center",
     });
 
@@ -394,7 +374,11 @@ export async function generateSummaryCard(
           ? "[EN COURS]"
           : anime.status === "PLANNING"
           ? "[À VOIR]"
-          : "[?]";
+          : anime.status === "PAUSED"
+          ? "[EN PAUSE]"
+          : anime.status === "DROPPED"
+          ? "[ABANDONNÉ]"
+          : "";
 
       helper.drawTruncatedText(
         `${index + 1}. ${statusIcon} ${anime.title}`,
@@ -454,7 +438,11 @@ export async function generateSummaryCard(
           ? "[EN COURS]"
           : manga.status === "PLANNING"
           ? "[À VOIR]"
-          : "[?]";
+          : manga.status === "PAUSED"
+          ? "[EN PAUSE]"
+          : manga.status === "DROPPED"
+          ? "[ABANDONNÉ]"
+          : "";
 
       helper.drawTruncatedText(
         `${index + 1}. ${statusIcon} ${manga.title}`,

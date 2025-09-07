@@ -21,13 +21,6 @@ export async function generateLargeCard(
     await helper.createSimpleBackground();
   }
 
-  // Bloc 1 : En-tête (avatar + nom + stats)
-  helper.drawRect(20, 20, 760, 170, "rgba(0, 0, 0, 0.7)");
-
-  // Bloc 2 : Grand bloc qui englobe derniers animes + derniers mangas
-  // Commence à Y=190 pour englober le titre "Derniers animes:" à Y=200
-  helper.drawRect(20, 190, 760, 290, "rgba(0, 0, 0, 0.7)");
-
   // Dessiner l'avatar
   if (userData.avatarUrl && userData.avatarUrl.trim() !== "") {
     try {
@@ -64,15 +57,14 @@ export async function generateLargeCard(
           fallbackPath
         );
       } catch (fallbackError) {
-        // Dernier recours : rectangle blanc avec emoji
-        helper.drawRoundedRect(40, 40, 120, 120, 60, "#ffffff");
+        // Dernier recours : texte simple sans fond
         helper.drawText({
           x: 100,
           y: 100,
-          text: "👤",
-          fontSize: 48,
+          text: "USER",
+          fontSize: 24,
           fontFamily: "Arial, sans-serif",
-          color: "#000000",
+          color: "#ffffff",
           textAlign: "center",
         });
       }
@@ -99,15 +91,14 @@ export async function generateLargeCard(
         fallbackPath
       );
     } catch (fallbackError) {
-      // Dernier recours : rectangle blanc avec emoji
-      helper.drawRoundedRect(40, 40, 120, 120, 60, "#ffffff");
+      // Dernier recours : texte simple sans fond
       helper.drawText({
         x: 100,
         y: 100,
-        text: "👤",
-        fontSize: 48,
+        text: "USER",
+        fontSize: 24,
         fontFamily: "Arial, sans-serif",
-        color: "#000000",
+        color: "#ffffff",
         textAlign: "center",
       });
     }

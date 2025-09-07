@@ -57,8 +57,16 @@ export async function generateSmallCard(
           fallbackPath
         );
       } catch (fallbackError) {
-        // Dernier recours : rectangle blanc
-        helper.drawRoundedRect(20, 20, 60, 60, 30, "#ffffff");
+        // Dernier recours : texte simple sans fond
+        helper.drawText({
+          x: 50,
+          y: 50,
+          text: "USER",
+          fontSize: 12,
+          fontFamily: "Arial, sans-serif",
+          color: "#ffffff",
+          textAlign: "center",
+        });
       }
     }
   } else {
@@ -83,8 +91,16 @@ export async function generateSmallCard(
         fallbackPath
       );
     } catch (fallbackError) {
-      // Dernier recours : rectangle blanc
-      helper.drawRoundedRect(20, 20, 60, 60, 30, "#ffffff");
+      // Dernier recours : texte simple sans fond
+      helper.drawText({
+        x: 50,
+        y: 50,
+        text: "USER",
+        fontSize: 12,
+        fontFamily: "Arial, sans-serif",
+        color: "#ffffff",
+        textAlign: "center",
+      });
     }
   }
 

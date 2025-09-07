@@ -21,9 +21,6 @@ export async function generateMediumCard(
     await helper.createSimpleBackground();
   }
 
-  // Gros bloc noir transparent qui englobe tous les éléments
-  helper.drawRect(20, 20, 560, 260, "rgba(0, 0, 0, 0.7)");
-
   // Dessiner l'avatar
   if (userData.avatarUrl && userData.avatarUrl.trim() !== "") {
     try {
@@ -60,15 +57,14 @@ export async function generateMediumCard(
           fallbackPath
         );
       } catch (fallbackError) {
-        // Dernier recours : rectangle blanc avec emoji
-        helper.drawRoundedRect(30, 30, 100, 100, 50, "#ffffff");
+        // Dernier recours : texte simple sans fond
         helper.drawText({
           x: 80,
           y: 80,
-          text: "👤",
-          fontSize: 48,
+          text: "USER",
+          fontSize: 20,
           fontFamily: "Arial, sans-serif",
-          color: "#000000",
+          color: "#ffffff",
           textAlign: "center",
         });
       }
@@ -95,15 +91,14 @@ export async function generateMediumCard(
         fallbackPath
       );
     } catch (fallbackError) {
-      // Dernier recours : rectangle blanc avec emoji
-      helper.drawRoundedRect(30, 30, 100, 100, 50, "#ffffff");
+      // Dernier recours : texte simple sans fond
       helper.drawText({
         x: 80,
         y: 80,
-        text: "👤",
-        fontSize: 48,
+        text: "USER",
+        fontSize: 20,
         fontFamily: "Arial, sans-serif",
-        color: "#000000",
+        color: "#ffffff",
         textAlign: "center",
       });
     }
