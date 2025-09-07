@@ -12,6 +12,7 @@ const AUTHORIZED_USERS =
 
 export const authConfig: NextAuthConfig = {
   adapter: PrismaAdapter(prisma),
+  trustHost: true, // Permettre tous les hôtes (pour le déploiement)
   providers: [
     Discord({
       clientId: process.env.DISCORD_CLIENT_ID!,
