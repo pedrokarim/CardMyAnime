@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Home, Trophy, Mail, Info, Github } from "lucide-react";
+import { Home, Trophy, Mail, Info, Github, Twitter } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PlatformIcon } from "@/components/ui/platform-icon";
 import { DiscordIcon } from "@/components/ui/discord-icon";
@@ -26,6 +26,7 @@ export function Navbar({ currentPlatform }: NavbarProps) {
 
   const socialLinks = [
     { href: SITE_CONFIG.social.github, label: "GitHub", icon: Github },
+    { href: SITE_CONFIG.social.twitter, label: "Twitter", icon: Twitter },
     { href: SITE_CONFIG.social.discord, label: "Discord", icon: DiscordIcon },
   ];
 

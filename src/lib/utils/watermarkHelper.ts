@@ -2,20 +2,6 @@ import { ServerCanvasHelper } from "./serverCanvasHelpers";
 import { loadImage as canvasLoadImage } from "canvas";
 
 // Import dynamique pour éviter les problèmes de build
-let NapiRsCanvasHelper: any;
-let napiRsLoadImage: any;
-
-if (typeof window === "undefined") {
-  // Côté serveur seulement
-  try {
-    const napiRsModule = require("@napi-rs/canvas");
-    napiRsLoadImage = napiRsModule.loadImage;
-    const napiRsHelperModule = require("./napiRsCanvasHelper");
-    NapiRsCanvasHelper = napiRsHelperModule.NapiRsCanvasHelper;
-  } catch (error) {
-    console.warn("⚠️ @napi-rs/canvas non disponible:", error);
-  }
-}
 
 export interface WatermarkOptions {
   position?:
@@ -52,10 +38,7 @@ export async function addWatermark(
   // Charger le logo CMA
   try {
     const logoPath = process.cwd() + "/public/images/cma-logo-watermark.png";
-    const logo =
-      helper instanceof NapiRsCanvasHelper
-        ? await napiRsLoadImage(logoPath)
-        : await canvasLoadImage(logoPath);
+    const logo = await canvasLoadImage(logoPath);
 
     // Calculer la position du watermark
     let x: number, y: number;

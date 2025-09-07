@@ -628,6 +628,13 @@ export default function HomePage() {
                 <Link href="/terms" className="text-primary hover:underline">
                   Conditions d'utilisation
                 </Link>
+                <span className="hidden sm:inline">•</span>
+                <Link
+                  href="/data-deletion"
+                  className="text-primary hover:underline"
+                >
+                  Suppression de données
+                </Link>
               </div>
             </div>
           </div>

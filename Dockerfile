@@ -14,12 +14,7 @@ RUN apk add --no-cache \
     pixman-dev \
     pangomm-dev \
     libjpeg-turbo-dev \
-    freetype-dev \
-    fontconfig-dev \
-    ttf-dejavu \
-    ttf-liberation \
-    font-noto \
-    font-noto-emoji
+    freetype-dev
 
 # Définit le répertoire de travail
 WORKDIR /app
@@ -59,12 +54,7 @@ RUN apk add --no-cache \
     pixman \
     pangomm \
     libjpeg-turbo \
-    freetype \
-    fontconfig \
-    ttf-dejavu \
-    ttf-liberation \
-    font-noto \
-    font-noto-emoji
+    freetype
 
 # Crée un utilisateur non-root pour la sécurité
 RUN addgroup --system --gid 1001 bunjs
@@ -78,8 +68,7 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/bun.lock ./
 
-# Copie les polices personnalisées
-COPY --from=builder /app/public/fonts ./public/fonts
+# Plus de copie de polices personnalisées
 
 # Copie les fichiers de build
 COPY --from=builder --chown=nextjs:bunjs /app/.next/standalone ./

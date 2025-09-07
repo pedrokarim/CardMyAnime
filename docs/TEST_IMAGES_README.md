@@ -21,7 +21,6 @@ Tester différentes méthodes de génération d'images pour identifier laquelle 
 
 ### 2. **Canvas Natif**
 - **Node Canvas** : `/api/test-images/canvas`
-- **NAPI-RS Canvas** : `/api/test-images/napi-rs`
 
 ### 3. **Alternatives**
 - **SVG Direct** : `/api/test-images/svg`
@@ -77,7 +76,6 @@ Tester différentes méthodes de génération d'images pour identifier laquelle 
 # Tester chaque route individuellement
 curl /api/test-images
 curl /api/test-images/canvas
-curl /api/test-images/napi-rs
 ```
 
 ### 2. **Test des Accents**
@@ -109,7 +107,6 @@ curl /api/test-images/napi-rs
 ### Interprétation
 - ✅ **@vercel/og** : Solution officielle, optimisée pour Vercel
 - ⚠️ **node-canvas** : Peut poser problème sur Vercel
-- 🔄 **@napi-rs/canvas** : Alternative performante
 - 📱 **SVG** : Léger et compatible
 - 🚀 **Sharp** : Haute performance
 
@@ -121,7 +118,7 @@ curl /api/test-images/napi-rs
 ```
 Error: Canvas is not supported in this environment
 ```
-**Solution** : Utiliser @vercel/og ou @napi-rs/canvas
+**Solution** : Utiliser @vercel/og
 
 #### 2. **Texte Corrompu**
 ```
@@ -163,7 +160,6 @@ curl http://localhost:3000/api/test-images
 
 - [Documentation @vercel/og](https://vercel.com/docs/functions/og-image-generation)
 - [Documentation node-canvas](https://github.com/Automattic/node-canvas)
-- [Documentation @napi-rs/canvas](https://napi.rs/canvas)
 - [Documentation Sharp](https://sharp.pixelplumbing.com/)
 
 ## 🤝 Contribution

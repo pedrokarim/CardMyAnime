@@ -53,61 +53,8 @@ export class ServerCanvasHelper {
   }
 
   private registerFonts() {
-    try {
-      if (process.env.VERCEL) {
-        // Sur Vercel, utiliser les polices système disponibles
-        console.log(
-          "🚀 Environnement Vercel détecté - Utilisation des polices système"
-        );
-        return;
-      }
-
-      // En local, essayer d'enregistrer les polices TTF
-      const notoSansPath = path.join(
-        process.cwd(),
-        "public",
-        "fonts",
-        "NotoSans-Regular.ttf"
-      );
-
-      const emojiPath = path.join(
-        process.cwd(),
-        "public",
-        "fonts",
-        "NotoColorEmoji-Regular.ttf"
-      );
-
-      console.log("🔤 Enregistrement des polices TTF...");
-      console.log("notoSansPath", notoSansPath);
-      console.log("emojiPath", emojiPath);
-
-      // Import dynamique de registerFont pour éviter les erreurs de build
-      import("canvas")
-        .then((canvas) => {
-          // Enregistrer Noto Sans
-          canvas.registerFont(notoSansPath, {
-            family: "Noto Sans",
-            weight: "400",
-            style: "normal",
-          });
-
-          // Enregistrer Noto Color Emoji
-          canvas.registerFont(emojiPath, {
-            family: "Noto Color Emoji",
-            weight: "400",
-            style: "normal",
-          });
-
-          console.log(
-            "✅ Polices TTF enregistrées avec succès depuis public/fonts"
-          );
-        })
-        .catch((importError) => {
-          console.warn("⚠️ Impossible d'importer registerFont:", importError);
-        });
-    } catch (error) {
-      console.warn("⚠️ Impossible d'enregistrer les polices TTF:", error);
-    }
+    // Plus de gestion spéciale des polices - on utilise les polices système
+    console.log("🔤 Utilisation des polices système par défaut");
   }
 
   // Configuration initiale du canvas
@@ -151,40 +98,8 @@ export class ServerCanvasHelper {
   drawText(config: TextConfig) {
     this.ctx.save();
 
-    // Utiliser des polices appropriées selon l'environnement
+    // Utiliser la police par défaut
     let fontFamily = config.fontFamily || "Arial, sans-serif";
-
-    // Détecter l'environnement Docker
-    const isDocker =
-      process.env.NODE_ENV === "production" && !process.env.VERCEL;
-    const hasEmojis = /\p{Emoji}/u.test(config.text);
-
-    if (isDocker) {
-      // Dans Docker, utiliser les polices Alpine Linux installées
-      if (hasEmojis) {
-        fontFamily =
-          "Noto Color Emoji, Noto Sans, Liberation Sans, DejaVu Sans, Arial, sans-serif";
-      } else {
-        fontFamily =
-          "Noto Sans, Liberation Sans, DejaVu Sans, Arial, sans-serif";
-      }
-    } else if (process.env.VERCEL) {
-      // Sur Vercel, utiliser des polices système Linux qui supportent les emojis
-      if (hasEmojis) {
-        fontFamily =
-          "Noto Color Emoji, Noto Sans, Liberation Sans, Arial, sans-serif";
-      } else {
-        fontFamily =
-          "Noto Sans, Liberation Sans, DejaVu Sans, Arial, sans-serif";
-      }
-    } else {
-      // En local, utiliser nos polices TTF
-      if (hasEmojis) {
-        fontFamily = "Noto Color Emoji, Noto Sans, Arial, sans-serif";
-      } else {
-        fontFamily = "Noto Sans, Arial, sans-serif";
-      }
-    }
 
     this.ctx.font = `${config.fontSize}px ${fontFamily}`;
     this.ctx.fillStyle = config.color || "#000000";
@@ -241,40 +156,8 @@ export class ServerCanvasHelper {
   ) {
     this.ctx.save();
 
-    // Utiliser des polices appropriées selon l'environnement
+    // Utiliser la police par défaut
     let finalFontFamily = fontFamily;
-
-    // Détecter l'environnement Docker
-    const isDocker =
-      process.env.NODE_ENV === "production" && !process.env.VERCEL;
-    const hasEmojis = /\p{Emoji}/u.test(text);
-
-    if (isDocker) {
-      // Dans Docker, utiliser les polices Alpine Linux installées
-      if (hasEmojis) {
-        finalFontFamily =
-          "Noto Color Emoji, Noto Sans, Liberation Sans, DejaVu Sans, Arial, sans-serif";
-      } else {
-        finalFontFamily =
-          "Noto Sans, Liberation Sans, DejaVu Sans, Arial, sans-serif";
-      }
-    } else if (process.env.VERCEL) {
-      // Sur Vercel, utiliser des polices système Linux qui supportent les emojis
-      if (hasEmojis) {
-        finalFontFamily =
-          "Noto Color Emoji, Noto Sans, Liberation Sans, Arial, sans-serif";
-      } else {
-        finalFontFamily =
-          "Noto Sans, Liberation Sans, DejaVu Sans, Arial, sans-serif";
-      }
-    } else {
-      // En local, utiliser nos polices TTF
-      if (hasEmojis) {
-        finalFontFamily = "Noto Color Emoji, Noto Sans, Arial, sans-serif";
-      } else {
-        finalFontFamily = "Noto Sans, Arial, sans-serif";
-      }
-    }
 
     this.ctx.font = `${fontSize}px ${finalFontFamily}`;
     this.ctx.fillStyle = color;

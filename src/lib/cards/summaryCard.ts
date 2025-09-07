@@ -6,22 +6,10 @@ export async function generateSummaryCard(
   userData: UserData,
   useLastAnimeBackground: boolean = true
 ): Promise<string> {
+  // Génération de la carte résumé
   console.log("=== GÉNÉRATION CARTE RÉSUMÉ ===");
-  console.log("Données utilisateur:", JSON.stringify(userData, null, 2));
-  console.log("Stats brutes:", {
-    animesSeen: userData.stats.animesSeen,
-    mangasRead: userData.stats.mangasRead,
-    avgScore: userData.stats.avgScore,
-    totalEpisodes: userData.stats.totalEpisodes,
-    totalChapters: userData.stats.totalChapters,
-    daysWatched: userData.stats.daysWatched,
-    watchingCount: userData.stats.watchingCount,
-    readingCount: userData.stats.readingCount,
-    completedCount: userData.stats.completedCount,
-    droppedCount: userData.stats.droppedCount,
-    planToWatchCount: userData.stats.planToWatchCount,
-    planToReadCount: userData.stats.planToReadCount,
-  });
+  console.log("Répertoire de travail:", process.cwd());
+  console.log("Avatar URL:", userData.avatarUrl);
 
   const width = 800;
   const height = 600;
@@ -42,33 +30,103 @@ export async function generateSummaryCard(
   helper.drawRect(20, 20, 760, 560, "rgba(0, 0, 0, 0.7)");
 
   // En-tête avec avatar et nom
-  try {
-    console.log("Tentative de chargement avatar:", userData.avatarUrl);
-    await helper.drawRoundedImage(
-      {
-        x: 30,
-        y: 30,
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        shadow: true,
-      },
-      userData.avatarUrl
-    );
-    console.log("Avatar chargé avec succès");
-  } catch (error) {
-    console.error("Erreur avatar:", error);
-    // Fallback si l'image ne charge pas - similaire aux autres cartes
-    helper.drawRoundedRect(30, 30, 80, 80, 40, "#ffffff");
-    helper.drawText({
-      x: 70,
-      y: 75,
-      text: "👤",
-      fontSize: 32,
-      fontFamily: "Arial, sans-serif",
-      color: "#000000",
-      textAlign: "center",
-    });
+  if (userData.avatarUrl && userData.avatarUrl.trim() !== "") {
+    try {
+      await helper.drawRoundedImage(
+        {
+          x: 30,
+          y: 30,
+          width: 80,
+          height: 80,
+          borderRadius: 40,
+          shadow: true,
+        },
+        userData.avatarUrl
+      );
+    } catch (error) {
+      // Fallback avec image d'avatar par défaut
+      try {
+        const path = require("path");
+
+        // Chemin simple vers l'image fallback
+        const fallbackPath = path.join(
+          process.cwd(),
+          "public",
+          "images",
+          "avatar-fallback.png"
+        );
+        console.log("Tentative de chargement avatar fallback:", fallbackPath);
+
+        await helper.drawRoundedImage(
+          {
+            x: 30,
+            y: 30,
+            width: 80,
+            height: 80,
+            borderRadius: 40,
+            shadow: true,
+          },
+          fallbackPath
+        );
+        console.log("Avatar fallback chargé avec succès");
+      } catch (fallbackError) {
+        console.error("Erreur avatar fallback:", fallbackError);
+        // Dernier recours : rectangle blanc avec texte
+        helper.drawRoundedRect(30, 30, 80, 80, 40, "#ffffff");
+        helper.drawText({
+          x: 70,
+          y: 75,
+          text: "USER",
+          fontSize: 16,
+          fontFamily: "Arial, sans-serif",
+          color: "#000000",
+          textAlign: "center",
+        });
+      }
+    }
+  } else {
+    // Pas d'URL d'avatar, utiliser directement l'image fallback
+    try {
+      const path = require("path");
+
+      // Chemin simple vers l'image fallback
+      const fallbackPath = path.join(
+        process.cwd(),
+        "public",
+        "images",
+        "avatar-fallback.png"
+      );
+      console.log(
+        "Tentative de chargement avatar fallback direct:",
+        fallbackPath
+      );
+
+      await helper.drawRoundedImage(
+        {
+          x: 30,
+          y: 30,
+          width: 80,
+          height: 80,
+          borderRadius: 40,
+          shadow: true,
+        },
+        fallbackPath
+      );
+      console.log("Avatar fallback chargé avec succès (direct)");
+    } catch (fallbackError) {
+      console.error("Erreur avatar fallback direct:", fallbackError);
+      // Dernier recours : rectangle blanc avec texte
+      helper.drawRoundedRect(30, 30, 80, 80, 40, "#ffffff");
+      helper.drawText({
+        x: 70,
+        y: 75,
+        text: "USER",
+        fontSize: 16,
+        fontFamily: "Arial, sans-serif",
+        color: "#000000",
+        textAlign: "center",
+      });
+    }
   }
 
   // Nom d'utilisateur
@@ -105,7 +163,7 @@ export async function generateSummaryCard(
       label: "Animes",
       value: userData.stats.animesSeen || 0,
       color: "#58a6ff",
-      icon: "🎬",
+      icon: "ANIME",
       subtitle: userData.stats.totalEpisodes
         ? `${userData.stats.totalEpisodes} épisodes`
         : "épisodes",
@@ -114,7 +172,7 @@ export async function generateSummaryCard(
       label: "Mangas",
       value: userData.stats.mangasRead || 0,
       color: "#f85149",
-      icon: "📚",
+      icon: "MANGA",
       subtitle: userData.stats.totalChapters
         ? `${userData.stats.totalChapters} chapitres`
         : "chapitres",
@@ -123,7 +181,7 @@ export async function generateSummaryCard(
       label: "Note Moy.",
       value: userData.stats.avgScore || 0,
       color: "#ffd700",
-      icon: "⭐",
+      icon: "SCORE",
       subtitle: "points",
     },
   ];
@@ -132,15 +190,9 @@ export async function generateSummaryCard(
   const mainCardWidth = 230;
   const spacing = 20; // Espacement fixe entre les cartes
 
-  console.log("Stats principales:", mainStats);
-
   // Dessiner les stats principales avec fond et meilleur contraste
   mainStats.forEach((stat, index) => {
     const statX = 30 + index * (mainCardWidth + spacing);
-
-    console.log(
-      `Carte ${index}: x=${statX}, valeur=${stat.value}, label=${stat.label}`
-    );
 
     // Fond semi-transparent pour chaque stat
     helper.drawRect(
@@ -156,9 +208,9 @@ export async function generateSummaryCard(
 
     // Valeur principale - plus grande et plus visible
     const valueText = stat.value.toString();
-    console.log(
-      `Dessinage texte: "${valueText}" à la position (${statX + 115}, 180)`
-    );
+
+    // Dessiner le texte avec un fond blanc pour le rendre plus visible
+    helper.drawRect(statX + 100, 160, 30, 30, "#ffffff");
 
     helper.drawText({
       x: statX + 115,
@@ -201,25 +253,25 @@ export async function generateSummaryCard(
       label: "En cours",
       value: userData.stats.watchingCount || 0,
       color: "#7c3aed",
-      icon: "▶️",
+      icon: "EN COURS",
     },
     {
       label: "Terminés",
       value: userData.stats.completedCount || 0,
       color: "#059669",
-      icon: "✅",
+      icon: "TERMINÉ",
     },
     {
       label: "Abandonnés",
       value: userData.stats.droppedCount || 0,
       color: "#dc2626",
-      icon: "❌",
+      icon: "ABANDON",
     },
     {
       label: "À voir",
       value: userData.stats.planToWatchCount || 0,
       color: "#ea580c",
-      icon: "📋",
+      icon: "À VOIR",
     },
   ];
 
@@ -227,23 +279,12 @@ export async function generateSummaryCard(
   const detailCardWidth = 170;
   const detailSpacing = 20; // Espacement fixe
 
-  console.log("Stats détaillées:", detailStats);
-
   // SUPPRIMER LES FONDS DÉTAILLÉS - Juste le texte
   detailStats.forEach((stat, index) => {
     const detailStatX = 30 + index * (detailCardWidth + detailSpacing);
 
-    console.log(
-      `Carte détail ${index}: x=${detailStatX}, valeur=${stat.value}, label=${stat.label}`
-    );
-
     // DESSINER SEULEMENT LE TEXTE - PAS DE FOND
     const valueText = stat.value.toString();
-    console.log(
-      `Dessinage texte détail: "${valueText}" à la position (${
-        detailStatX + 85
-      }, 315)`
-    );
 
     // Icône avec vraie couleur - PLUS HAUT pour espacer
     helper.drawText({
@@ -287,7 +328,7 @@ export async function generateSummaryCard(
     helper.drawText({
       x: 30,
       y: 370,
-      text: "🎭 Genres favoris",
+      text: "Genres favoris",
       fontSize: 16,
       fontFamily: "Arial, sans-serif",
       color: "#f0f6fc",
@@ -323,7 +364,7 @@ export async function generateSummaryCard(
   helper.drawText({
     x: 30,
     y: listsStartY,
-    text: "🎬 Derniers animes",
+    text: "Derniers animes",
     fontSize: 16,
     fontFamily: "Arial, sans-serif",
     color: "#f0f6fc",
@@ -348,12 +389,12 @@ export async function generateSummaryCard(
       const y = listsStartY + 25 + index * 22;
       const statusIcon =
         anime.status === "COMPLETED"
-          ? "✅"
+          ? "[TERMINÉ]"
           : anime.status === "CURRENT"
-          ? "▶️"
+          ? "[EN COURS]"
           : anime.status === "PLANNING"
-          ? "📋"
-          : "❓";
+          ? "[À VOIR]"
+          : "[?]";
 
       helper.drawTruncatedText(
         `${index + 1}. ${statusIcon} ${anime.title}`,
@@ -369,7 +410,7 @@ export async function generateSummaryCard(
         helper.drawText({
           x: 380,
           y: y,
-          text: `⭐ ${anime.score}`,
+          text: `★ ${anime.score}`,
           fontSize: 11,
           fontFamily: "Arial, sans-serif",
           color: "#ffd700",
@@ -383,7 +424,7 @@ export async function generateSummaryCard(
   helper.drawText({
     x: 420,
     y: listsStartY,
-    text: "📚 Derniers mangas",
+    text: "Derniers mangas",
     fontSize: 16,
     fontFamily: "Arial, sans-serif",
     color: "#f0f6fc",
@@ -408,12 +449,12 @@ export async function generateSummaryCard(
       const y = listsStartY + 25 + index * 22;
       const statusIcon =
         manga.status === "COMPLETED"
-          ? "✅"
+          ? "[TERMINÉ]"
           : manga.status === "CURRENT"
-          ? "▶️"
+          ? "[EN COURS]"
           : manga.status === "PLANNING"
-          ? "📋"
-          : "❓";
+          ? "[À VOIR]"
+          : "[?]";
 
       helper.drawTruncatedText(
         `${index + 1}. ${statusIcon} ${manga.title}`,
@@ -429,7 +470,7 @@ export async function generateSummaryCard(
         helper.drawText({
           x: 770,
           y: y,
-          text: `⭐ ${manga.score}`,
+          text: `★ ${manga.score}`,
           fontSize: 11,
           fontFamily: "Arial, sans-serif",
           color: "#ffd700",

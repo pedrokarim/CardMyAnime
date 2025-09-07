@@ -13,7 +13,7 @@ export default function TermsPage() {
 
       <div className="prose prose-lg dark:prose-invert max-w-none">
         <p className="text-muted-foreground mb-8">
-          Dernière mise à jour : Janvier 2025
+          Dernière mise à jour : 07 septembre 2025
         </p>
 
         <section className="mb-8">
@@ -79,16 +79,100 @@ export default function TermsPage() {
 
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4">
-            4. Données et confidentialité
+            4. Collecte et traitement des données
           </h2>
+
+          <h3 className="text-xl font-medium mb-3">
+            4.1 Types de données collectées
+          </h3>
           <p>
-            {SITE_CONFIG.site.name} récupère uniquement les données publiques de
-            vos profils sur les plateformes d'anime pour générer vos cartes.
-            Aucune donnée personnelle n'est stockée de manière permanente.
+            {SITE_CONFIG.site.name} collecte et traite les données suivantes via
+            les APIs publiques :
+          </p>
+          <ul className="list-disc pl-6 mb-4">
+            <li>
+              <strong>Données de profil :</strong> nom d'utilisateur, avatar,
+              statistiques générales
+            </li>
+            <li>
+              <strong>Données d'activité :</strong> listes d'animes/mangas,
+              scores, statuts de visionnage
+            </li>
+            <li>
+              <strong>Métadonnées :</strong> dates de mise à jour, nombre
+              d'épisodes, genres
+            </li>
+            <li>
+              <strong>Données de performance :</strong> temps de réponse des
+              APIs, erreurs de récupération
+            </li>
+          </ul>
+
+          <h3 className="text-xl font-medium mb-3">4.2 Sources de données</h3>
+          <ul className="list-disc pl-6 mb-4">
+            <li>
+              <strong>AniList :</strong> API GraphQL officielle
+              (https://anilist.co/graphiql)
+            </li>
+            <li>
+              <strong>MyAnimeList :</strong> API Jikan non-officielle
+              (https://jikan.moe/)
+            </li>
+            <li>
+              <strong>Nautiljon :</strong> Scraping de profils publics
+              uniquement
+            </li>
+          </ul>
+
+          <h3 className="text-xl font-medium mb-3">
+            4.3 Stockage et conservation
+          </h3>
+          <p>
+            Les données sont mises en cache temporairement (maximum 24 heures)
+            pour améliorer les performances. Aucune donnée personnelle n'est
+            stockée de manière permanente sur nos serveurs.
           </p>
           <p>
-            Les données sont mises en cache temporairement pour améliorer les
-            performances, mais peuvent être supprimées à tout moment.
+            <strong>Important :</strong> Nous ne stockons pas vos mots de passe,
+            emails privés, ou toute autre information sensible. Seules les
+            données publiquement accessibles via les APIs sont utilisées.
+          </p>
+
+          <h3 className="text-xl font-medium mb-3">
+            4.4 Droits des utilisateurs (RGPD)
+          </h3>
+          <p>
+            Conformément au Règlement Général sur la Protection des Données,
+            vous disposez des droits suivants :
+          </p>
+          <ul className="list-disc pl-6 mb-4">
+            <li>
+              <strong>Droit d'accès :</strong> Consulter les données que nous
+              avons sur vous
+            </li>
+            <li>
+              <strong>Droit de rectification :</strong> Corriger des données
+              inexactes
+            </li>
+            <li>
+              <strong>Droit à l'effacement :</strong> Demander la suppression de
+              vos données
+            </li>
+            <li>
+              <strong>Droit à la portabilité :</strong> Récupérer vos données
+              dans un format structuré
+            </li>
+            <li>
+              <strong>Droit d'opposition :</strong> Vous opposer au traitement
+              de vos données
+            </li>
+          </ul>
+          <p>
+            Pour exercer ces droits, utilisez notre{" "}
+            <a href="/data-deletion" className="text-primary hover:underline">
+              formulaire de suppression de données
+            </a>{" "}
+            ou contactez-nous directement.
           </p>
         </section>
 
@@ -111,14 +195,54 @@ export default function TermsPage() {
           <h2 className="text-2xl font-semibold mb-4">
             6. Limitation de responsabilité
           </h2>
+
+          <h3 className="text-xl font-medium mb-3">
+            6.1 Service fourni "tel quel"
+          </h3>
           <p>
             {SITE_CONFIG.site.name} est fourni "tel quel" sans garantie d'aucune
             sorte. Le service peut être temporairement indisponible pour
             maintenance ou en cas de problème technique.
           </p>
+
+          <h3 className="text-xl font-medium mb-3">6.2 APIs tierces</h3>
           <p>
-            Nous ne sommes pas responsables des dommages directs ou indirects
-            résultant de l'utilisation de ce service.
+            Notre service dépend d'APIs tierces (AniList, MyAnimeList,
+            Nautiljon). Nous ne sommes pas responsables :
+          </p>
+          <ul className="list-disc pl-6 mb-4">
+            <li>Des modifications ou interruptions des APIs tierces</li>
+            <li>
+              De la disponibilité ou de la fiabilité des données provenant de
+              ces APIs
+            </li>
+            <li>
+              Des changements dans les conditions d'utilisation des plateformes
+              tierces
+            </li>
+            <li>Des limitations de taux imposées par les APIs externes</li>
+          </ul>
+
+          <h3 className="text-xl font-medium mb-3">6.3 Données et contenu</h3>
+          <p>Nous ne sommes pas responsables :</p>
+          <ul className="list-disc pl-6 mb-4">
+            <li>De l'exactitude des données récupérées via les APIs</li>
+            <li>Des modifications de contenu sur les plateformes tierces</li>
+            <li>
+              De la suppression ou modification de profils utilisateurs sur les
+              plateformes externes
+            </li>
+            <li>
+              Des problèmes de synchronisation entre les différentes sources de
+              données
+            </li>
+          </ul>
+
+          <h3 className="text-xl font-medium mb-3">6.4 Dommages</h3>
+          <p>
+            Dans la mesure permise par la loi, nous ne sommes pas responsables
+            des dommages directs, indirects, accessoires, spéciaux ou
+            consécutifs résultant de l'utilisation de ce service.
           </p>
         </section>
 

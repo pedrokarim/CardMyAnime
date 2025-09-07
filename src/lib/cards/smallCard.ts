@@ -22,21 +22,70 @@ export async function generateSmallCard(
   }
 
   // Dessiner l'avatar
-  try {
-    await helper.drawRoundedImage(
-      {
-        x: 20,
-        y: 20,
-        width: 60,
-        height: 60,
-        borderRadius: 30,
-        shadow: true,
-      },
-      userData.avatarUrl
-    );
-  } catch (error) {
-    // Fallback si l'image ne charge pas
-    helper.drawRoundedRect(20, 20, 60, 60, 30, "#ffffff");
+  if (userData.avatarUrl && userData.avatarUrl.trim() !== "") {
+    try {
+      await helper.drawRoundedImage(
+        {
+          x: 20,
+          y: 20,
+          width: 60,
+          height: 60,
+          borderRadius: 30,
+          shadow: true,
+        },
+        userData.avatarUrl
+      );
+    } catch (error) {
+      // Fallback avec image d'avatar par défaut
+      try {
+        const path = require("path");
+        const fallbackPath = path.join(
+          process.cwd(),
+          "public",
+          "images",
+          "avatar-fallback.png"
+        );
+        await helper.drawRoundedImage(
+          {
+            x: 20,
+            y: 20,
+            width: 60,
+            height: 60,
+            borderRadius: 30,
+            shadow: true,
+          },
+          fallbackPath
+        );
+      } catch (fallbackError) {
+        // Dernier recours : rectangle blanc
+        helper.drawRoundedRect(20, 20, 60, 60, 30, "#ffffff");
+      }
+    }
+  } else {
+    // Pas d'URL d'avatar, utiliser directement l'image fallback
+    try {
+      const path = require("path");
+      const fallbackPath = path.join(
+        process.cwd(),
+        "public",
+        "images",
+        "avatar-fallback.png"
+      );
+      await helper.drawRoundedImage(
+        {
+          x: 20,
+          y: 20,
+          width: 60,
+          height: 60,
+          borderRadius: 30,
+          shadow: true,
+        },
+        fallbackPath
+      );
+    } catch (fallbackError) {
+      // Dernier recours : rectangle blanc
+      helper.drawRoundedRect(20, 20, 60, 60, 30, "#ffffff");
+    }
   }
 
   // Nom d'utilisateur

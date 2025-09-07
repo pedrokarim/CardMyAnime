@@ -25,30 +25,88 @@ export async function generateMediumCard(
   helper.drawRect(20, 20, 560, 260, "rgba(0, 0, 0, 0.7)");
 
   // Dessiner l'avatar
-  try {
-    await helper.drawRoundedImage(
-      {
-        x: 30,
-        y: 30,
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        shadow: true,
-      },
-      userData.avatarUrl
-    );
-  } catch (error) {
-    // Fallback si l'image ne charge pas
-    helper.drawRoundedRect(30, 30, 100, 100, 50, "#ffffff");
-    helper.drawText({
-      x: 80,
-      y: 80,
-      text: "👤",
-      fontSize: 48,
-      fontFamily: "Arial, sans-serif",
-      color: "#000000",
-      textAlign: "center",
-    });
+  if (userData.avatarUrl && userData.avatarUrl.trim() !== "") {
+    try {
+      await helper.drawRoundedImage(
+        {
+          x: 30,
+          y: 30,
+          width: 100,
+          height: 100,
+          borderRadius: 50,
+          shadow: true,
+        },
+        userData.avatarUrl
+      );
+    } catch (error) {
+      // Fallback avec image d'avatar par défaut
+      try {
+        const path = require("path");
+        const fallbackPath = path.join(
+          process.cwd(),
+          "public",
+          "images",
+          "avatar-fallback.png"
+        );
+        await helper.drawRoundedImage(
+          {
+            x: 30,
+            y: 30,
+            width: 100,
+            height: 100,
+            borderRadius: 50,
+            shadow: true,
+          },
+          fallbackPath
+        );
+      } catch (fallbackError) {
+        // Dernier recours : rectangle blanc avec emoji
+        helper.drawRoundedRect(30, 30, 100, 100, 50, "#ffffff");
+        helper.drawText({
+          x: 80,
+          y: 80,
+          text: "👤",
+          fontSize: 48,
+          fontFamily: "Arial, sans-serif",
+          color: "#000000",
+          textAlign: "center",
+        });
+      }
+    }
+  } else {
+    // Pas d'URL d'avatar, utiliser directement l'image fallback
+    try {
+      const path = require("path");
+      const fallbackPath = path.join(
+        process.cwd(),
+        "public",
+        "images",
+        "avatar-fallback.png"
+      );
+      await helper.drawRoundedImage(
+        {
+          x: 30,
+          y: 30,
+          width: 100,
+          height: 100,
+          borderRadius: 50,
+          shadow: true,
+        },
+        fallbackPath
+      );
+    } catch (fallbackError) {
+      // Dernier recours : rectangle blanc avec emoji
+      helper.drawRoundedRect(30, 30, 100, 100, 50, "#ffffff");
+      helper.drawText({
+        x: 80,
+        y: 80,
+        text: "👤",
+        fontSize: 48,
+        fontFamily: "Arial, sans-serif",
+        color: "#000000",
+        textAlign: "center",
+      });
+    }
   }
 
   // Nom d'utilisateur

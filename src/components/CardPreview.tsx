@@ -182,9 +182,13 @@ export function CardPreview({
 
         <div className="flex items-center gap-6 mb-6">
           <img
-            src={userData?.avatarUrl}
+            src={userData?.avatarUrl || "/images/avatar-fallback.png"}
             alt={`Avatar de ${userData?.username}`}
             className="w-20 h-20 rounded-full border-2 border-primary shadow-lg"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.src = "/images/avatar-fallback.png";
+            }}
           />
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
@@ -193,24 +197,114 @@ export function CardPreview({
               </h3>
               <PlatformIcon platform={platform as any} size={24} />
             </div>
-            <div className="flex gap-8 text-lg text-muted-foreground">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-muted-foreground">
               <span className="flex items-center gap-2">
-                <span className="text-2xl">🎬</span>
+                <span className="text-xl">🎬</span>
                 {userData?.stats.animesSeen} animes
               </span>
               <span className="flex items-center gap-2">
-                <span className="text-2xl">📚</span>
+                <span className="text-xl">📚</span>
                 {userData?.stats.mangasRead} mangas
               </span>
               {userData?.stats.avgScore && userData.stats.avgScore > 0 && (
                 <span className="flex items-center gap-2">
-                  <span className="text-2xl">⭐</span>
+                  <span className="text-xl">⭐</span>
                   {userData.stats.avgScore}/10
+                </span>
+              )}
+              {userData?.stats.totalEpisodes && (
+                <span className="flex items-center gap-2">
+                  <span className="text-xl">📺</span>
+                  {userData.stats.totalEpisodes} épisodes
+                </span>
+              )}
+              {userData?.stats.totalChapters && (
+                <span className="flex items-center gap-2">
+                  <span className="text-xl">📖</span>
+                  {userData.stats.totalChapters} chapitres
+                </span>
+              )}
+              {userData?.stats.daysWatched && (
+                <span className="flex items-center gap-2">
+                  <span className="text-xl">⏰</span>
+                  {userData.stats.daysWatched} jours
+                </span>
+              )}
+              {userData?.stats.watchingCount && (
+                <span className="flex items-center gap-2">
+                  <span className="text-xl">▶️</span>
+                  {userData.stats.watchingCount} en cours
+                </span>
+              )}
+              {userData?.stats.completedCount && (
+                <span className="flex items-center gap-2">
+                  <span className="text-xl">✅</span>
+                  {userData.stats.completedCount} terminés
                 </span>
               )}
             </div>
           </div>
         </div>
+
+        {/* Informations de profil supplémentaires */}
+        {(userData?.profile ||
+          userData?.personalMessage ||
+          userData?.stats.favoriteGenres) && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            {userData?.personalMessage && (
+              <div className="bg-muted/30 rounded-lg p-4">
+                <h4 className="text-sm font-semibold text-primary mb-2 flex items-center gap-2">
+                  <span className="text-lg">💬</span>
+                  Message personnel
+                </h4>
+                <p className="text-sm text-muted-foreground line-clamp-3">
+                  {userData.personalMessage}
+                </p>
+              </div>
+            )}
+
+            {userData?.profile?.joinDate && (
+              <div className="bg-muted/30 rounded-lg p-4">
+                <h4 className="text-sm font-semibold text-primary mb-2 flex items-center gap-2">
+                  <span className="text-lg">📅</span>
+                  Membre depuis
+                </h4>
+                <p className="text-sm text-muted-foreground">
+                  {new Date(userData.profile.joinDate).toLocaleDateString(
+                    "fr-FR"
+                  )}
+                </p>
+                {userData.profile.memberDays && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    ({userData.profile.memberDays} jours)
+                  </p>
+                )}
+              </div>
+            )}
+
+            {userData?.stats.favoriteGenres &&
+              userData.stats.favoriteGenres.length > 0 && (
+                <div className="bg-muted/30 rounded-lg p-4">
+                  <h4 className="text-sm font-semibold text-primary mb-2 flex items-center gap-2">
+                    <span className="text-lg">🎭</span>
+                    Genres favoris
+                  </h4>
+                  <div className="flex flex-wrap gap-1">
+                    {userData.stats.favoriteGenres
+                      .slice(0, 5)
+                      .map((genre, index) => (
+                        <span
+                          key={index}
+                          className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full"
+                        >
+                          {genre}
+                        </span>
+                      ))}
+                  </div>
+                </div>
+              )}
+          </div>
+        )}
 
         {/* Derniers animes/mangas */}
         <div className="grid grid-cols-2 gap-8">
@@ -220,15 +314,43 @@ export function CardPreview({
               Derniers animes
             </h4>
             <div className="space-y-2">
-              {userData?.lastAnimes.slice(0, 3).map((anime, index) => (
-                <div
-                  key={index}
-                  className="text-sm text-muted-foreground truncate flex items-center gap-2"
-                >
-                  <span className="text-primary font-bold">{index + 1}.</span>
-                  {anime.title}
+              {userData?.lastAnimes && userData.lastAnimes.length > 0 ? (
+                userData.lastAnimes.slice(0, 3).map((anime, index) => (
+                  <div
+                    key={index}
+                    className="text-sm text-muted-foreground flex items-start gap-2"
+                  >
+                    <span className="text-primary font-bold flex-shrink-0">
+                      {index + 1}.
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="truncate font-medium">{anime.title}</div>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                        {anime.score && (
+                          <span className="flex items-center gap-1">
+                            <span>⭐</span>
+                            {anime.score}/10
+                          </span>
+                        )}
+                        {anime.status && (
+                          <span className="bg-muted px-2 py-0.5 rounded-full">
+                            {anime.status}
+                          </span>
+                        )}
+                        {anime.progress && anime.totalEpisodes && (
+                          <span>
+                            {anime.progress}/{anime.totalEpisodes} épisodes
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-sm text-muted-foreground text-center py-4">
+                  Aucune donnée trouvée
                 </div>
-              ))}
+              )}
             </div>
           </div>
           <div>
@@ -237,18 +359,107 @@ export function CardPreview({
               Derniers mangas
             </h4>
             <div className="space-y-2">
-              {userData?.lastMangas.slice(0, 3).map((manga, index) => (
-                <div
-                  key={index}
-                  className="text-sm text-muted-foreground truncate flex items-center gap-2"
-                >
-                  <span className="text-primary font-bold">{index + 1}.</span>
-                  {manga.title}
+              {userData?.lastMangas && userData.lastMangas.length > 0 ? (
+                userData.lastMangas.slice(0, 3).map((manga, index) => (
+                  <div
+                    key={index}
+                    className="text-sm text-muted-foreground flex items-start gap-2"
+                  >
+                    <span className="text-primary font-bold flex-shrink-0">
+                      {index + 1}.
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="truncate font-medium">{manga.title}</div>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                        {manga.score && (
+                          <span className="flex items-center gap-1">
+                            <span>⭐</span>
+                            {manga.score}/10
+                          </span>
+                        )}
+                        {manga.status && (
+                          <span className="bg-muted px-2 py-0.5 rounded-full">
+                            {manga.status}
+                          </span>
+                        )}
+                        {manga.progress && manga.totalChapters && (
+                          <span>
+                            {manga.progress}/{manga.totalChapters} chapitres
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-sm text-muted-foreground text-center py-4">
+                  Aucune donnée trouvée
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </div>
+
+        {/* Favoris si disponibles */}
+        {userData?.favorites &&
+          (userData.favorites.anime?.length > 0 ||
+            userData.favorites.manga?.length > 0) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {userData.favorites.anime &&
+                userData.favorites.anime.length > 0 && (
+                  <div>
+                    <h4 className="text-lg font-semibold text-primary mb-3 flex items-center gap-2">
+                      <span className="text-xl">❤️</span>
+                      Animes favoris
+                    </h4>
+                    <div className="space-y-2">
+                      {userData.favorites.anime
+                        .slice(0, 3)
+                        .map((anime, index) => (
+                          <div
+                            key={index}
+                            className="text-sm text-muted-foreground flex items-center gap-2"
+                          >
+                            <span className="text-primary font-bold flex-shrink-0">
+                              {anime.position || index + 1}.
+                            </span>
+                            <span className="truncate font-medium">
+                              {anime.title}
+                            </span>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
+
+              {userData.favorites.manga &&
+                userData.favorites.manga.length > 0 && (
+                  <div>
+                    <h4 className="text-lg font-semibold text-primary mb-3 flex items-center gap-2">
+                      <span className="text-xl">💖</span>
+                      Mangas favoris
+                    </h4>
+                    <div className="space-y-2">
+                      {userData.favorites.manga
+                        .slice(0, 3)
+                        .map((manga, index) => (
+                          <div
+                            key={index}
+                            className="text-sm text-muted-foreground flex items-center gap-2"
+                          >
+                            <span className="text-primary font-bold flex-shrink-0">
+                              {manga.position || index + 1}.
+                            </span>
+                            <span className="truncate font-medium">
+                              {manga.title}
+                            </span>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
+            </div>
+          )}
       </div>
 
       {/* Boutons de configuration */}

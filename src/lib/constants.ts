@@ -17,6 +17,7 @@ export const SITE_CONFIG = {
   social: {
     discord: "https://discord.gg/rTd95UpUEb",
     github: "https://github.com/pedrokarim/CardMyAnime.git",
+    twitter: "https://twitter.com/PedroKarim64",
   },
 
   // Informations du site

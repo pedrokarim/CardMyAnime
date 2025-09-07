@@ -7,10 +7,6 @@ import { generateSmallCard } from "@/lib/cards/smallCard";
 import { generateMediumCard } from "@/lib/cards/mediumCard";
 import { generateLargeCard } from "@/lib/cards/largeCard";
 import { generateSummaryCard } from "@/lib/cards/summaryCard";
-import { generateNapiRsSmallCard } from "@/lib/cards/napiRsSmallCard";
-import { generateNapiRsMediumCard } from "@/lib/cards/napiRsMediumCard";
-import { generateNapiRsLargeCard } from "@/lib/cards/napiRsLargeCard";
-import { generateNapiRsSummaryCard } from "@/lib/cards/napiRsSummaryCard";
 
 const prisma = new PrismaClient();
 
