@@ -1,6 +1,21 @@
 # Étape de build - Utilise Bun pour une installation plus rapide
 FROM oven/bun:1-alpine AS builder
 
+# Installer les dépendances système nécessaires pour canvas et node-gyp
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    cairo-dev \
+    jpeg-dev \
+    pango-dev \
+    musl-dev \
+    giflib-dev \
+    pixman-dev \
+    pangomm-dev \
+    libjpeg-turbo-dev \
+    freetype-dev
+
 # Définit le répertoire de travail
 WORKDIR /app
 
@@ -25,6 +40,18 @@ RUN bun run build
 
 # Étape de production - Utilise Bun pour l'exécution
 FROM oven/bun:1-alpine AS runner
+
+# Installer les dépendances runtime nécessaires pour canvas
+RUN apk add --no-cache \
+    cairo \
+    jpeg \
+    pango \
+    musl \
+    giflib \
+    pixman \
+    pangomm \
+    libjpeg-turbo \
+    freetype
 
 # Crée un utilisateur non-root pour la sécurité
 RUN addgroup --system --gid 1001 bunjs
