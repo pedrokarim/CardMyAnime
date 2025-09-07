@@ -614,7 +614,7 @@ export default function HomePage() {
             <div className="border-t border-border pt-4">
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-xs">
                 <p>
-                  © 2025{"  "}
+                  © 2025{" "}
                   <a
                     href={SITE_CONFIG.company.website}
                     target="_blank"

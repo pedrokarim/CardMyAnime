@@ -3,6 +3,7 @@
 import { signIn, getSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { SITE_CONFIG } from "@/lib/constants";
 import { DiscordIcon } from "@/components/ui/discord-icon";
 
 export default function SignInPage() {
@@ -38,6 +39,13 @@ export default function SignInPage() {
       <div className="w-full max-w-md">
         <div className="bg-card border border-border rounded-lg p-8">
           <div className="text-center mb-8">
+            <div className="flex justify-center mb-4">
+              <img
+                src={SITE_CONFIG.site.logo}
+                alt={`${SITE_CONFIG.site.name} Logo`}
+                className="w-16 h-16 rounded-lg"
+              />
+            </div>
             <h1 className="text-2xl font-bold text-foreground mb-2">
               Administration CardMyAnime
             </h1>

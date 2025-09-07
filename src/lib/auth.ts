@@ -39,16 +39,18 @@ export const authConfig: NextAuthConfig = {
       return false; // Refuser les autres providers
     },
     async jwt({ token, user, account, profile }: any) {
-      // Ajouter l'ID utilisateur au token lors de la première connexion
+      // Ajouter l'ID utilisateur et l'avatar au token lors de la première connexion
       if (account?.provider === "discord" && profile?.id) {
         token.id = profile.id;
+        token.avatar = profile.avatar_url || user.image;
       }
       return token;
     },
     async session({ session, token }: any) {
-      // Ajouter l'ID utilisateur à la session depuis le token
+      // Ajouter l'ID utilisateur et l'avatar à la session depuis le token
       if (session.user && token.id) {
         session.user.id = token.id as string;
+        session.user.image = token.avatar as string;
       }
       return session;
     },

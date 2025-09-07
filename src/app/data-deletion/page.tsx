@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { SITE_CONFIG } from "@/lib/constants";
 import { Trash2, Shield, AlertTriangle } from "lucide-react";
+import { ReCAPTCHAComponent } from "@/components/ui/recaptcha";
 
 export default function DataDeletionPage() {
   const [formData, setFormData] = useState({
@@ -31,20 +32,65 @@ export default function DataDeletionPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+  const [recaptchaError, setRecaptchaError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Vérifier que reCAPTCHA est validé
+    if (!recaptchaToken) {
+      setRecaptchaError("Veuillez valider le reCAPTCHA");
+      return;
+    }
+
     setIsSubmitting(true);
+    setRecaptchaError(null);
 
-    // Simulation d'envoi (à remplacer par un vrai endpoint)
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      const response = await fetch("/api/data-deletion", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...formData,
+          recaptchaToken,
+        }),
+      });
 
-    setIsSubmitting(false);
-    setIsSubmitted(true);
+      const data = await response.json();
+
+      if (data.success) {
+        setIsSubmitted(true);
+      } else {
+        setRecaptchaError(data.error || "Erreur lors de l'envoi de la demande");
+      }
+    } catch (error) {
+      console.error("Erreur:", error);
+      setRecaptchaError("Erreur de connexion. Veuillez réessayer.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleRecaptchaChange = (token: string | null) => {
+    setRecaptchaToken(token);
+    setRecaptchaError(null);
+  };
+
+  const handleRecaptchaExpired = () => {
+    setRecaptchaToken(null);
+    setRecaptchaError("Le reCAPTCHA a expiré. Veuillez le refaire.");
+  };
+
+  const handleRecaptchaError = () => {
+    setRecaptchaToken(null);
+    setRecaptchaError("Erreur avec le reCAPTCHA. Veuillez réessayer.");
   };
 
   if (isSubmitted) {
@@ -256,6 +302,21 @@ export default function DataDeletionPage() {
                 />
               </div>
 
+              {/* reCAPTCHA */}
+              <div className="space-y-2">
+                <ReCAPTCHAComponent
+                  onChange={handleRecaptchaChange}
+                  onExpired={handleRecaptchaExpired}
+                  onError={handleRecaptchaError}
+                  className="my-4"
+                />
+                {recaptchaError && (
+                  <p className="text-sm text-red-500 text-center">
+                    {recaptchaError}
+                  </p>
+                )}
+              </div>
+
               {/* Bouton de soumission */}
               <div className="pt-4">
                 <Button
@@ -266,7 +327,8 @@ export default function DataDeletionPage() {
                     !formData.platform ||
                     !formData.username ||
                     !formData.email ||
-                    !formData.reason
+                    !formData.reason ||
+                    !recaptchaToken
                   }
                 >
                   {isSubmitting ? (

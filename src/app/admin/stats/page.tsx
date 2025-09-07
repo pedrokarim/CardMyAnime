@@ -49,7 +49,7 @@ interface AdminStats {
   };
 }
 
-export default function AdminHomePage() {
+export default function StatsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [stats, setStats] = useState<AdminStats | null>(null);
@@ -103,6 +103,32 @@ export default function AdminHomePage() {
     }
   };
 
+  const cleanupLogs = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/admin/cache", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ action: "cleanup-view-logs" }),
+      });
+      const result = await response.json();
+
+      if (response.ok) {
+        await fetchStats();
+        alert(result.message);
+      } else {
+        alert("Erreur lors du nettoyage des logs");
+      }
+    } catch (error) {
+      console.error("Erreur lors du nettoyage:", error);
+      alert("Erreur lors du nettoyage des logs");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (session) {
       fetchStats();
@@ -116,10 +142,10 @@ export default function AdminHomePage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-foreground mb-2">
-          Tableau de bord
+          Statistiques détaillées
         </h1>
         <p className="text-muted-foreground">
-          Vue d'ensemble de l'administration CardMyAnime
+          Analyse complète des performances et de l'utilisation
         </p>
       </div>
 
@@ -289,56 +315,60 @@ export default function AdminHomePage() {
         </CardContent>
       </Card>
 
-      {/* Actions rapides */}
+      {/* Statistiques des logs */}
       <Card>
         <CardHeader>
-          <CardTitle>Actions rapides</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Eye className="w-5 h-5" />
+            Statistiques des Logs
+          </CardTitle>
           <CardDescription>
-            Accès direct aux fonctionnalités d'administration
+            Gestion des logs de vues et de l'activité
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button
-              onClick={() => router.push("/admin/logs")}
-              className="flex items-center gap-2 h-auto p-4"
-              variant="outline"
-            >
-              <Eye className="w-5 h-5" />
-              <div className="text-left">
-                <div className="font-semibold">Voir les logs</div>
-                <div className="text-sm text-muted-foreground">
-                  Consulter les logs de vues
+          {stats ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="bg-background border border-border rounded-lg p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <Database className="w-5 h-5 text-blue-500" />
+                  <h3 className="font-semibold">Logs Total</h3>
                 </div>
+                <p className="text-2xl font-bold text-foreground">
+                  {stats.views.totalLogs.toLocaleString()}
+                </p>
+                <p className="text-sm text-muted-foreground">Entrées de logs</p>
               </div>
-            </Button>
 
-            <Button
-              onClick={() => router.push("/admin/data-deletion")}
-              className="flex items-center gap-2 h-auto p-4"
-              variant="outline"
-            >
-              <Trash2 className="w-5 h-5" />
-              <div className="text-left">
-                <div className="font-semibold">Suppressions</div>
-                <div className="text-sm text-muted-foreground">
-                  Gérer les demandes de suppression
+              <div className="bg-background border border-border rounded-lg p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <XCircle className="w-5 h-5 text-red-500" />
+                  <h3 className="font-semibold">Logs Expirés</h3>
                 </div>
+                <p className="text-2xl font-bold text-foreground">
+                  {stats.views.expiredLogs.toLocaleString()}
+                </p>
+                <p className="text-sm text-muted-foreground">À nettoyer</p>
               </div>
-            </Button>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <InlineLoading />
+              <p className="text-muted-foreground mt-4">
+                Chargement des statistiques...
+              </p>
+            </div>
+          )}
 
+          <div className="flex flex-wrap gap-4">
             <Button
-              onClick={() => router.push("/admin/settings")}
-              className="flex items-center gap-2 h-auto p-4"
-              variant="outline"
+              onClick={cleanupLogs}
+              disabled={loading || !stats || stats.views.expiredLogs === 0}
+              variant="destructive"
+              className="flex items-center gap-2"
             >
-              <Database className="w-5 h-5" />
-              <div className="text-left">
-                <div className="font-semibold">Paramètres</div>
-                <div className="text-sm text-muted-foreground">
-                  Configuration du système
-                </div>
-              </div>
+              <Trash2 className="w-4 h-4" />
+              Nettoyer les logs ({stats?.views.expiredLogs || 0})
             </Button>
           </div>
         </CardContent>

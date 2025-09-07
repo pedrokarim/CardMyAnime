@@ -112,3 +112,27 @@ model ViewLog {
   @@index([createdAt])
   @@index([ip])
 }
+
+model DataDeletionRequest {
+  id            String   @id @default(cuid())
+  platform      String   // "anilist", "mal", "nautiljon", "all"
+  username      String
+  email         String
+  reason        String   // "privacy", "no-longer-use", "data-accuracy", "legal", "other"
+  additionalInfo String?
+  requestId     String   @unique // ID unique pour le suivi
+  ipAddress     String
+  userAgent     String
+  status        String   @default("pending") // "pending", "processing", "completed", "rejected"
+  processedAt   DateTime?
+  processedBy   String?  // ID de l'admin qui a traité la demande
+  notes         String?  // Notes de l'admin
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([status])
+  @@index([platform, username])
+  @@index([email])
+  @@index([createdAt])
+  @@index([requestId])
+}
