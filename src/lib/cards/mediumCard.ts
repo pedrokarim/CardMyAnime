@@ -18,7 +18,7 @@ export async function generateMediumCard(
   ) {
     await helper.createLastAnimeBackground(userData.lastAnimes[0].coverUrl);
   } else {
-    helper.createSimpleBackground();
+    await helper.createSimpleBackground();
   }
 
   // Gros bloc noir transparent qui englobe tous les éléments

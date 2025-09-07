@@ -365,72 +365,110 @@ export class ServerCanvasHelper {
   }
 
   /**
-   * Crée un arrière-plan avec l'image du dernier anime en arrière-plan flou
+   * Crée un arrière-plan avec l'image du dernier anime (côté gauche) et noir (côté droit)
    */
   async createLastAnimeBackground(coverUrl: string): Promise<void> {
     try {
       // Charger l'image
       const image = await loadImage(coverUrl);
 
-      // Calculer les dimensions pour couvrir tout le canvas
+      // Zone carrée à droite (même taille que la hauteur du canvas)
+      const squareSize = this.height;
+      const squareX = this.width - squareSize; // Position à droite
+
+      // Calculer les dimensions pour remplir la zone carrée sans déformation
       const scale = Math.max(
-        this.width / image.width,
-        this.height / image.height
+        squareSize / image.width,
+        squareSize / image.height
       );
       const scaledWidth = image.width * scale;
       const scaledHeight = image.height * scale;
 
-      // Position centrée
-      const x = (this.width - scaledWidth) / 2;
-      const y = (this.height - scaledHeight) / 2;
+      // Position centrée dans la zone carrée
+      const x = squareX + (squareSize - scaledWidth) / 2;
+      const y = (squareSize - scaledHeight) / 2;
 
-      // Dessiner l'image redimensionnée
+      // Dessiner l'image dans la zone carrée droite
       this.ctx.drawImage(image, x, y, scaledWidth, scaledHeight);
 
-      // Appliquer un flou en dessinant plusieurs fois l'image avec une transparence
-      this.ctx.globalAlpha = 0.3;
-      for (let i = 0; i < 3; i++) {
-        this.ctx.drawImage(
-          image,
-          x + i * 2,
-          y + i * 2,
-          scaledWidth,
-          scaledHeight
-        );
-      }
-      this.ctx.globalAlpha = 1.0;
+      // Ajouter une couche noire de base sur tout le canvas à 25% d'opacité
+      this.ctx.fillStyle = "rgba(0, 0, 0, 0.25)";
+      this.ctx.fillRect(0, 0, this.width, this.height);
 
-      // Ajouter un overlay dégradé noir vers transparent
-      const gradient = this.ctx.createLinearGradient(0, 0, 0, this.height);
-      gradient.addColorStop(0, "rgba(0, 0, 0, 0.8)");
-      gradient.addColorStop(0.3, "rgba(0, 0, 0, 0.6)");
-      gradient.addColorStop(0.7, "rgba(0, 0, 0, 0.4)");
-      gradient.addColorStop(1, "rgba(0, 0, 0, 0.2)");
+      // Ajouter un gradient horizontal sur la zone carrée : transparent (droite) vers noir fort (gauche)
+      const gradient = this.ctx.createLinearGradient(
+        squareX + squareSize,
+        0,
+        squareX,
+        0
+      );
+      gradient.addColorStop(0, "rgba(0, 0, 0, 0.4)"); // Noir léger à droite
+      gradient.addColorStop(0.2, "rgba(0, 0, 0, 0.6)"); // Noir moyen
+      gradient.addColorStop(0.5, "rgba(0, 0, 0, 0.8)"); // Noir fort
+      gradient.addColorStop(0.8, "rgba(0, 0, 0, 0.95)"); // Noir très fort
+      gradient.addColorStop(1, "rgba(0, 0, 0, 1)"); // Noir complet à gauche
 
       this.ctx.fillStyle = gradient;
-      this.ctx.fillRect(0, 0, this.width, this.height);
+      this.ctx.fillRect(squareX, 0, squareSize, squareSize);
+
+      // Remplir le côté gauche en noir complet
+      this.ctx.fillStyle = "#000000";
+      this.ctx.fillRect(0, 0, squareX, this.height);
     } catch (error) {
       console.error(
         "Erreur lors du chargement de l'image d'arrière-plan:",
         error
       );
       // Fallback vers un arrière-plan simple
-      this.createSimpleBackground();
+      await this.createSimpleBackground();
     }
   }
 
   /**
    * Crée un arrière-plan simple (fallback)
    */
-  createSimpleBackground(): void {
-    // Dégradé noir vers transparent
-    const gradient = this.ctx.createLinearGradient(0, 0, 0, this.height);
-    gradient.addColorStop(0, "rgba(0, 0, 0, 0.9)");
-    gradient.addColorStop(0.5, "rgba(0, 0, 0, 0.7)");
-    gradient.addColorStop(1, "rgba(0, 0, 0, 0.5)");
+  async createSimpleBackground(): Promise<void> {
+    try {
+      // Charger l'image de background
+      const backgroundImage = await loadImage(
+        path.join(process.cwd(), "public", "images", "thumbails-radial.png")
+      );
 
-    this.ctx.fillStyle = gradient;
-    this.ctx.fillRect(0, 0, this.width, this.height);
+      // Calculer les dimensions pour remplir le canvas sans déformation
+      const imageAspect = backgroundImage.width / backgroundImage.height;
+      const canvasAspect = this.width / this.height;
+
+      let drawWidth, drawHeight, offsetX, offsetY;
+
+      if (imageAspect > canvasAspect) {
+        // L'image est plus large que le canvas
+        drawHeight = this.height;
+        drawWidth = drawHeight * imageAspect;
+        offsetX = (this.width - drawWidth) / 2;
+        offsetY = 0;
+      } else {
+        // L'image est plus haute que le canvas
+        drawWidth = this.width;
+        drawHeight = drawWidth / imageAspect;
+        offsetX = 0;
+        offsetY = (this.height - drawHeight) / 2;
+      }
+
+      // Dessiner l'image en gardant les proportions
+      this.ctx.drawImage(
+        backgroundImage,
+        offsetX,
+        offsetY,
+        drawWidth,
+        drawHeight
+      );
+    } catch (error) {
+      console.error("Erreur lors du chargement du background:", error);
+
+      // Fallback : fond noir simple
+      this.ctx.fillStyle = "#000000";
+      this.ctx.fillRect(0, 0, this.width, this.height);
+    }
   }
 
   // Exporter le canvas en buffer

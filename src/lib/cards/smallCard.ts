@@ -18,7 +18,7 @@ export async function generateSmallCard(
   ) {
     await helper.createLastAnimeBackground(userData.lastAnimes[0].coverUrl);
   } else {
-    helper.createSimpleBackground();
+    await helper.createSimpleBackground();
   }
 
   // Dessiner l'avatar

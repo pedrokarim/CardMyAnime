@@ -18,7 +18,7 @@ export async function generateLargeCard(
   ) {
     await helper.createLastAnimeBackground(userData.lastAnimes[0].coverUrl);
   } else {
-    helper.createSimpleBackground();
+    await helper.createSimpleBackground();
   }
 
   // Bloc 1 : En-tête (avatar + nom + stats)

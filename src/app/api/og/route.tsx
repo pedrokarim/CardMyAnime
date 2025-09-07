@@ -181,7 +181,7 @@ export async function GET() {
             display: "flex",
             alignItems: "center",
             gap: "30px",
-            marginBottom: "40px",
+            marginBottom: "20px",
           }}
         >
           {anilistBase64 ? (
@@ -271,8 +271,8 @@ export async function GET() {
             alignItems: "center",
             justifyContent: "center",
             gap: "20px",
-            marginTop: "auto",
-            paddingTop: "40px",
+            marginTop: "20px",
+            paddingTop: "0px",
           }}
         >
           <div
