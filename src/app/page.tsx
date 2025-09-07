@@ -11,6 +11,8 @@ import Image from "next/image";
 import { PlatformIcon } from "@/components/ui/platform-icon";
 import { motion, AnimatePresence } from "framer-motion";
 import { ButtonLoading } from "@/components/ui/loading";
+import { SITE_CONFIG } from "@/lib/constants";
+import Link from "next/link";
 
 type Step = "platform" | "cardType" | "username" | "preview";
 
@@ -257,8 +259,8 @@ export default function HomePage() {
                 >
                   <div className="flex justify-center mb-6">
                     <Image
-                      src="/images/cma-logo.png"
-                      alt="CardMyAnime Logo"
+                      src={SITE_CONFIG.site.logo}
+                      alt={`${SITE_CONFIG.site.name} Logo`}
                       width={120}
                       height={120}
                     />
@@ -266,7 +268,7 @@ export default function HomePage() {
                   {/* Titre et sous-titre */}
                   <div className="text-center mb-12">
                     <h1 className="text-5xl font-bold text-white mb-4">
-                      CardMyAnime
+                      {SITE_CONFIG.site.name}
                     </h1>
                     <p className="text-xl text-gray-300">
                       Générez vos cartes de profil anime personnalisées
@@ -277,8 +279,7 @@ export default function HomePage() {
             </AnimatePresence>
           </div>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Créez des cartes de profil dynamiques et élégantes pour vos
-            plateformes d'anime préférées
+            {SITE_CONFIG.site.description}
           </p>
         </div>
 
@@ -598,14 +599,37 @@ export default function HomePage() {
 
         {/* Footer */}
         <div className="mt-16 text-center text-muted-foreground">
-          <div className="flex flex-col gap-2 text-sm">
-            <p>
-              CardMyAnime utilise les APIs publiques d'AniList et MyAnimeList,
-              ainsi que le scraping pour Nautiljon.
-            </p>
-            <p>
-              Les cartes sont générées côté serveur et stockées temporairement.
-            </p>
+          <div className="flex flex-col gap-4 text-sm">
+            <div className="flex flex-col gap-2">
+              <p>
+                {SITE_CONFIG.site.name} utilise les APIs publiques d'AniList et
+                MyAnimeList, ainsi que le scraping pour Nautiljon.
+              </p>
+              <p>
+                Les cartes sont générées côté serveur et stockées
+                temporairement.
+              </p>
+            </div>
+
+            <div className="border-t border-border pt-4">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-xs">
+                <p>
+                  © 2025 {SITE_CONFIG.company.name} -{" "}
+                  <a
+                    href={SITE_CONFIG.company.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline"
+                  >
+                    {SITE_CONFIG.company.website}
+                  </a>
+                </p>
+                <span className="hidden sm:inline">•</span>
+                <Link href="/terms" className="text-primary hover:underline">
+                  Conditions d'utilisation
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </div>

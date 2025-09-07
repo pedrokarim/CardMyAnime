@@ -1,4 +1,5 @@
 import { Mail, MessageSquare, Github, Twitter } from "lucide-react";
+import { SITE_CONFIG } from "@/lib/constants";
 
 export default function ContactPage() {
   return (
@@ -33,7 +34,9 @@ export default function ContactPage() {
                   communauté
                 </p>
                 <a
-                  href="#"
+                  href={SITE_CONFIG.social.discord}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
                 >
                   Rejoindre le serveur
@@ -51,7 +54,9 @@ export default function ContactPage() {
                   Signalez des bugs ou proposez des améliorations sur GitHub
                 </p>
                 <a
-                  href="#"
+                  href={SITE_CONFIG.social.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
                 >
                   Voir le projet
@@ -67,9 +72,11 @@ export default function ContactPage() {
             </h2>
             <div className="space-y-4 text-muted-foreground">
               <p>
-                <strong className="text-foreground">CardMyAnime</strong> est un
-                projet open-source qui permet de créer des cartes de profil
-                dynamiques pour les plateformes d'anime.
+                <strong className="text-foreground">
+                  {SITE_CONFIG.site.name}
+                </strong>{" "}
+                est un projet open-source qui permet de créer des cartes de
+                profil dynamiques pour les plateformes d'anime.
               </p>
               <p>
                 Le projet utilise les APIs publiques d'AniList et MyAnimeList,
@@ -90,14 +97,9 @@ export default function ContactPage() {
             </h3>
             <div className="flex justify-center gap-6">
               <a
-                href="#"
-                className="p-4 bg-card border border-border rounded-xl hover:bg-accent transition-colors"
-                title="Twitter"
-              >
-                <Twitter className="w-6 h-6 text-muted-foreground" />
-              </a>
-              <a
-                href="#"
+                href={SITE_CONFIG.social.github}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="p-4 bg-card border border-border rounded-xl hover:bg-accent transition-colors"
                 title="GitHub"
               >

@@ -3,11 +3,12 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Home, Trophy, Mail, Info, Github, Twitter } from "lucide-react";
+import { Home, Trophy, Mail, Info, Github } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PlatformIcon } from "@/components/ui/platform-icon";
 import { DiscordIcon } from "@/components/ui/discord-icon";
 import { Platform } from "@/lib/types";
+import { SITE_CONFIG } from "@/lib/constants";
 
 interface NavbarProps {
   currentPlatform?: Platform;
@@ -24,9 +25,8 @@ export function Navbar({ currentPlatform }: NavbarProps) {
   ];
 
   const socialLinks = [
-    { href: "#", label: "GitHub", icon: Github },
-    { href: "#", label: "Twitter", icon: Twitter },
-    { href: "#", label: "Discord", icon: DiscordIcon },
+    { href: SITE_CONFIG.social.github, label: "GitHub", icon: Github },
+    { href: SITE_CONFIG.social.discord, label: "Discord", icon: DiscordIcon },
   ];
 
   const isHomePage = pathname === "/";
@@ -38,14 +38,14 @@ export function Navbar({ currentPlatform }: NavbarProps) {
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
             <Image
-              src="/images/cma-logo.png"
-              alt="CardMyAnime Logo"
+              src={SITE_CONFIG.site.logo}
+              alt={`${SITE_CONFIG.site.name} Logo`}
               width={32}
               height={32}
               className="rounded-lg"
             />
             <span className="text-2xl font-bold text-foreground">
-              CardMyAnime
+              {SITE_CONFIG.site.name}
             </span>
             {currentPlatform && isHomePage && (
               <div className="flex items-center gap-2 ml-4">

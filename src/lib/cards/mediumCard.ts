@@ -110,16 +110,29 @@ export async function generateMediumCard(
   const recentAnimes = userData.lastAnimes.slice(0, 4);
   let animeY = 200;
 
-  recentAnimes.forEach((anime, index) => {
-    helper.drawTruncatedText(
-      `${index + 1}. ${anime.title}`,
-      30,
-      animeY + index * 20,
-      250,
-      16,
-      "#e0e0e0"
-    );
-  });
+  if (recentAnimes.length === 0) {
+    // Message quand aucun anime n'est trouvé
+    helper.drawText({
+      x: 30,
+      y: animeY,
+      text: "Aucune donnée trouvée",
+      fontSize: 14,
+      fontFamily: "Arial, sans-serif",
+      color: "#8b949e",
+      textAlign: "left",
+    });
+  } else {
+    recentAnimes.forEach((anime, index) => {
+      helper.drawTruncatedText(
+        `${index + 1}. ${anime.title}`,
+        30,
+        animeY + index * 20,
+        250,
+        16,
+        "#e0e0e0"
+      );
+    });
+  }
 
   // Section des derniers mangas
   helper.drawText({
@@ -135,16 +148,29 @@ export async function generateMediumCard(
   const recentMangas = userData.lastMangas.slice(0, 4);
   let mangaY = 200;
 
-  recentMangas.forEach((manga, index) => {
-    helper.drawTruncatedText(
-      `${index + 1}. ${manga.title}`,
-      320,
-      mangaY + index * 20,
-      250,
-      16,
-      "#e0e0e0"
-    );
-  });
+  if (recentMangas.length === 0) {
+    // Message quand aucun manga n'est trouvé
+    helper.drawText({
+      x: 320,
+      y: mangaY,
+      text: "Aucune donnée trouvée",
+      fontSize: 14,
+      fontFamily: "Arial, sans-serif",
+      color: "#8b949e",
+      textAlign: "left",
+    });
+  } else {
+    recentMangas.forEach((manga, index) => {
+      helper.drawTruncatedText(
+        `${index + 1}. ${manga.title}`,
+        320,
+        mangaY + index * 20,
+        250,
+        16,
+        "#e0e0e0"
+      );
+    });
+  }
 
   // Ajouter le watermark
   await addWatermark(helper, {

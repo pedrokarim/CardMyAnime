@@ -6,6 +6,7 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { NavbarWrapper } from "@/components/NavbarWrapper";
 import { Suspense } from "react";
 import { InlineLoading } from "@/components/ui/loading";
+import { SITE_CONFIG } from "@/lib/constants";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,50 +19,42 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Card My Anime - Créez des cartes de profil dynamiques",
-  description:
-    "Générez des cartes de profil élégantes pour vos plateformes d'anime préférées (AniList, MyAnimeList, Nautiljon). Projet développé par PedroKarim64.",
-  keywords: [
-    "anime",
-    "cartes",
-    "profil",
-    "anilist",
-    "myanimelist",
-    "nautiljon",
-    "générateur",
-  ],
-  authors: [{ name: "PedroKarim64" }],
-  creator: "PedroKarim64",
-  publisher: "Ascencia",
+  title: `${SITE_CONFIG.site.name} - Créez des cartes de profil dynamiques`,
+  description: `${SITE_CONFIG.site.description} (AniList, MyAnimeList, Nautiljon). Projet open source développé par ${SITE_CONFIG.creator.pseudo}.`,
+  keywords: SITE_CONFIG.keywords,
+  authors: [{ name: SITE_CONFIG.creator.pseudo }],
+  creator: SITE_CONFIG.creator.pseudo,
+  publisher: SITE_CONFIG.creator.name,
   openGraph: {
-    title: "Card My Anime - Cartes de profil d'anime",
-    description:
-      "Créez des cartes de profil dynamiques et élégantes pour vos plateformes d'anime préférées",
+    title: `${SITE_CONFIG.site.name} - Cartes de profil d'anime`,
+    description: SITE_CONFIG.site.description,
     type: "website",
-    url: "https://cma.ascencia.re",
-    siteName: "Card My Anime",
+    url: SITE_CONFIG.site.url,
+    siteName: SITE_CONFIG.site.name,
     images: [
       {
-        url: "/og-image.png",
+        url: `${SITE_CONFIG.site.url}/api/og`,
         width: 1200,
         height: 630,
-        alt: "Card My Anime - Générateur de cartes de profil",
+        alt: `${SITE_CONFIG.site.name} - Générateur de cartes de profil`,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Card My Anime - Cartes de profil d'anime",
-    description:
-      "Créez des cartes de profil dynamiques et élégantes pour vos plateformes d'anime préférées",
-    creator: "@PedroKarim64",
+    title: `${SITE_CONFIG.site.name} - Cartes de profil d'anime`,
+    description: SITE_CONFIG.site.description,
+    creator: `@${SITE_CONFIG.creator.pseudo}`,
   },
   robots: {
     index: true,
     follow: true,
   },
   alternates: {
-    canonical: "https://cma.ascencia.re",
+    canonical: SITE_CONFIG.site.url,
+  },
+  verification: {
+    google: "i_GLyVEAubN9keZoMX6Kk8-T8XyldPJ8zXc1atDYv-k",
   },
 };
 

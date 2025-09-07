@@ -134,7 +134,7 @@ export async function generateSummaryCard(
 
   console.log("Stats principales:", mainStats);
 
-  // SUPPRIMER LES FONDS - Juste le texte
+  // Dessiner les stats principales avec fond et meilleur contraste
   mainStats.forEach((stat, index) => {
     const statX = 30 + index * (mainCardWidth + spacing);
 
@@ -142,54 +142,54 @@ export async function generateSummaryCard(
       `Carte ${index}: x=${statX}, valeur=${stat.value}, label=${stat.label}`
     );
 
-    // DESSINER SEULEMENT LE TEXTE - PAS DE FOND
-    const valueText = stat.value.toString();
-    console.log(
-      `Dessinage texte: "${valueText}" à la position (${statX + 115}, 205)`
+    // Fond semi-transparent pour chaque stat
+    helper.drawRect(
+      statX + 20,
+      140,
+      mainCardWidth - 40,
+      120,
+      "rgba(255, 255, 255, 0.1)"
     );
 
-    // Icône avec vraie couleur - PLUS HAUT pour espacer
+    // Bordure colorée
+    helper.drawRect(statX + 20, 140, mainCardWidth - 40, 3, stat.color);
+
+    // Valeur principale - plus grande et plus visible
+    const valueText = stat.value.toString();
+    console.log(
+      `Dessinage texte: "${valueText}" à la position (${statX + 115}, 180)`
+    );
+
     helper.drawText({
       x: statX + 115,
-      y: 160,
-      text: stat.icon,
-      fontSize: 28,
+      y: 180,
+      text: valueText,
+      fontSize: 36,
       fontFamily: "Arial, sans-serif",
       color: stat.color,
       textAlign: "center",
     });
 
-    // Valeur avec vraie couleur - PLUS BAS pour espacer
+    // Label en blanc pour meilleur contraste
     helper.drawText({
       x: statX + 115,
       y: 205,
-      text: valueText,
-      fontSize: 32,
-      fontFamily: "Arial, sans-serif",
-      color: stat.color,
-      textAlign: "center",
-    });
-
-    // Label en gris - position normale
-    helper.drawText({
-      x: statX + 115,
-      y: 225,
       text: stat.label,
-      fontSize: 14,
+      fontSize: 16,
       fontFamily: "Arial, sans-serif",
-      color: "#8b949e",
+      color: "#ffffff",
       textAlign: "center",
     });
 
-    // Subtitle en gris plus clair - position normale
+    // Subtitle en gris plus clair
     if (stat.subtitle) {
       helper.drawText({
         x: statX + 115,
-        y: 240,
+        y: 225,
         text: stat.subtitle,
-        fontSize: 11,
+        fontSize: 12,
         fontFamily: "Arial, sans-serif",
-        color: "#6e7681",
+        color: "#cccccc",
         textAlign: "center",
       });
     }
@@ -331,39 +331,53 @@ export async function generateSummaryCard(
   });
 
   const recentAnimes = userData.lastAnimes.slice(0, 4);
-  recentAnimes.forEach((anime, index) => {
-    const y = listsStartY + 25 + index * 22;
-    const statusIcon =
-      anime.status === "COMPLETED"
-        ? "✅"
-        : anime.status === "CURRENT"
-        ? "▶️"
-        : anime.status === "PLANNING"
-        ? "📋"
-        : "❓";
 
-    helper.drawTruncatedText(
-      `${index + 1}. ${statusIcon} ${anime.title}`,
-      30,
-      y,
-      340,
-      13,
-      "#e0e0e0"
-    );
+  if (recentAnimes.length === 0) {
+    // Message quand aucun anime n'est trouvé
+    helper.drawText({
+      x: 30,
+      y: listsStartY + 25,
+      text: "Aucune donnée trouvée",
+      fontSize: 14,
+      fontFamily: "Arial, sans-serif",
+      color: "#8b949e",
+      textAlign: "left",
+    });
+  } else {
+    recentAnimes.forEach((anime, index) => {
+      const y = listsStartY + 25 + index * 22;
+      const statusIcon =
+        anime.status === "COMPLETED"
+          ? "✅"
+          : anime.status === "CURRENT"
+          ? "▶️"
+          : anime.status === "PLANNING"
+          ? "📋"
+          : "❓";
 
-    // Score si disponible
-    if (anime.score && anime.score > 0) {
-      helper.drawText({
-        x: 380,
-        y: y,
-        text: `⭐ ${anime.score}`,
-        fontSize: 11,
-        fontFamily: "Arial, sans-serif",
-        color: "#ffd700",
-        textAlign: "right",
-      });
-    }
-  });
+      helper.drawTruncatedText(
+        `${index + 1}. ${statusIcon} ${anime.title}`,
+        30,
+        y,
+        340,
+        13,
+        "#e0e0e0"
+      );
+
+      // Score si disponible
+      if (anime.score && anime.score > 0) {
+        helper.drawText({
+          x: 380,
+          y: y,
+          text: `⭐ ${anime.score}`,
+          fontSize: 11,
+          fontFamily: "Arial, sans-serif",
+          color: "#ffd700",
+          textAlign: "right",
+        });
+      }
+    });
+  }
 
   // Section des derniers mangas
   helper.drawText({
@@ -377,39 +391,53 @@ export async function generateSummaryCard(
   });
 
   const recentMangas = userData.lastMangas.slice(0, 4);
-  recentMangas.forEach((manga, index) => {
-    const y = listsStartY + 25 + index * 22;
-    const statusIcon =
-      manga.status === "COMPLETED"
-        ? "✅"
-        : manga.status === "CURRENT"
-        ? "▶️"
-        : manga.status === "PLANNING"
-        ? "📋"
-        : "❓";
 
-    helper.drawTruncatedText(
-      `${index + 1}. ${statusIcon} ${manga.title}`,
-      420,
-      y,
-      330,
-      13,
-      "#e0e0e0"
-    );
+  if (recentMangas.length === 0) {
+    // Message quand aucun manga n'est trouvé
+    helper.drawText({
+      x: 420,
+      y: listsStartY + 25,
+      text: "Aucune donnée trouvée",
+      fontSize: 14,
+      fontFamily: "Arial, sans-serif",
+      color: "#8b949e",
+      textAlign: "left",
+    });
+  } else {
+    recentMangas.forEach((manga, index) => {
+      const y = listsStartY + 25 + index * 22;
+      const statusIcon =
+        manga.status === "COMPLETED"
+          ? "✅"
+          : manga.status === "CURRENT"
+          ? "▶️"
+          : manga.status === "PLANNING"
+          ? "📋"
+          : "❓";
 
-    // Score si disponible
-    if (manga.score && manga.score > 0) {
-      helper.drawText({
-        x: 770,
-        y: y,
-        text: `⭐ ${manga.score}`,
-        fontSize: 11,
-        fontFamily: "Arial, sans-serif",
-        color: "#ffd700",
-        textAlign: "right",
-      });
-    }
-  });
+      helper.drawTruncatedText(
+        `${index + 1}. ${statusIcon} ${manga.title}`,
+        420,
+        y,
+        330,
+        13,
+        "#e0e0e0"
+      );
+
+      // Score si disponible
+      if (manga.score && manga.score > 0) {
+        helper.drawText({
+          x: 770,
+          y: y,
+          text: `⭐ ${manga.score}`,
+          fontSize: 11,
+          fontFamily: "Arial, sans-serif",
+          color: "#ffd700",
+          textAlign: "right",
+        });
+      }
+    });
+  }
 
   // Achievements si disponibles - repositionné en bas
   const achievementsY = listsStartY + 130;

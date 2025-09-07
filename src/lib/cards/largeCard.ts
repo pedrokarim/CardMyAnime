@@ -114,50 +114,63 @@ export async function generateLargeCard(
   const recentAnimes = userData.lastAnimes.slice(0, 3);
   let animeY = 240;
 
-  for (let i = 0; i < recentAnimes.length; i++) {
-    const anime = recentAnimes[i];
-    const x = 40 + i * 220;
+  if (recentAnimes.length === 0) {
+    // Message quand aucun anime n'est trouvé
+    helper.drawText({
+      x: 40,
+      y: animeY + 20,
+      text: "Aucune donnée trouvée",
+      fontSize: 16,
+      fontFamily: "Arial, sans-serif",
+      color: "#8b949e",
+      textAlign: "left",
+    });
+  } else {
+    for (let i = 0; i < recentAnimes.length; i++) {
+      const anime = recentAnimes[i];
+      const x = 40 + i * 220;
 
-    // Image de couverture
-    if (anime.coverUrl) {
-      try {
-        await helper.drawRoundedImage(
-          {
-            x,
-            y: animeY,
-            width: 60,
-            height: 80,
-            borderRadius: 8,
-            shadow: true,
-          },
-          anime.coverUrl
-        );
-      } catch (error) {
-        helper.drawRoundedRect(x, animeY, 60, 80, 8, "#333333");
+      // Image de couverture
+      if (anime.coverUrl) {
+        try {
+          await helper.drawRoundedImage(
+            {
+              x,
+              y: animeY,
+              width: 60,
+              height: 80,
+              borderRadius: 8,
+              shadow: true,
+            },
+            anime.coverUrl
+          );
+        } catch (error) {
+          helper.drawRoundedRect(x, animeY, 60, 80, 8, "#333333");
+        }
       }
-    }
 
-    // Titre (tronqué)
-    helper.drawTruncatedText(
-      anime.title,
-      x + 70,
-      animeY + 15,
-      140,
-      14,
-      "#ffffff"
-    );
+      // Titre (tronqué)
+      helper.drawTruncatedText(
+        anime.title,
+        x + 70,
+        animeY + 15,
+        140,
+        14,
+        "#ffffff"
+      );
 
-    // Note si disponible
-    if (anime.score) {
-      helper.drawText({
-        x: x + 70,
-        y: animeY + 35,
-        text: `★ ${anime.score}`,
-        fontSize: 12,
-        fontFamily: "Arial, sans-serif",
-        color: "#ffd700",
-        textAlign: "left",
-      });
+      // Note si disponible
+      if (anime.score) {
+        helper.drawText({
+          x: x + 70,
+          y: animeY + 35,
+          text: `★ ${anime.score}`,
+          fontSize: 12,
+          fontFamily: "Arial, sans-serif",
+          color: "#ffd700",
+          textAlign: "left",
+        });
+      }
     }
   }
 
@@ -175,50 +188,63 @@ export async function generateLargeCard(
   const recentMangas = userData.lastMangas.slice(0, 3);
   let mangaY = 380;
 
-  for (let i = 0; i < recentMangas.length; i++) {
-    const manga = recentMangas[i];
-    const x = 40 + i * 220;
+  if (recentMangas.length === 0) {
+    // Message quand aucun manga n'est trouvé
+    helper.drawText({
+      x: 40,
+      y: mangaY + 20,
+      text: "Aucune donnée trouvée",
+      fontSize: 16,
+      fontFamily: "Arial, sans-serif",
+      color: "#8b949e",
+      textAlign: "left",
+    });
+  } else {
+    for (let i = 0; i < recentMangas.length; i++) {
+      const manga = recentMangas[i];
+      const x = 40 + i * 220;
 
-    // Image de couverture
-    if (manga.coverUrl) {
-      try {
-        await helper.drawRoundedImage(
-          {
-            x,
-            y: mangaY,
-            width: 60,
-            height: 80,
-            borderRadius: 8,
-            shadow: true,
-          },
-          manga.coverUrl
-        );
-      } catch (error) {
-        helper.drawRoundedRect(x, mangaY, 60, 80, 8, "#333333");
+      // Image de couverture
+      if (manga.coverUrl) {
+        try {
+          await helper.drawRoundedImage(
+            {
+              x,
+              y: mangaY,
+              width: 60,
+              height: 80,
+              borderRadius: 8,
+              shadow: true,
+            },
+            manga.coverUrl
+          );
+        } catch (error) {
+          helper.drawRoundedRect(x, mangaY, 60, 80, 8, "#333333");
+        }
       }
-    }
 
-    // Titre (tronqué)
-    helper.drawTruncatedText(
-      manga.title,
-      x + 70,
-      mangaY + 15,
-      140,
-      14,
-      "#ffffff"
-    );
+      // Titre (tronqué)
+      helper.drawTruncatedText(
+        manga.title,
+        x + 70,
+        mangaY + 15,
+        140,
+        14,
+        "#ffffff"
+      );
 
-    // Note si disponible
-    if (manga.score) {
-      helper.drawText({
-        x: x + 70,
-        y: mangaY + 35,
-        text: `★ ${manga.score}`,
-        fontSize: 12,
-        fontFamily: "Arial, sans-serif",
-        color: "#ffd700",
-        textAlign: "left",
-      });
+      // Note si disponible
+      if (manga.score) {
+        helper.drawText({
+          x: x + 70,
+          y: mangaY + 35,
+          text: `★ ${manga.score}`,
+          fontSize: 12,
+          fontFamily: "Arial, sans-serif",
+          color: "#ffd700",
+          textAlign: "left",
+        });
+      }
     }
   }
 

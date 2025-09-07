@@ -154,9 +154,22 @@ export class ServerCanvasHelper {
     // Utiliser des polices appropriées selon l'environnement
     let fontFamily = config.fontFamily || "Arial, sans-serif";
 
-    if (process.env.VERCEL) {
+    // Détecter l'environnement Docker
+    const isDocker =
+      process.env.NODE_ENV === "production" && !process.env.VERCEL;
+    const hasEmojis = /\p{Emoji}/u.test(config.text);
+
+    if (isDocker) {
+      // Dans Docker, utiliser les polices Alpine Linux installées
+      if (hasEmojis) {
+        fontFamily =
+          "Noto Color Emoji, Noto Sans, Liberation Sans, DejaVu Sans, Arial, sans-serif";
+      } else {
+        fontFamily =
+          "Noto Sans, Liberation Sans, DejaVu Sans, Arial, sans-serif";
+      }
+    } else if (process.env.VERCEL) {
       // Sur Vercel, utiliser des polices système Linux qui supportent les emojis
-      const hasEmojis = /\p{Emoji}/u.test(config.text);
       if (hasEmojis) {
         fontFamily =
           "Noto Color Emoji, Noto Sans, Liberation Sans, Arial, sans-serif";
@@ -166,7 +179,6 @@ export class ServerCanvasHelper {
       }
     } else {
       // En local, utiliser nos polices TTF
-      const hasEmojis = /\p{Emoji}/u.test(config.text);
       if (hasEmojis) {
         fontFamily = "Noto Color Emoji, Noto Sans, Arial, sans-serif";
       } else {
@@ -232,9 +244,22 @@ export class ServerCanvasHelper {
     // Utiliser des polices appropriées selon l'environnement
     let finalFontFamily = fontFamily;
 
-    if (process.env.VERCEL) {
+    // Détecter l'environnement Docker
+    const isDocker =
+      process.env.NODE_ENV === "production" && !process.env.VERCEL;
+    const hasEmojis = /\p{Emoji}/u.test(text);
+
+    if (isDocker) {
+      // Dans Docker, utiliser les polices Alpine Linux installées
+      if (hasEmojis) {
+        finalFontFamily =
+          "Noto Color Emoji, Noto Sans, Liberation Sans, DejaVu Sans, Arial, sans-serif";
+      } else {
+        finalFontFamily =
+          "Noto Sans, Liberation Sans, DejaVu Sans, Arial, sans-serif";
+      }
+    } else if (process.env.VERCEL) {
       // Sur Vercel, utiliser des polices système Linux qui supportent les emojis
-      const hasEmojis = /\p{Emoji}/u.test(text);
       if (hasEmojis) {
         finalFontFamily =
           "Noto Color Emoji, Noto Sans, Liberation Sans, Arial, sans-serif";
@@ -244,7 +269,6 @@ export class ServerCanvasHelper {
       }
     } else {
       // En local, utiliser nos polices TTF
-      const hasEmojis = /\p{Emoji}/u.test(text);
       if (hasEmojis) {
         finalFontFamily = "Noto Color Emoji, Noto Sans, Arial, sans-serif";
       } else {
@@ -318,10 +342,10 @@ export class ServerCanvasHelper {
           }
 
           const buffer = await response.arrayBuffer();
-          const imageBuffer = Buffer.from(buffer as ArrayBuffer);
+          const imageBuffer = Buffer.from(new Uint8Array(buffer));
 
           // Convertir WebP en PNG si nécessaire (côté serveur uniquement)
-          let processedBuffer = imageBuffer;
+          let processedBuffer: Buffer = imageBuffer;
           if (imageUrl.includes(".webp") && typeof window === "undefined") {
             try {
               const { convertWebPToPNG } = await import("./imageConverter");

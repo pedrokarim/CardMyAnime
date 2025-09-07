@@ -1,6 +1,7 @@
 import { Info, Code, Database, Palette, Users, Heart } from "lucide-react";
 import Image from "next/image";
 import { PlatformIcon } from "@/components/ui/platform-icon";
+import { SITE_CONFIG } from "@/lib/constants";
 
 export default function AboutPage() {
   return (
@@ -11,8 +12,8 @@ export default function AboutPage() {
           <div className="inline-block mb-8">
             <div className="flex justify-center mb-6">
               <Image
-                src="/images/cma-logo.png"
-                alt="CardMyAnime Logo"
+                src={SITE_CONFIG.site.logo}
+                alt={`${SITE_CONFIG.site.name} Logo`}
                 width={80}
                 height={80}
                 className="rounded-xl"
@@ -24,7 +25,8 @@ export default function AboutPage() {
             <div className="h-1 bg-primary rounded-full w-32 mx-auto"></div>
           </div>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Découvrez l'histoire et les technologies derrière CardMyAnime
+            Découvrez l'histoire et les technologies derrière{" "}
+            {SITE_CONFIG.site.name}
           </p>
         </div>
 
@@ -32,14 +34,16 @@ export default function AboutPage() {
           {/* Description du projet */}
           <div className="bg-card rounded-xl p-8 border border-border">
             <h2 className="text-3xl font-bold text-foreground mb-6">
-              Qu'est-ce que CardMyAnime ?
+              Qu'est-ce que {SITE_CONFIG.site.name} ?
             </h2>
             <div className="space-y-4 text-muted-foreground leading-relaxed">
               <p>
-                <strong className="text-foreground">CardMyAnime</strong> est un
-                générateur de cartes de profil dynamiques pour les passionnés
-                d'anime et de manga. Créez des cartes personnalisées à partir de
-                vos profils sur AniList, MyAnimeList ou Nautiljon.
+                <strong className="text-foreground">
+                  {SITE_CONFIG.site.name}
+                </strong>{" "}
+                est un générateur de cartes de profil dynamiques pour les
+                passionnés d'anime et de manga. Créez des cartes personnalisées
+                à partir de vos profils sur AniList, MyAnimeList ou Nautiljon.
               </p>
               <p>
                 Le projet est né de l'envie de créer quelque chose d'utile pour
@@ -240,21 +244,25 @@ export default function AboutPage() {
               </div>
               <div>
                 <h3 className="text-2xl font-bold text-foreground mb-2">
-                  PedroKarim64
+                  {SITE_CONFIG.creator.pseudo}
                 </h3>
                 <p className="text-muted-foreground mb-4">
                   Développeur passionné d'anime et de technologies web modernes
                 </p>
                 <div className="flex gap-4">
                   <a
-                    href="#"
+                    href={SITE_CONFIG.social.github}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
                   >
                     <Code className="w-4 h-4" />
                     GitHub
                   </a>
                   <a
-                    href="#"
+                    href={SITE_CONFIG.social.discord}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 px-4 py-2 border border-border text-foreground rounded-lg hover:bg-accent transition-colors"
                   >
                     <Users className="w-4 h-4" />

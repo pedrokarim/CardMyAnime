@@ -65,16 +65,29 @@ export async function generateSmallCard(
   const recentAnimes = userData.lastAnimes.slice(0, 3);
   let animeY = 110;
 
-  recentAnimes.forEach((anime, index) => {
-    helper.drawTruncatedText(
-      `${index + 1}. ${anime.title}`,
-      20,
-      animeY + index * 20,
-      360,
-      12,
-      "#ffffff"
-    );
-  });
+  if (recentAnimes.length === 0) {
+    // Message quand aucun anime n'est trouvé
+    helper.drawText({
+      x: 20,
+      y: animeY,
+      text: "Aucune donnée trouvée",
+      fontSize: 12,
+      fontFamily: "Arial, sans-serif",
+      color: "#8b949e",
+      textAlign: "left",
+    });
+  } else {
+    recentAnimes.forEach((anime, index) => {
+      helper.drawTruncatedText(
+        `${index + 1}. ${anime.title}`,
+        20,
+        animeY + index * 20,
+        360,
+        12,
+        "#ffffff"
+      );
+    });
+  }
 
   // Note moyenne si disponible
   if (userData.stats.avgScore > 0) {
