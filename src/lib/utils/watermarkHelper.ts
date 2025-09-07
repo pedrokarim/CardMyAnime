@@ -21,7 +21,7 @@ export async function addWatermark(
 ): Promise<void> {
   const {
     position = "bottom-right",
-    opacity = 0.6,
+    opacity = 1.0,
     size = 40,
     showText = true,
   } = options;
@@ -99,6 +99,88 @@ export async function addWatermark(
     ctx.fillStyle = "#888888";
     ctx.textAlign = "right";
     ctx.fillText("CardMyAnime", width - 15, height - 15);
+  }
+
+  // Restaurer l'état du contexte
+  ctx.restore();
+}
+
+export interface PlatformLogoOptions {
+  position?: "bottom-right" | "bottom-left" | "top-right" | "top-left";
+  size?: number;
+}
+
+export async function addPlatformLogo(
+  helper: ServerCanvasHelper | any,
+  platform: string,
+  options: PlatformLogoOptions = {}
+): Promise<void> {
+  const { position = "bottom-left", size = 30 } = options;
+
+  // Accéder au canvas et au contexte via les propriétés privées
+  const canvas = (helper as any).canvas;
+  const ctx = (helper as any).ctx;
+  const width = canvas.width;
+  const height = canvas.height;
+
+  // Sauvegarder l'état actuel du contexte
+  ctx.save();
+
+  // Déterminer le logo selon la plateforme
+  let logoPath: string;
+  const platformStr = String(platform || "").toLowerCase();
+  switch (platformStr) {
+    case "mal":
+      logoPath = process.cwd() + "/public/images/MAL_Favicon_2020.png";
+      break;
+    case "anilist":
+      logoPath =
+        process.cwd() + "/public/images/anilist-android-chrome-512x512.png";
+      break;
+    case "nautiljon":
+      logoPath = process.cwd() + "/public/images/nautiljon-logo.jpg";
+      break;
+    default:
+      // Pas de logo si plateforme inconnue ou vide
+      console.log("Plateforme inconnue ou vide:", platform);
+      ctx.restore();
+      return;
+  }
+
+  try {
+    const logo = await canvasLoadImage(logoPath);
+
+    // Calculer la position du logo
+    let x: number, y: number;
+    const padding = 5; // Même espacement que le watermark
+
+    switch (position) {
+      case "bottom-right":
+        x = width - size - padding;
+        y = height - size - padding;
+        break;
+      case "bottom-left":
+        x = padding;
+        y = height - size - padding;
+        break;
+      case "top-right":
+        x = width - size - padding;
+        y = padding;
+        break;
+      case "top-left":
+        x = padding;
+        y = padding;
+        break;
+      default:
+        x = padding;
+        y = height - size - padding;
+    }
+
+    // Dessiner le logo sans opacité
+    ctx.globalAlpha = 1.0;
+    ctx.drawImage(logo, x, y, size, size);
+  } catch (error) {
+    console.error("Erreur lors du chargement du logo de plateforme:", error);
   }
 
   // Restaurer l'état du contexte

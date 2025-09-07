@@ -64,24 +64,28 @@ export const appRouter = createTRPCRouter({
           case "small":
             cardDataUrl = await generateSmallCard(
               userData,
+              input.platform,
               input.useLastAnimeBackground
             );
             break;
           case "medium":
             cardDataUrl = await generateMediumCard(
               userData,
+              input.platform,
               input.useLastAnimeBackground
             );
             break;
           case "large":
             cardDataUrl = await generateLargeCard(
               userData,
+              input.platform,
               input.useLastAnimeBackground
             );
             break;
           case "summary":
             cardDataUrl = await generateSummaryCard(
               userData,
+              input.platform,
               input.useLastAnimeBackground
             );
             break;

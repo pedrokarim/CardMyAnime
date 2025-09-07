@@ -270,9 +270,12 @@ export function CardPreview({
                   Membre depuis
                 </h4>
                 <p className="text-sm text-muted-foreground">
-                  {new Date(userData.profile.joinDate).toLocaleDateString(
-                    "fr-FR"
-                  )}
+                  {(() => {
+                    const date = new Date(userData.profile.joinDate);
+                    return isNaN(date.getTime())
+                      ? userData.profile.joinDate
+                      : date.toLocaleDateString("fr-FR");
+                  })()}
                 </p>
                 {userData.profile.memberDays && (
                   <p className="text-xs text-muted-foreground mt-1">

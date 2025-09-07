@@ -1,9 +1,10 @@
 import { UserData } from "../types";
 import { ServerCanvasHelper } from "../utils/serverCanvasHelpers";
-import { addWatermark } from "../utils/watermarkHelper";
+import { addWatermark, addPlatformLogo } from "../utils/watermarkHelper";
 
 export async function generateSummaryCard(
   userData: UserData,
+  platform: string,
   useLastAnimeBackground: boolean = true
 ): Promise<string> {
   // Génération de la carte résumé
@@ -520,9 +521,15 @@ export async function generateSummaryCard(
   // Ajouter le watermark
   await addWatermark(helper, {
     position: "bottom-right",
-    opacity: 0.7,
+    opacity: 1.0,
     size: 35,
     showText: true,
+  });
+
+  // Ajouter le logo de la plateforme (bas gauche)
+  await addPlatformLogo(helper, platform, {
+    position: "bottom-left",
+    size: 30,
   });
 
   return helper.toDataURL();

@@ -42,19 +42,19 @@ export default function ShareOptions({
       type: "markdown",
       label: "Markdown",
       icon: "📝",
-      content: `![${username} - ${cardType}](${fullUrl})`,
+      content: `[![${username} - ${cardType}](${fullUrl})](${baseUrl})`,
     },
     {
       type: "bbcode",
       label: "BB Code",
       icon: "🔗",
-      content: `[img]${fullUrl}[/img]`,
+      content: `[url=${baseUrl}][img]${fullUrl}[/img][/url]`,
     },
     {
       type: "html",
       label: "HTML Embed",
       icon: "🌐",
-      content: `<img src="${fullUrl}" alt="${username} - ${cardType}" />`,
+      content: `<a href="${baseUrl}" target="_blank"><img src="${fullUrl}" alt="${username} - ${cardType}" /></a>`,
     },
     {
       type: "url",
@@ -114,7 +114,7 @@ export default function ShareOptions({
         <p>
           💡 <strong>Conseil :</strong> Utilisez Markdown pour GitHub, Discord,
           ou les forums. BB Code pour les forums qui le supportent. HTML pour
-          les sites web.
+          les sites web. L'image sera cliquable et redirigera vers le site !
         </p>
       </div>
     </div>

@@ -1,9 +1,10 @@
 import { UserData } from "../types";
 import { ServerCanvasHelper } from "../utils/serverCanvasHelpers";
-import { addWatermark } from "../utils/watermarkHelper";
+import { addWatermark, addPlatformLogo } from "../utils/watermarkHelper";
 
 export async function generateMediumCard(
   userData: UserData,
+  platform: string,
   useLastAnimeBackground: boolean = true
 ): Promise<string> {
   const width = 600;
@@ -228,9 +229,15 @@ export async function generateMediumCard(
   // Ajouter le watermark
   await addWatermark(helper, {
     position: "bottom-right",
-    opacity: 0.6,
+    opacity: 1.0,
     size: 35,
     showText: true,
+  });
+
+  // Ajouter le logo de la plateforme (bas gauche)
+  await addPlatformLogo(helper, platform, {
+    position: "bottom-left",
+    size: 30,
   });
 
   return helper.toDataURL();

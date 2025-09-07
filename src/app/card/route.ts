@@ -98,20 +98,30 @@ export async function GET(request: NextRequest) {
     let cardDataUrl: string;
     switch (validType) {
       case "small":
-        cardDataUrl = await generateSmallCard(userData, useLastAnimeBackground);
+        cardDataUrl = await generateSmallCard(
+          userData,
+          platform,
+          useLastAnimeBackground
+        );
         break;
       case "medium":
         cardDataUrl = await generateMediumCard(
           userData,
+          platform,
           useLastAnimeBackground
         );
         break;
       case "large":
-        cardDataUrl = await generateLargeCard(userData, useLastAnimeBackground);
+        cardDataUrl = await generateLargeCard(
+          userData,
+          platform,
+          useLastAnimeBackground
+        );
         break;
       case "summary":
         cardDataUrl = await generateSummaryCard(
           userData,
+          platform,
           useLastAnimeBackground
         );
         break;

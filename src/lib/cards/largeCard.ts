@@ -1,9 +1,10 @@
 import { UserData } from "../types";
 import { ServerCanvasHelper } from "../utils/serverCanvasHelpers";
-import { addWatermark } from "../utils/watermarkHelper";
+import { addWatermark, addPlatformLogo } from "../utils/watermarkHelper";
 
 export async function generateLargeCard(
   userData: UserData,
+  platform: string,
   useLastAnimeBackground: boolean = true
 ): Promise<string> {
   const width = 800;
@@ -300,9 +301,15 @@ export async function generateLargeCard(
   // Ajouter le watermark
   await addWatermark(helper, {
     position: "bottom-right",
-    opacity: 0.6,
+    opacity: 1.0,
     size: 40,
     showText: true,
+  });
+
+  // Ajouter le logo de la plateforme (haut droite)
+  await addPlatformLogo(helper, platform, {
+    position: "top-right",
+    size: 30,
   });
 
   return helper.toDataURL();

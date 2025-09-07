@@ -162,7 +162,18 @@ function extractProfileInfo(document: Document) {
             info.lastVisit = value.replace(/\s*\([^)]*\)/, ""); // Remove (Hors ligne)
             break;
           case "Membre depuis":
-            info.memberSince = value.split(" ")[0]; // Just the date
+            const datePart = value.split(" ")[0]; // Just the date
+            // Essayer de parser la date et la formater correctement
+            try {
+              const parsedDate = new Date(datePart);
+              if (!isNaN(parsedDate.getTime())) {
+                info.memberSince = parsedDate.toISOString().split("T")[0]; // Format YYYY-MM-DD
+              } else {
+                info.memberSince = datePart; // Garder le format original si parsing échoue
+              }
+            } catch {
+              info.memberSince = datePart; // Garder le format original si erreur
+            }
             info.memberDays = parseInt(
               value.match(/\((\d+) jours\)/)?.[1] || "0"
             );
