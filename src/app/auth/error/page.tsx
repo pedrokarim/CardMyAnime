@@ -4,15 +4,6 @@ import { useSearchParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
-export const metadata = {
-  title: "Erreur d'authentification - CardMyAnime",
-  description: "Une erreur s'est produite lors de la connexion à CardMyAnime",
-  robots: {
-    index: false,
-    follow: false,
-  },
-};
-
 export default function AuthErrorPage() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");

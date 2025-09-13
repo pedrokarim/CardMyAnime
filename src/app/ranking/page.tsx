@@ -16,27 +16,6 @@ import { Button } from "@/components/ui/button";
 import { PlatformIcon } from "@/components/ui/platform-icon";
 import { PageLoading } from "@/components/ui/loading";
 
-export const metadata = {
-  title: "Classement des cartes - CardMyAnime",
-  description:
-    "Découvrez les cartes de profil anime les plus populaires. Classement par vues, vues 24h et date de création sur AniList, MyAnimeList et Nautiljon.",
-  keywords: [
-    "classement",
-    "cartes anime",
-    "top",
-    "vues",
-    "popularité",
-    "anilist",
-    "myanimelist",
-    "nautiljon",
-  ],
-  openGraph: {
-    title: "Classement des cartes - CardMyAnime",
-    description: "Découvrez les cartes de profil anime les plus populaires",
-    type: "website",
-  },
-};
-
 const ITEMS_PER_PAGE = 20;
 
 function generatePaginationRange(currentPage: number, totalPages: number) {
