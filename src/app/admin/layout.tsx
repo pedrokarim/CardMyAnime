@@ -9,6 +9,15 @@ import { AdminSidebar } from "./partials/admin-sidebar";
 import { AdminAuthWrapper } from "./partials/admin-auth-wrapper";
 import { Separator } from "@/components/ui/separator";
 
+export const metadata = {
+  title: "Administration - CardMyAnime",
+  description: "Interface d'administration de CardMyAnime",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
+
 export default function AdminLayout({
   children,
 }: {

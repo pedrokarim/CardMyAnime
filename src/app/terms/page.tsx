@@ -3,7 +3,23 @@ import { SITE_CONFIG } from "@/lib/constants";
 export const metadata = {
   title: "Conditions d'utilisation - CardMyAnime",
   description:
-    "Conditions d'utilisation du service CardMyAnime - Projet open source gratuit pour la communauté anime",
+    "Conditions d'utilisation du service CardMyAnime - Projet open source gratuit pour la communauté anime. Découvrez nos règles d'usage et notre politique de confidentialité.",
+  keywords: [
+    "conditions d'utilisation",
+    "CGU",
+    "règles",
+    "politique",
+    "confidentialité",
+    "anime",
+    "cartes",
+    "profil",
+  ],
+  openGraph: {
+    title: "Conditions d'utilisation - CardMyAnime",
+    description:
+      "Conditions d'utilisation du service CardMyAnime - Projet open source gratuit",
+    type: "website",
+  },
 };
 
 export default function TermsPage() {

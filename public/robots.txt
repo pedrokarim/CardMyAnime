@@ -6,15 +6,15 @@ Allow: /about
 Allow: /contact
 Allow: /ranking
 Allow: /terms
-Allow: /data-deletion
 
 # APIs publiques
 Allow: /api/og
 Allow: /api/health
 
-# Pages d'authentification (optionnel)
-Allow: /auth/signin
-Allow: /auth/error
+# Bloquer les pages sensibles
+Disallow: /data-deletion
+Disallow: /auth/signin
+Disallow: /auth/error
 
 # Bloquer les pages d'administration
 Disallow: /admin

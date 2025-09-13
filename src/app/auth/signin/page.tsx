@@ -6,6 +6,15 @@ import { useRouter } from "next/navigation";
 import { SITE_CONFIG } from "@/lib/constants";
 import { DiscordIcon } from "@/components/ui/discord-icon";
 
+export const metadata = {
+  title: "Connexion - CardMyAnime",
+  description: "Connectez-vous à CardMyAnime pour accéder aux fonctionnalités d'administration et gérer vos cartes de profil anime.",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
+
 export default function SignInPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

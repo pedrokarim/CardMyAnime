@@ -1,6 +1,28 @@
 import { Mail, MessageSquare, Github, Twitter } from "lucide-react";
 import { SITE_CONFIG } from "@/lib/constants";
 
+export const metadata = {
+  title: "Contact - CardMyAnime",
+  description:
+    "Contactez l'équipe CardMyAnime pour toute question, suggestion ou signalement de bug. Rejoignez notre communauté Discord ou GitHub.",
+  keywords: [
+    "contact",
+    "support",
+    "aide",
+    "discord",
+    "github",
+    "bug",
+    "suggestion",
+    "communauté",
+  ],
+  openGraph: {
+    title: "Contact - CardMyAnime",
+    description:
+      "Contactez l'équipe CardMyAnime pour toute question ou suggestion",
+    type: "website",
+  },
+};
+
 export default function ContactPage() {
   return (
     <div className="min-h-screen bg-background">

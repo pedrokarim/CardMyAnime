@@ -36,17 +36,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "yearly",
       priority: 0.5,
     },
-    {
-      url: `${baseUrl}/data-deletion`,
-      lastModified,
-      changeFrequency: "yearly",
-      priority: 0.3,
-    },
-    {
-      url: `${baseUrl}/auth/signin`,
-      lastModified,
-      changeFrequency: "yearly",
-      priority: 0.2,
-    },
+    // Pages sensibles exclues du sitemap :
+    // - /data-deletion (noindex)
+    // - /auth/signin (noindex)
+    // - /auth/error (noindex)
+    // - /admin/* (noindex)
   ];
 }

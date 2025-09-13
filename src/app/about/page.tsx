@@ -3,6 +3,28 @@ import Image from "next/image";
 import { PlatformIcon } from "@/components/ui/platform-icon";
 import { SITE_CONFIG } from "@/lib/constants";
 
+export const metadata = {
+  title: "À propos - CardMyAnime",
+  description:
+    "Découvrez l'histoire et les technologies derrière CardMyAnime. Générateur de cartes de profil anime open source pour AniList, MyAnimeList et Nautiljon.",
+  keywords: [
+    "à propos",
+    "histoire",
+    "technologies",
+    "développeur",
+    "open source",
+    "anime",
+    "cartes",
+    "profil",
+  ],
+  openGraph: {
+    title: "À propos - CardMyAnime",
+    description:
+      "Découvrez l'histoire et les technologies derrière CardMyAnime",
+    type: "website",
+  },
+};
+
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-background">

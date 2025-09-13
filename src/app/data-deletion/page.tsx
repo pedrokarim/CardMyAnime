@@ -22,6 +22,16 @@ import { SITE_CONFIG } from "@/lib/constants";
 import { Trash2, Shield, AlertTriangle } from "lucide-react";
 import { ReCAPTCHAComponent } from "@/components/ui/recaptcha";
 
+export const metadata = {
+  title: "Suppression de données - CardMyAnime",
+  description:
+    "Demandez la suppression de vos données personnelles de CardMyAnime. Conformément au RGPD, vous avez le droit de supprimer vos informations à tout moment.",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
+
 export default function DataDeletionPage() {
   const [formData, setFormData] = useState({
     platform: "",
