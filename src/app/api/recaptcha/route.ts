@@ -35,14 +35,47 @@ export async function POST(request: NextRequest) {
 
     const data = await response.json();
 
+    // Log pour le débogage (à retirer en production)
+    console.log("reCAPTCHA validation response:", {
+      success: data.success,
+      errorCodes: data["error-codes"],
+      challengeTs: data.challenge_ts,
+      hostname: data.hostname,
+    });
+
     if (data.success) {
       return NextResponse.json({ success: true });
     } else {
+      // Messages d'erreur plus détaillés
+      const errorMessages = {
+        "missing-input-secret": "Clé secrète reCAPTCHA manquante",
+        "invalid-input-secret": "Clé secrète reCAPTCHA invalide",
+        "missing-input-response": "Token reCAPTCHA manquant",
+        "invalid-input-response": "Token reCAPTCHA invalide ou expiré",
+        "bad-request": "Requête malformée vers reCAPTCHA",
+        "invalid-keys": "Clés reCAPTCHA invalides",
+        "timeout-or-duplicate": "Token reCAPTCHA expiré ou déjà utilisé",
+      };
+
+      const errorCode = data["error-codes"]?.[0];
+      const errorMessage =
+        errorMessages[errorCode as keyof typeof errorMessages] ||
+        "Erreur de validation reCAPTCHA";
+
       return NextResponse.json(
         {
           success: false,
-          error: "Validation reCAPTCHA échouée",
+          error: errorMessage,
           details: data["error-codes"],
+          debug:
+            process.env.NODE_ENV === "development"
+              ? {
+                  secretKeyLength: secretKey?.length || 0,
+                  secretKeyPrefix: secretKey?.substring(0, 8) + "...",
+                  tokenLength: token?.length || 0,
+                  tokenPrefix: token?.substring(0, 20) + "...",
+                }
+              : undefined,
         },
         { status: 400 }
       );

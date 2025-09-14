@@ -64,7 +64,28 @@ export default function DataDeletionPage() {
       if (data.success) {
         setIsSubmitted(true);
       } else {
-        setRecaptchaError(data.error || "Erreur lors de l'envoi de la demande");
+        // Afficher l'erreur reCAPTCHA spécifique si disponible
+        if (data.details && data.details.includes("invalid-keys")) {
+          setRecaptchaError(
+            "Configuration reCAPTCHA invalide. Veuillez contacter l'administrateur."
+          );
+        } else if (
+          data.details &&
+          data.details.includes("invalid-input-response")
+        ) {
+          setRecaptchaError("Le reCAPTCHA a expiré. Veuillez le refaire.");
+        } else {
+          setRecaptchaError(
+            data.error || "Erreur lors de l'envoi de la demande"
+          );
+        }
+
+        // Log pour le débogage
+        console.error("Erreur reCAPTCHA:", {
+          error: data.error,
+          details: data.details,
+          debug: data.debug,
+        });
       }
     } catch (error) {
       console.error("Erreur:", error);
