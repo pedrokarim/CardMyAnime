@@ -15,6 +15,7 @@
     "@auth/core": "^0.40.0",
     "@auth/nextjs": "^0.0.0-380f8d56",
     "@auth/prisma-adapter": "^2.10.0",
+    "@faker-js/faker": "^10.0.0",
     "@fontsource/noto-color-emoji": "^5.2.8",
     "@fontsource/noto-emoji": "^5.2.6",
     "@fontsource/noto-sans": "^5.2.7",

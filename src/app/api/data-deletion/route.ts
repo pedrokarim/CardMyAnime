@@ -41,28 +41,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Vérifier le reCAPTCHA
-    const recaptchaResponse = await fetch(
-      `${request.nextUrl.origin}/api/recaptcha`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          token: recaptchaToken,
-          action: recaptchaAction || "data_deletion",
-        }),
-      }
-    );
+    // Vérifier le reCAPTCHA (avec bypass en mode dev)
+    const isDev = process.env.NODE_ENV === "development";
 
-    const recaptchaData = await recaptchaResponse.json();
-
-    if (!recaptchaData.success) {
-      return NextResponse.json(
-        { success: false, error: "Validation reCAPTCHA échouée" },
-        { status: 400 }
+    if (!isDev || recaptchaToken !== "dev-bypass-token") {
+      const recaptchaResponse = await fetch(
+        `${request.nextUrl.origin}/api/recaptcha`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            token: recaptchaToken,
+            action: recaptchaAction || "data_deletion",
+          }),
+        }
       );
+
+      const recaptchaData = await recaptchaResponse.json();
+
+      if (!recaptchaData.success) {
+        return NextResponse.json(
+          { success: false, error: "Validation reCAPTCHA échouée" },
+          { status: 400 }
+        );
+      }
+    } else {
+      console.log("Mode développement : bypass du reCAPTCHA");
     }
 
     // Générer un ID unique pour la demande

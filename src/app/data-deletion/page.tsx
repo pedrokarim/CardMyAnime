@@ -19,10 +19,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SITE_CONFIG } from "@/lib/constants";
-import { Trash2, Shield, AlertTriangle } from "lucide-react";
+import { Trash2, Shield, AlertTriangle, Wand2 } from "lucide-react";
 import { ReCAPTCHAComponent } from "@/components/recaptcha";
+import { faker } from "@faker-js/faker";
 
 export default function DataDeletionPage() {
+  const isDev = process.env.NODE_ENV === "development";
+
   const [formData, setFormData] = useState({
     platform: "",
     username: "",
@@ -38,8 +41,8 @@ export default function DataDeletionPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Vérifier que reCAPTCHA est validé
-    if (!recaptchaToken) {
+    // Vérifier que reCAPTCHA est validé (sauf en dev)
+    if (!isDev && !recaptchaToken) {
       setRecaptchaError("Veuillez valider le reCAPTCHA");
       return;
     }
@@ -55,7 +58,7 @@ export default function DataDeletionPage() {
         },
         body: JSON.stringify({
           ...formData,
-          recaptchaToken,
+          recaptchaToken: isDev ? "dev-bypass-token" : recaptchaToken,
           recaptchaAction: "data_deletion",
         }),
       });
@@ -101,6 +104,31 @@ export default function DataDeletionPage() {
   const handleRecaptchaError = () => {
     setRecaptchaToken(null);
     setRecaptchaError("Erreur avec le reCAPTCHA. Veuillez réessayer.");
+  };
+
+  // Fonction pour générer des données de test avec Faker
+  const generateTestData = () => {
+    const platforms = ["anilist", "mal", "nautiljon", "all"];
+    const reasons = [
+      "privacy",
+      "no-longer-use",
+      "data-accuracy",
+      "legal",
+      "other",
+    ];
+
+    const testData = {
+      platform: faker.helpers.arrayElement(platforms),
+      username: faker.internet.username(),
+      email: faker.internet.email(),
+      reason: faker.helpers.arrayElement(reasons),
+      additionalInfo:
+        faker.helpers.maybe(() => faker.lorem.sentence(), {
+          probability: 0.7,
+        }) || "",
+    };
+
+    setFormData(testData);
   };
 
   if (isSubmitted) {
@@ -205,11 +233,28 @@ export default function DataDeletionPage() {
         {/* Formulaire */}
         <Card>
           <CardHeader>
-            <CardTitle>Formulaire de demande</CardTitle>
-            <CardDescription>
-              Remplissez ce formulaire pour demander la suppression de vos
-              données
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Formulaire de demande</CardTitle>
+                <CardDescription>
+                  Remplissez ce formulaire pour demander la suppression de vos
+                  données
+                </CardDescription>
+              </div>
+              {/* Bouton de génération de données de test - visible uniquement en dev */}
+              {process.env.NODE_ENV === "development" && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={generateTestData}
+                  className="flex items-center gap-2 text-xs"
+                >
+                  <Wand2 className="w-3 h-3" />
+                  Données de test
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -314,12 +359,20 @@ export default function DataDeletionPage() {
 
               {/* reCAPTCHA v3 */}
               <div className="space-y-2">
-                <ReCAPTCHAComponent
-                  onChange={handleRecaptchaChange}
-                  onError={handleRecaptchaError}
-                  action="data_deletion"
-                  className="my-4"
-                />
+                {process.env.NODE_ENV === "development" ? (
+                  <div className="p-3 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg text-center">
+                    <p className="text-sm text-yellow-800 dark:text-yellow-200 font-medium">
+                      🚀 Mode développement : reCAPTCHA bypassé
+                    </p>
+                  </div>
+                ) : (
+                  <ReCAPTCHAComponent
+                    onChange={handleRecaptchaChange}
+                    onError={handleRecaptchaError}
+                    action="data_deletion"
+                    className="my-4"
+                  />
+                )}
                 {recaptchaError && (
                   <p className="text-sm text-red-500 text-center">
                     {recaptchaError}
@@ -338,7 +391,7 @@ export default function DataDeletionPage() {
                     !formData.username ||
                     !formData.email ||
                     !formData.reason ||
-                    !recaptchaToken
+                    (!isDev && !recaptchaToken)
                   }
                 >
                   {isSubmitting ? (

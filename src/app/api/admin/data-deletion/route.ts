@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { prisma, ensurePrismaConnection } from "@/lib/prisma";
 
 const ITEMS_PER_PAGE = 20;
 
@@ -11,6 +11,9 @@ export async function GET(request: NextRequest) {
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
+
+    // S'assurer que la connexion Prisma est active
+    await ensurePrismaConnection();
 
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1");
@@ -39,16 +42,32 @@ export async function GET(request: NextRequest) {
 
     const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
-    // Statistiques par statut
-    const stats = await prisma.dataDeletionRequest.groupBy({
-      by: ["status"],
-      _count: { status: true },
-    });
+    // Statistiques par statut - avec gestion d'erreur
+    let statusStats: Record<string, number> = {};
+    try {
+      const stats = await prisma.dataDeletionRequest.groupBy({
+        by: ["status"],
+        _count: { status: true },
+      });
 
-    const statusStats = stats.reduce((acc, stat) => {
-      acc[stat.status] = stat._count.status;
-      return acc;
-    }, {} as Record<string, number>);
+      statusStats = stats.reduce((acc, stat) => {
+        acc[stat.status] = stat._count.status;
+        return acc;
+      }, {} as Record<string, number>);
+    } catch (groupByError) {
+      console.warn(
+        "Erreur lors du groupBy, utilisation d'une approche alternative:",
+        groupByError
+      );
+      // Fallback: compter manuellement par statut
+      const allStatuses = await prisma.dataDeletionRequest.findMany({
+        select: { status: true },
+      });
+      statusStats = allStatuses.reduce((acc, item) => {
+        acc[item.status] = (acc[item.status] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+    }
 
     return NextResponse.json({
       requests,
@@ -76,6 +95,9 @@ export async function PATCH(request: NextRequest) {
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
+
+    // S'assurer que la connexion Prisma est active
+    await ensurePrismaConnection();
 
     const { id, status, notes } = await request.json();
 
@@ -117,6 +139,9 @@ export async function PATCH(request: NextRequest) {
 
 async function handleDataDeletion(request: any) {
   try {
+    // S'assurer que la connexion Prisma est active
+    await ensurePrismaConnection();
+
     const { platform, username } = request;
 
     // Supprimer les données du cache
