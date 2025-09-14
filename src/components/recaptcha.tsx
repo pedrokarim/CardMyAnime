@@ -62,11 +62,6 @@ export function ReCAPTCHAComponent({
           window.grecaptcha
             .execute(siteKey!, { action })
             .then((token) => {
-              console.log("reCAPTCHA v3 token généré:", {
-                action,
-                tokenLength: token.length,
-                tokenPrefix: token.substring(0, 20) + "...",
-              });
               onChange(token);
             })
             .catch((error) => {

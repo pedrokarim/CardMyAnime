@@ -80,13 +80,6 @@ export default function DataDeletionPage() {
             data.error || "Erreur lors de l'envoi de la demande"
           );
         }
-
-        // Log pour le débogage
-        console.error("Erreur reCAPTCHA:", {
-          error: data.error,
-          details: data.details,
-          debug: data.debug,
-        });
       }
     } catch (error) {
       console.error("Erreur:", error);
