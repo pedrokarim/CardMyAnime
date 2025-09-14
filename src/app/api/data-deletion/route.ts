@@ -8,6 +8,7 @@ interface DataDeletionRequest {
   reason: string;
   additionalInfo?: string;
   recaptchaToken: string;
+  recaptchaAction?: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -20,6 +21,7 @@ export async function POST(request: NextRequest) {
       reason,
       additionalInfo,
       recaptchaToken,
+      recaptchaAction,
     } = body;
 
     // Validation des champs requis
@@ -47,7 +49,10 @@ export async function POST(request: NextRequest) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ token: recaptchaToken }),
+        body: JSON.stringify({
+          token: recaptchaToken,
+          action: recaptchaAction || "data_deletion",
+        }),
       }
     );
 

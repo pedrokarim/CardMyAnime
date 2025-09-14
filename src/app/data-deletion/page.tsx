@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { SITE_CONFIG } from "@/lib/constants";
 import { Trash2, Shield, AlertTriangle } from "lucide-react";
-import { ReCAPTCHAComponent } from "@/components/ui/recaptcha";
+import { ReCAPTCHAComponent } from "@/components/recaptcha";
 
 export default function DataDeletionPage() {
   const [formData, setFormData] = useState({
@@ -56,6 +56,7 @@ export default function DataDeletionPage() {
         body: JSON.stringify({
           ...formData,
           recaptchaToken,
+          recaptchaAction: "data_deletion",
         }),
       });
 
@@ -102,11 +103,6 @@ export default function DataDeletionPage() {
   const handleRecaptchaChange = (token: string | null) => {
     setRecaptchaToken(token);
     setRecaptchaError(null);
-  };
-
-  const handleRecaptchaExpired = () => {
-    setRecaptchaToken(null);
-    setRecaptchaError("Le reCAPTCHA a expiré. Veuillez le refaire.");
   };
 
   const handleRecaptchaError = () => {
@@ -323,12 +319,12 @@ export default function DataDeletionPage() {
                 />
               </div>
 
-              {/* reCAPTCHA */}
+              {/* reCAPTCHA v3 */}
               <div className="space-y-2">
                 <ReCAPTCHAComponent
                   onChange={handleRecaptchaChange}
-                  onExpired={handleRecaptchaExpired}
                   onError={handleRecaptchaError}
+                  action="data_deletion"
                   className="my-4"
                 />
                 {recaptchaError && (

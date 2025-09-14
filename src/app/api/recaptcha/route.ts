@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
-    const { token } = await request.json();
+    const { token, action } = await request.json();
 
     if (!token) {
       return NextResponse.json(
@@ -29,22 +29,56 @@ export async function POST(request: NextRequest) {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },
-        body: `secret=${secretKey}&response=${token}`,
+        body: `secret=${secretKey}&response=${token}${
+          action ? `&action=${action}` : ""
+        }`,
       }
     );
 
     const data = await response.json();
 
-    // Log pour le débogage (à retirer en production)
-    console.log("reCAPTCHA validation response:", {
+    // Log pour le débogage
+    console.log("reCAPTCHA v3 validation response:", {
       success: data.success,
+      score: data.score,
+      action: data.action,
       errorCodes: data["error-codes"],
-      challengeTs: data.challenge_ts,
       hostname: data.hostname,
     });
 
     if (data.success) {
-      return NextResponse.json({ success: true });
+      // reCAPTCHA v3 retourne un score de 0.0 à 1.0
+      const score = data.score || 0;
+      const minScore = 0.5; // Score minimum acceptable
+
+      if (score < minScore) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Score reCAPTCHA trop faible",
+            details: { score, minScore },
+          },
+          { status: 400 }
+        );
+      }
+
+      // Vérifier l'action si fournie
+      if (action && data.action !== action) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Action reCAPTCHA invalide",
+            details: { expected: action, received: data.action },
+          },
+          { status: 400 }
+        );
+      }
+
+      return NextResponse.json({
+        success: true,
+        score: data.score,
+        action: data.action,
+      });
     } else {
       // Messages d'erreur plus détaillés
       const errorMessages = {
@@ -74,6 +108,7 @@ export async function POST(request: NextRequest) {
                   secretKeyPrefix: secretKey?.substring(0, 8) + "...",
                   tokenLength: token?.length || 0,
                   tokenPrefix: token?.substring(0, 20) + "...",
+                  action,
                 }
               : undefined,
         },
@@ -81,7 +116,7 @@ export async function POST(request: NextRequest) {
       );
     }
   } catch (error) {
-    console.error("Erreur lors de la validation reCAPTCHA:", error);
+    console.error("Erreur lors de la validation reCAPTCHA v3:", error);
     return NextResponse.json(
       { success: false, error: "Erreur interne du serveur" },
       { status: 500 }
