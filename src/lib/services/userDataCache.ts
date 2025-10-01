@@ -20,24 +20,25 @@ export class UserDataCacheService {
    * Récupère les données utilisateur depuis le cache ou les APIs
    */
   async getUserData(platform: Platform, username: string): Promise<UserData> {
-    const { prisma } = await import("../prisma");
+    const { prisma, executeWithRetry } = await import("../prisma");
 
     try {
-      // Vérifier si on a des données en cache
-      const cachedData = await prisma.userDataCache.findUnique({
-        where: {
-          platform_username: {
-            platform,
-            username,
+      // Vérifier si on a des données en cache avec retry automatique
+      const cachedData = await executeWithRetry(async () => {
+        return await prisma.userDataCache.findUnique({
+          where: {
+            platform_username: {
+              platform,
+              username,
+            },
           },
-        },
+        });
       });
 
       const now = new Date();
 
       // Si on a des données en cache et qu'elles ne sont pas expirées
       if (cachedData && cachedData.expiresAt > now) {
-        await prisma.$disconnect();
         return JSON.parse(cachedData.data);
       }
 
@@ -47,7 +48,6 @@ export class UserDataCacheService {
 
         // Retourner les anciennes données pendant qu'on renouvelle
         if (cachedData.data) {
-          await prisma.$disconnect();
           return JSON.parse(cachedData.data);
         }
       }
@@ -55,13 +55,13 @@ export class UserDataCacheService {
       // Pas de données en cache, on les récupère maintenant
       const freshData = await this.fetchFreshData(platform, username);
 
-      // Sauvegarder en cache
-      await this.saveToCache(platform, username, freshData, prisma);
+      // Sauvegarder en cache avec retry automatique
+      await executeWithRetry(async () => {
+        await this.saveToCache(platform, username, freshData, prisma);
+      });
 
-      await prisma.$disconnect();
       return freshData;
     } catch (error) {
-      await prisma.$disconnect();
       console.error(
         `❌ Erreur lors de la récupération des données pour ${platform}:${username}:`,
         error
@@ -110,26 +110,29 @@ export class UserDataCacheService {
     data: UserData,
     prisma: any
   ): Promise<void> {
+    const { executeWithRetry } = await import("../prisma");
     const expiresAt = new Date(Date.now() + CACHE_DURATION_MS);
 
-    await prisma.userDataCache.upsert({
-      where: {
-        platform_username: {
+    await executeWithRetry(async () => {
+      await prisma.userDataCache.upsert({
+        where: {
+          platform_username: {
+            platform,
+            username,
+          },
+        },
+        update: {
+          data: JSON.stringify(data),
+          lastFetched: new Date(),
+          expiresAt,
+        },
+        create: {
           platform,
           username,
+          data: JSON.stringify(data),
+          expiresAt,
         },
-      },
-      update: {
-        data: JSON.stringify(data),
-        lastFetched: new Date(),
-        expiresAt,
-      },
-      create: {
-        platform,
-        username,
-        data: JSON.stringify(data),
-        expiresAt,
-      },
+      });
     });
   }
 
