@@ -4,6 +4,8 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
+const databaseUrl = process.env.DATABASE_URL ?? "file:./dev.db";
+
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
@@ -13,7 +15,7 @@ export const prisma =
         : ["error"],
     datasources: {
       db: {
-        url: process.env.DATABASE_URL,
+        url: databaseUrl,
       },
     },
     // Configuration optimisée pour Neon et les connexions longues
