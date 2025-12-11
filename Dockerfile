@@ -31,7 +31,7 @@ WORKDIR /app
 # Copie les fichiers de dépendances
 COPY package*.json ./
 COPY prisma.config.ts ./
-COPY bun.lock ./  # ignoré par npm
+# bun.lock n'est pas nécessaire pour npm dans l'étape builder
 
 # Copie le schéma Prisma pour le postinstall
 COPY prisma/ ./prisma/
@@ -79,7 +79,7 @@ WORKDIR /app
 # Copie les fichiers nécessaires depuis l'étape de build
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/bun.lock ./
+# bun.lock n'est pas nécessaire pour npm
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/prisma ./prisma
 
