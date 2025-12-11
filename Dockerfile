@@ -1,5 +1,5 @@
-# Étape de build - Utilise Bun 1.3 (lockfile v2 + Node 22)
-FROM oven/bun:1.3-slim AS builder
+# Étape de build - Node 22 (sans Bun)
+FROM node:22-slim AS builder
 
 # Installer les dépendances système nécessaires pour canvas, sharp et node-gyp
 RUN apt-get update && apt-get install -y \
@@ -30,14 +30,14 @@ WORKDIR /app
 
 # Copie les fichiers de dépendances
 COPY package*.json ./
-COPY bun.lock ./
 COPY prisma.config.ts ./
+COPY bun.lock ./  # ignoré par npm
 
 # Copie le schéma Prisma pour le postinstall
 COPY prisma/ ./prisma/
 
-# Installe les dépendances avec Bun
-RUN bun install
+# Installe les dépendances (dev incluses pour build)
+RUN npm install
 
 # Copie le reste du code source
 COPY . .
@@ -45,14 +45,14 @@ COPY . .
 # Copie le fichier .env pour le build (si il existe)
 COPY .env* ./
 
-# Générer le client Prisma (déjà fait dans postinstall, mais on le refait pour être sûr)
-RUN bunx prisma generate
+# Générer le client Prisma (par sécurité)
+RUN npx prisma generate
 
 # Build de l'application
-RUN bun run build
+RUN npm run build
 
-# Étape de production - Utilise Bun 1.3 (Node 22)
-FROM oven/bun:1.3-slim AS runner
+# Étape de production - Node 22
+FROM node:22-slim AS runner
 
 # Installer les dépendances runtime nécessaires pour canvas + outils système
 RUN apt-get update && apt-get install -y \
@@ -70,8 +70,8 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Crée un utilisateur non-root pour la sécurité
-RUN addgroup --system --gid 1001 bunjs
-RUN adduser --system --uid 1001 nextjs
+RUN addgroup --system --gid 1001 nodegrp \
+  && adduser --system --uid 1001 nextjs
 
 # Définit le répertoire de travail
 WORKDIR /app
@@ -80,21 +80,19 @@ WORKDIR /app
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/bun.lock ./
+COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
+COPY --from=builder /app/prisma ./prisma
 
 # Copie les polices personnalisées
 COPY --from=builder /app/public/fonts ./public/fonts
 
 # Copie les fichiers de build
-COPY --from=builder --chown=nextjs:bunjs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:bunjs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodegrp /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodegrp /app/.next/static ./.next/static
 
 # Copie le client Prisma généré
-COPY --from=builder --chown=nextjs:bunjs /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder --chown=nextjs:bunjs /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder --chown=nextjs:bunjs /app/prisma.config.ts ./prisma.config.ts
-
-# Copie le schema Prisma
-COPY --from=builder --chown=nextjs:bunjs /app/prisma ./prisma
+COPY --from=builder --chown=nextjs:nodegrp /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder --chown=nextjs:nodegrp /app/node_modules/@prisma ./node_modules/@prisma
 
 # Change vers l'utilisateur non-root
 USER nextjs
@@ -108,4 +106,4 @@ ENV HOSTNAME="0.0.0.0"
 ENV NODE_ENV=production
 
 # Script de démarrage avec initialisation de la DB
-CMD bunx prisma db push && bun server.js 
+CMD npx prisma db push && node server.js
