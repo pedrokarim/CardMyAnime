@@ -11,11 +11,6 @@ export const prisma =
       process.env.NODE_ENV === "development"
         ? ["query", "error", "warn"]
         : ["error"],
-    datasources: {
-      db: {
-        url: process.env.DATABASE_URL,
-      },
-    },
     // Configuration optimisée pour Neon et les connexions longues
     transactionOptions: {
       maxWait: 20000, // 20 secondes
