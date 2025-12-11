@@ -31,6 +31,7 @@ WORKDIR /app
 # Copie les fichiers de dépendances
 COPY package*.json ./
 COPY bun.lock ./
+COPY prisma.config.ts ./
 
 # Copie le schéma Prisma pour le postinstall
 COPY prisma/ ./prisma/
@@ -90,6 +91,7 @@ COPY --from=builder --chown=nextjs:bunjs /app/.next/static ./.next/static
 # Copie le client Prisma généré
 COPY --from=builder --chown=nextjs:bunjs /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder --chown=nextjs:bunjs /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder --chown=nextjs:bunjs /app/prisma.config.ts ./prisma.config.ts
 
 # Copie le schema Prisma
 COPY --from=builder --chown=nextjs:bunjs /app/prisma ./prisma
