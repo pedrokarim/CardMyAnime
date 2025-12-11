@@ -210,6 +210,51 @@ bun run reset-views24h      # Remettre à zéro les vues 24h
 bun run cleanup-view-logs   # Nettoyer les logs de vues
 ```
 
+### 🔄 Configuration du cron job pour les vues 24h
+
+**Important :** Pour que le système de vues 24h fonctionne correctement, il faut configurer un cron job qui remet automatiquement les compteurs à zéro tous les jours.
+
+#### Sur Linux/macOS :
+
+1. **Ouvrir l'éditeur de cron :**
+   ```bash
+   crontab -e
+   ```
+
+2. **Ajouter cette ligne** (remplace `/path/to/your/project` par le chemin réel) :
+   ```bash
+   0 0 * * * cd /home/kagura/CardMyAnime && bun run reset-views24h
+   ```
+
+   Cette commande s'exécute tous les jours à minuit (00:00).
+
+3. **Vérifier que le cron job est configuré :**
+   ```bash
+   crontab -l
+   ```
+
+#### Sur Windows :
+
+Utilisez le Planificateur de tâches :
+
+1. **Ouvrir le Planificateur de tâches** : Rechercher "Planificateur de tâches" dans le menu Démarrer
+
+2. **Créer une tâche** :
+   - Clic droit → "Créer une tâche..."
+   - Nom : "Reset vues 24h CardMyAnime"
+   - Onglet "Déclencheurs" → "Nouveau" → "Tous les jours" à 00:00:00
+
+3. **Dans l'onglet "Actions"** :
+   - "Nouvelle action" → "Démarrer un programme"
+   - Programme : `C:\Program Files\PowerShell\7\pwsh.exe` (ou `cmd.exe`)
+   - Arguments : `-Command "cd 'C:\path\to\your\project'; bun run reset-views24h"`
+
+#### Vérification :
+
+Après avoir configuré le cron job, vérifiez que les vues 24h se remettent bien à zéro tous les jours dans le classement.
+
+**Note :** Si vous utilisez Docker, le cron job doit être configuré sur la machine hôte, pas dans le conteneur.
+
 ## 🐳 Docker
 
 ### Déploiement simple
