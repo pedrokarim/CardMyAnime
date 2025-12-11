@@ -30,15 +30,13 @@ WORKDIR /app
 
 # Copie les fichiers de dépendances
 COPY package*.json ./
+COPY bun.lock ./
 
 # Copie le schéma Prisma pour le postinstall
 COPY prisma/ ./prisma/
 
 # Installe les dépendances avec Bun
-# Forcer Prisma 6.x pour éviter les problèmes de compatibilité
-ENV npm_config_@prisma/client="6.19.1"
-ENV npm_config_prisma="6.19.1"
-RUN bun install --no-cache
+RUN bun install
 
 # Copie le reste du code source
 COPY . .
@@ -79,6 +77,7 @@ WORKDIR /app
 # Copie les fichiers nécessaires depuis l'étape de build
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/bun.lock ./
 
 # Copie les polices personnalisées
 COPY --from=builder /app/public/fonts ./public/fonts
