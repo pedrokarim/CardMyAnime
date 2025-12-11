@@ -46,8 +46,7 @@ COPY . .
 # Copie le fichier .env pour le build (si il existe)
 COPY .env* ./
 
-# Générer le client Prisma (par sécurité)
-RUN npx prisma generate
+# Le client Prisma est généré automatiquement par le postinstall dans package.json
 
 # Build de l'application
 RUN npm run build
@@ -70,9 +69,10 @@ RUN apt-get update && apt-get install -y \
     fonts-noto \
     && rm -rf /var/lib/apt/lists/*
 
-# Crée un utilisateur non-root pour la sécurité
+# Crée un utilisateur non-root pour la sécurité avec un répertoire home
 RUN addgroup --system --gid 1001 nodegrp \
-  && adduser --system --uid 1001 nextjs
+  && adduser --system --uid 1001 --home /home/nextjs --ingroup nodegrp nextjs \
+  && mkdir -p /home/nextjs && chown -R nextjs:nodegrp /home/nextjs
 
 # Définit le répertoire de travail
 WORKDIR /app
@@ -91,7 +91,13 @@ COPY --from=builder /app/public/fonts ./public/fonts
 COPY --from=builder --chown=nextjs:nodegrp /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodegrp /app/.next/static ./.next/static
 
-# Copie le client Prisma généré
+# Crée le répertoire node_modules et installe Prisma CLI
+# (nécessaire car Next.js standalone n'inclut pas tous les node_modules)
+RUN mkdir -p /app/node_modules /app/.npm \
+    && npm install --legacy-peer-deps --production --no-save prisma @prisma/client \
+    && chown -R nextjs:nodegrp /app/.npm /app/node_modules
+
+# Copie le client Prisma généré (déjà généré par postinstall dans builder)
 COPY --from=builder --chown=nextjs:nodegrp /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder --chown=nextjs:nodegrp /app/node_modules/@prisma ./node_modules/@prisma
 
@@ -105,6 +111,10 @@ EXPOSE ${PORT:-3000}
 ENV PORT=${PORT:-3000}
 ENV HOSTNAME="0.0.0.0"
 ENV NODE_ENV=production
+# Configure npm pour utiliser un cache dans /app au lieu de /nonexistent
+ENV NPM_CONFIG_CACHE=/app/.npm
+ENV HOME=/home/nextjs
 
 # Script de démarrage avec initialisation de la DB
-CMD npx prisma db push && node server.js
+# Utilise le binaire Prisma directement pour éviter les problèmes npm
+CMD ./node_modules/.bin/prisma db push && node server.js
