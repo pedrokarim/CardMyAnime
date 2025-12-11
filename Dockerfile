@@ -1,37 +1,41 @@
 # Étape de build - Utilise Bun pour une installation plus rapide
-FROM oven/bun:1-alpine AS builder
+FROM oven/bun:1.1-slim AS builder
 
-# Installer les dépendances système nécessaires pour canvas et node-gyp
-RUN apk add --no-cache \
+# Installer les dépendances système nécessaires pour canvas, sharp et node-gyp
+RUN apt-get update && apt-get install -y \
     python3 \
     make \
     g++ \
-    cairo-dev \
-    jpeg-dev \
-    pango-dev \
-    musl-dev \
-    giflib-dev \
-    pixman-dev \
-    pangomm-dev \
-    libjpeg-turbo-dev \
-    freetype-dev \
-    fontconfig-dev \
-    ttf-dejavu \
-    ttf-liberation \
-    font-noto
+    libcairo2-dev \
+    libjpeg-dev \
+    libpango1.0-dev \
+    libgif-dev \
+    libpixman-1-dev \
+    libfreetype-dev \
+    libfontconfig-dev \
+    fonts-dejavu \
+    fonts-liberation \
+    fonts-noto \
+    curl \
+    wget \
+    libvips-dev \
+    libglib2.0-dev \
+    libexpat-dev \
+    libpng-dev \
+    zlib1g-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Définit le répertoire de travail
 WORKDIR /app
 
 # Copie les fichiers de dépendances
 COPY package*.json ./
-COPY bun.lock ./
 
 # Copie le schéma Prisma pour le postinstall
 COPY prisma/ ./prisma/
 
-# Installe les dépendances avec Bun (plus rapide que npm)
-RUN bun install --frozen-lockfile
+# Installe les dépendances avec Bun
+RUN bun install
 
 # Copie le reste du code source
 COPY . .
@@ -46,23 +50,21 @@ RUN bunx prisma generate
 RUN bun run build
 
 # Étape de production - Utilise Bun pour l'exécution
-FROM oven/bun:1-alpine AS runner
+FROM oven/bun:1.1-slim AS runner
 
 # Installer les dépendances runtime nécessaires pour canvas
-RUN apk add --no-cache \
-    cairo \
-    jpeg \
-    pango \
-    musl \
-    giflib \
-    pixman \
-    pangomm \
-    libjpeg-turbo \
-    freetype \
-    fontconfig \
-    ttf-dejavu \
-    ttf-liberation \
-    font-noto
+RUN apt-get update && apt-get install -y \
+    libcairo2 \
+    libjpeg62-turbo \
+    libpango-1.0-0 \
+    libgif7 \
+    libpixman-1-0 \
+    libfreetype6 \
+    libfontconfig1 \
+    fonts-dejavu \
+    fonts-liberation \
+    fonts-noto \
+    && rm -rf /var/lib/apt/lists/*
 
 # Crée un utilisateur non-root pour la sécurité
 RUN addgroup --system --gid 1001 bunjs
@@ -74,7 +76,6 @@ WORKDIR /app
 # Copie les fichiers nécessaires depuis l'étape de build
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/bun.lock ./
 
 # Copie les polices personnalisées
 COPY --from=builder /app/public/fonts ./public/fonts
