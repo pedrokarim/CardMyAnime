@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { createHash } from "crypto";
+import { prisma, ensurePrismaConnection } from "@/lib/prisma";
 
 export class ViewTrackerService {
   private static instance: ViewTrackerService;
@@ -49,10 +50,8 @@ export class ViewTrackerService {
     cardId: string,
     request: NextRequest
   ): Promise<boolean> {
-    const { PrismaClient } = await import("@prisma/client");
-    const prisma = new PrismaClient();
-
     try {
+      await ensurePrismaConnection();
       const clientIP = this.getClientIP(request);
       const fingerprint = this.createFingerprint(request);
       const now = new Date();
@@ -100,8 +99,6 @@ export class ViewTrackerService {
     } catch (error) {
       console.error("❌ Erreur lors de la vérification de la vue:", error);
       return false; // En cas d'erreur, ne pas compter la vue
-    } finally {
-      await prisma.$disconnect();
     }
   }
 
@@ -109,10 +106,8 @@ export class ViewTrackerService {
    * Nettoie les logs de vues expirés
    */
   async cleanupExpiredViews(): Promise<number> {
-    const { PrismaClient } = await import("@prisma/client");
-    const prisma = new PrismaClient();
-
     try {
+      await ensurePrismaConnection();
       const result = await prisma.viewLog.deleteMany({
         where: {
           expiresAt: {
@@ -122,10 +117,8 @@ export class ViewTrackerService {
       });
 
       console.log(`🧹 ${result.count} logs de vues expirés supprimés`);
-      await prisma.$disconnect();
       return result.count;
     } catch (error) {
-      await prisma.$disconnect();
       console.error("❌ Erreur lors du nettoyage des vues:", error);
       return 0;
     }
@@ -140,10 +133,8 @@ export class ViewTrackerService {
     totalLogs: number;
     expiredLogs: number;
   }> {
-    const { PrismaClient } = await import("@prisma/client");
-    const prisma = new PrismaClient();
-
     try {
+      await ensurePrismaConnection();
       const now = new Date();
       const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
@@ -169,8 +160,6 @@ export class ViewTrackerService {
           }),
         ]);
 
-      await prisma.$disconnect();
-
       return {
         totalViews: totalViews._sum.views || 0,
         uniqueViews24h: uniqueViews24h,
@@ -178,7 +167,6 @@ export class ViewTrackerService {
         expiredLogs: expiredLogs,
       };
     } catch (error) {
-      await prisma.$disconnect();
       console.error("❌ Erreur lors de la récupération des stats:", error);
       return {
         totalViews: 0,

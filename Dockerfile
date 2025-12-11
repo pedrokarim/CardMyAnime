@@ -1,5 +1,5 @@
-# Étape de build - Utilise Bun pour une installation plus rapide
-FROM oven/bun:1.1-slim AS builder
+# Étape de build - Utilise Bun 1.3 (lockfile v2 + Node 22)
+FROM oven/bun:1.3-slim AS builder
 
 # Installer les dépendances système nécessaires pour canvas, sharp et node-gyp
 RUN apt-get update && apt-get install -y \
@@ -50,11 +50,12 @@ RUN bunx prisma generate
 # Build de l'application
 RUN bun run build
 
-# Étape de production - Utilise Bun pour l'exécution
-FROM oven/bun:1.1-slim AS runner
+# Étape de production - Utilise Bun 1.3 (Node 22)
+FROM oven/bun:1.3-slim AS runner
 
-# Installer les dépendances runtime nécessaires pour canvas
+# Installer les dépendances runtime nécessaires pour canvas + outils système
 RUN apt-get update && apt-get install -y \
+    adduser \
     libcairo2 \
     libjpeg62-turbo \
     libpango-1.0-0 \

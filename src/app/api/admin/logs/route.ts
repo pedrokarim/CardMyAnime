@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma, ensurePrismaConnection } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
   try {
+    await ensurePrismaConnection();
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "20");
@@ -54,7 +53,5 @@ export async function GET(request: NextRequest) {
       { error: "Erreur interne du serveur" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }

@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { PrismaClient } from "@prisma/client";
 import { userDataCache } from "@/lib/services/userDataCache";
 import { viewTracker } from "@/lib/services/viewTracker";
 import { generateSmallCard } from "@/lib/cards/smallCard";
 import { generateMediumCard } from "@/lib/cards/mediumCard";
 import { generateLargeCard } from "@/lib/cards/largeCard";
 import { generateSummaryCard } from "@/lib/cards/summaryCard";
-
-const prisma = new PrismaClient();
+import { prisma, ensurePrismaConnection } from "@/lib/prisma";
 
 const searchParamsSchema = z.object({
   platform: z.enum(["anilist", "mal", "nautiljon"]),
@@ -19,6 +17,7 @@ const searchParamsSchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
+    await ensurePrismaConnection();
     const { searchParams } = new URL(request.url);
 
     // Parser les search params

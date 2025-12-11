@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
 import { userDataCache } from "@/lib/services/userDataCache";
 import { viewTracker } from "@/lib/services/viewTracker";
-
-const prisma = new PrismaClient();
+import { prisma, ensurePrismaConnection } from "@/lib/prisma";
 
 export async function POST(request: NextRequest) {
   try {
+    await ensurePrismaConnection();
     const { action } = await request.json();
 
     switch (action) {
@@ -56,13 +55,12 @@ export async function POST(request: NextRequest) {
       { error: "Erreur interne du serveur" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
 export async function GET() {
   try {
+    await ensurePrismaConnection();
     // Retourner des statistiques sur le cache et les vues
     const [totalCards, totalViews, totalViews24h, cacheStats, viewStats] =
       await Promise.all([
@@ -92,7 +90,5 @@ export async function GET() {
       { error: "Erreur interne du serveur" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }

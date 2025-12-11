@@ -6,6 +6,7 @@ import { generateMediumCard } from "@/lib/cards/mediumCard";
 import { generateLargeCard } from "@/lib/cards/largeCard";
 import { generateSummaryCard } from "@/lib/cards/summaryCard";
 import { Platform, CardType } from "@/lib/types";
+import { prisma, ensurePrismaConnection } from "@/lib/prisma";
 
 const platformSchema = z.enum(["anilist", "mal", "nautiljon"]);
 const cardTypeSchema = z.enum(["small", "medium", "large", "summary"]);
@@ -94,9 +95,7 @@ export const appRouter = createTRPCRouter({
         }
 
         // Sauvegarder en base de données
-        const { PrismaClient } = await import("@prisma/client");
-        const prisma = new PrismaClient();
-
+        await ensurePrismaConnection();
         await prisma.cardGeneration.upsert({
           where: {
             platform_username_cardType: {
@@ -114,8 +113,6 @@ export const appRouter = createTRPCRouter({
             cardType: input.cardType,
           },
         });
-
-        await prisma.$disconnect();
 
         const shareableUrl = `/card?platform=${
           input.platform
@@ -183,10 +180,8 @@ export const appRouter = createTRPCRouter({
       })
     )
     .query(async ({ input }) => {
-      const { PrismaClient } = await import("@prisma/client");
-      const prisma = new PrismaClient();
-
       try {
+        await ensurePrismaConnection();
         const skip = (input.page - 1) * input.limit;
 
         let whereClause: any = {};
@@ -231,8 +226,6 @@ export const appRouter = createTRPCRouter({
             where: whereClause,
           }),
         ]);
-
-        await prisma.$disconnect();
 
         return {
           cards,
