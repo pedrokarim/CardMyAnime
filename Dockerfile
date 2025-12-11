@@ -30,6 +30,7 @@ WORKDIR /app
 
 # Copie les fichiers de dépendances
 COPY package*.json ./
+COPY bun.lock ./
 
 # Copie le schéma Prisma pour le postinstall
 COPY prisma/ ./prisma/
@@ -76,6 +77,7 @@ WORKDIR /app
 # Copie les fichiers nécessaires depuis l'étape de build
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/bun.lock ./
 
 # Copie les polices personnalisées
 COPY --from=builder /app/public/fonts ./public/fonts
