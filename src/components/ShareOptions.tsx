@@ -79,13 +79,13 @@ export default function ShareOptions({
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         {shareOptions.map((option) => (
           <div
             key={option.type}
             className="bg-card rounded-xl p-4 border border-border"
           >
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
               <div className="flex items-center gap-2">
                 <span className="text-2xl">{option.icon}</span>
                 <span className="font-semibold text-foreground">
@@ -95,7 +95,7 @@ export default function ShareOptions({
               <Button
                 onClick={() => copyToClipboard(option.content, option.type)}
                 variant={copiedType === option.type ? "default" : "outline"}
-                className="px-4 py-2"
+                className="px-6 py-2 w-full sm:w-auto"
               >
                 {copiedType === option.type ? "✓ Copié !" : "Copier"}
               </Button>

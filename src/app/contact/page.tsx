@@ -30,11 +30,11 @@ export default function ContactPage() {
         {/* Header */}
         <div className="text-center mb-16">
           <div className="inline-block mb-8">
-            <h1 className="text-6xl font-bold text-foreground mb-4 flex items-center justify-center gap-4">
-              <Mail className="w-16 h-16 text-primary" />
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-4 flex items-center justify-center gap-2 sm:gap-4">
+              <Mail className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 text-primary" />
               Contact
             </h1>
-            <div className="h-1 bg-primary rounded-full w-32 mx-auto"></div>
+            <div className="h-1 bg-primary rounded-full w-24 sm:w-32 mx-auto"></div>
           </div>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
             Une question, une suggestion ou un bug à signaler ? N'hésitez pas à
@@ -113,19 +113,19 @@ export default function ContactPage() {
           </div>
 
           {/* Réseaux sociaux */}
-          <div className="mt-12 text-center">
-            <h3 className="text-xl font-semibold text-foreground mb-6">
+          <div className="mt-8 sm:mt-12 text-center">
+            <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-4 sm:mb-6">
               Suivez-nous
             </h3>
-            <div className="flex justify-center gap-6">
+            <div className="flex justify-center gap-4 sm:gap-6">
               <a
                 href={SITE_CONFIG.social.github}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-4 bg-card border border-border rounded-xl hover:bg-accent transition-colors"
+                className="p-3 sm:p-4 bg-card border border-border rounded-xl hover:bg-accent transition-colors"
                 title="GitHub"
               >
-                <Github className="w-6 h-6 text-muted-foreground" />
+                <Github className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground" />
               </a>
             </div>
           </div>

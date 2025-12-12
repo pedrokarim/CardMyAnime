@@ -129,9 +129,9 @@ export default function RankingPage() {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-foreground mb-2">
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-2">
                 Classement{" "}
                 {sortBy === "views24h"
                   ? "par vues 24h"
@@ -140,28 +140,28 @@ export default function RankingPage() {
                   : "par vues"}{" "}
                 ({displayTotalCount} cartes)
               </h1>
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground text-sm sm:text-base">
                 Page {pageNumber} sur {displayTotalPages}
               </p>
             </div>
           </div>
 
           {/* Barre de recherche et tri */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-4">
+          <div className="flex flex-col gap-4 mb-4">
             {/* Recherche */}
-            <div className="relative flex-1">
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
                 type="text"
                 placeholder="Rechercher par pseudo..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full pl-10 pr-4 py-3 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
 
             {/* Tri */}
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
               <span className="text-sm text-muted-foreground">Trier par :</span>
               <select
                 value={sortBy}
@@ -176,23 +176,25 @@ export default function RankingPage() {
           </div>
 
           {/* Filtres par type de carte */}
-          <div className="flex flex-wrap gap-2">
-            <span className="text-sm text-muted-foreground mr-2">
-              Filtrer par type :
-            </span>
-            {cardTypeOptions.map((option) => (
-              <button
-                key={option.value}
-                onClick={() => handleCardTypeToggle(option.value)}
-                className={`px-3 py-1 text-xs rounded-full border transition-colors ${
-                  selectedCardTypes.includes(option.value)
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "border-border hover:bg-accent"
-                }`}
-              >
-                {option.label}
-              </button>
-            ))}
+          <div className="space-y-2">
+            <div className="flex flex-wrap gap-2">
+              <span className="text-sm text-muted-foreground mr-2">
+                Filtrer par type :
+              </span>
+              {cardTypeOptions.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => handleCardTypeToggle(option.value)}
+                  className={`px-3 py-1 text-xs rounded-full border transition-colors ${
+                    selectedCardTypes.includes(option.value)
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "border-border hover:bg-accent"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
             {selectedCardTypes.length > 0 && (
               <button
                 onClick={() => setSelectedCardTypes([])}
@@ -210,40 +212,17 @@ export default function RankingPage() {
             return (
               <div
                 key={card.id}
-                className="flex items-center justify-between p-4 hover:bg-accent/50 rounded-lg transition-colors"
+                className="grid grid-cols-[auto_1fr_auto] gap-x-4 gap-y-1 p-4 hover:bg-accent/50 rounded-lg transition-colors sm:flex sm:items-center sm:justify-between"
               >
-                <div className="flex items-center gap-4">
-                  <span className="text-sm text-muted-foreground w-8">
-                    #{globalIndex + 1}
-                  </span>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{card.username}</span>
-                      <div className="flex items-center gap-1">
-                        <PlatformIcon platform={card.platform} size={12} />
-                        <span className="text-xs text-muted-foreground">
-                          {
-                            platformLabels[
-                              card.platform as keyof typeof platformLabels
-                            ]
-                          }
-                        </span>
-                      </div>
-                      <span className="text-xs text-muted-foreground">
-                        {
-                          cardTypeLabels[
-                            card.cardType as keyof typeof cardTypeLabels
-                          ]
-                        }
-                      </span>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(card.createdAt).toLocaleDateString("fr-FR")}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
+                {/* Ligne 1 - Mobile: Numero | Nom | Stats */}
+                <span className="text-sm text-muted-foreground w-8 flex-shrink-0 row-start-1 col-start-1">
+                  #{globalIndex + 1}
+                </span>
+                <span className="font-medium truncate row-start-1 col-start-2 sm:col-start-auto">
+                  {card.username}
+                </span>
+                <div className="flex items-center gap-4 row-start-1 col-start-3 sm:col-start-auto sm:flex-shrink-0">
+                  <div className="text-center">
                     <div className="flex items-center gap-1">
                       <Eye className="w-3 h-3 text-muted-foreground" />
                       <span className="text-sm font-medium">
@@ -252,7 +231,73 @@ export default function RankingPage() {
                     </div>
                     <p className="text-xs text-muted-foreground">vues</p>
                   </div>
-                  <div className="text-right">
+                  <div className="text-center">
+                    <div className="flex items-center gap-1">
+                      <TrendingUp className="w-3 h-3 text-muted-foreground" />
+                      <span className="text-sm font-medium">
+                        {card.views24h?.toLocaleString() || "0"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">24h</p>
+                  </div>
+                </div>
+
+                {/* Ligne 2 - Mobile: (vide) | date | (vide) */}
+                <div className="col-start-2 row-start-2 sm:hidden"></div>
+                <p className="text-xs text-muted-foreground col-start-2 row-start-2 sm:hidden">
+                  {new Date(card.createdAt).toLocaleDateString("fr-FR")}
+                </p>
+                <div className="col-start-3 row-start-2 sm:hidden"></div>
+
+                {/* Ligne 3 - Mobile: (vide) | platform + type | Voir */}
+                <div className="col-start-2 row-start-3 sm:hidden">
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
+                      <PlatformIcon platform={card.platform} size={12} />
+                      <span className="text-xs text-muted-foreground">
+                        {
+                          platformLabels[
+                            card.platform as keyof typeof platformLabels
+                          ]
+                        }
+                      </span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      {
+                        cardTypeLabels[
+                          card.cardType as keyof typeof cardTypeLabels
+                        ]
+                      }
+                    </span>
+                  </div>
+                </div>
+                <div className="flex justify-end col-start-3 row-start-3 sm:hidden">
+                  <a
+                    href={`/card?platform=${
+                      card.platform
+                    }&username=${encodeURIComponent(card.username)}&type=${
+                      card.cardType
+                    }`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-primary hover:underline whitespace-nowrap"
+                  >
+                    Voir →
+                  </a>
+                </div>
+
+                {/* Version Desktop - cachée sur mobile */}
+                <div className="hidden sm:flex sm:items-center sm:gap-4 sm:flex-shrink-0">
+                  <div className="text-center">
+                    <div className="flex items-center gap-1">
+                      <Eye className="w-3 h-3 text-muted-foreground" />
+                      <span className="text-sm font-medium">
+                        {card.views?.toLocaleString() || "0"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">vues</p>
+                  </div>
+                  <div className="text-center">
                     <div className="flex items-center gap-1">
                       <TrendingUp className="w-3 h-3 text-muted-foreground" />
                       <span className="text-sm font-medium">
@@ -269,7 +314,7 @@ export default function RankingPage() {
                     }`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs text-primary hover:underline"
+                    className="text-xs text-primary hover:underline whitespace-nowrap"
                   >
                     Voir →
                   </a>

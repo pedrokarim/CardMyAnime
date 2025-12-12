@@ -180,24 +180,24 @@ export function CardPreview({
           </div>
         )}
 
-        <div className="flex items-center gap-6 mb-6">
+        <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 mb-6">
           <img
             src={userData?.avatarUrl || "/images/avatar-fallback.png"}
             alt={`Avatar de ${userData?.username}`}
-            className="w-20 h-20 rounded-full border-2 border-primary shadow-lg"
+            className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 border-primary shadow-lg"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.src = "/images/avatar-fallback.png";
             }}
           />
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <h3 className="text-2xl font-bold text-foreground">
+          <div className="flex-1 text-center sm:text-left">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+              <h3 className="text-xl sm:text-2xl font-bold text-foreground">
                 {userData?.username}
               </h3>
-              <PlatformIcon platform={platform as any} size={24} />
+              <PlatformIcon platform={platform as any} size={20} className="mx-auto sm:mx-0" />
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-muted-foreground">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-sm text-muted-foreground">
               <span className="flex items-center gap-2">
                 <span className="text-xl">🎬</span>
                 {userData?.stats.animesSeen} animes
@@ -466,11 +466,11 @@ export function CardPreview({
       </div>
 
       {/* Boutons de configuration */}
-      <div className="flex gap-4 justify-center">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
         <Button
           onClick={() => setShowCardTypeSelector(!showCardTypeSelector)}
           variant="outline"
-          className="px-6 py-3"
+          className="px-4 sm:px-6 py-3 w-full sm:w-auto"
           disabled={isGenerating}
         >
           <div className="flex items-center gap-2">
@@ -479,11 +479,20 @@ export function CardPreview({
             ) : (
               <span className="text-lg">🎨</span>
             )}
-            {isGenerating
-              ? "Génération..."
-              : showCardTypeSelector
-              ? "Masquer les types de cartes"
-              : "Changer le type de carte"}
+            <span className="hidden sm:inline">
+              {isGenerating
+                ? "Génération..."
+                : showCardTypeSelector
+                ? "Masquer les types"
+                : "Changer le type"}
+            </span>
+            <span className="sm:hidden">
+              {isGenerating
+                ? "Génération..."
+                : showCardTypeSelector
+                ? "Masquer"
+                : "Changer type"}
+            </span>
           </div>
         </Button>
 
@@ -491,7 +500,7 @@ export function CardPreview({
         <Button
           onClick={() => handleBackgroundToggle(!useLastAnimeBackground)}
           variant={useLastAnimeBackground ? "default" : "outline"}
-          className="px-6 py-3"
+          className="px-4 sm:px-6 py-3 w-full sm:w-auto"
           disabled={isGenerating}
         >
           <div className="flex items-center gap-2">
@@ -502,11 +511,20 @@ export function CardPreview({
                 {useLastAnimeBackground ? "🖼️" : "🎭"}
               </span>
             )}
-            {isGenerating
-              ? "Génération..."
-              : useLastAnimeBackground
-              ? "Désactiver le background"
-              : "Activer le background"}
+            <span className="hidden sm:inline">
+              {isGenerating
+                ? "Génération..."
+                : useLastAnimeBackground
+                ? "Désactiver le background"
+                : "Activer le background"}
+            </span>
+            <span className="sm:hidden">
+              {isGenerating
+                ? "Génération..."
+                : useLastAnimeBackground
+                ? "Désactiver BG"
+                : "Activer BG"}
+            </span>
           </div>
         </Button>
       </div>
@@ -517,7 +535,7 @@ export function CardPreview({
           <h3 className="text-xl font-bold text-foreground mb-4 text-center">
             Changer le type de carte
           </h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {cardTypes.map((cardTypeOption) => (
               <div
                 key={cardTypeOption.value}

@@ -285,12 +285,12 @@ export default function HomePage() {
 
         {/* Indicateur d'étapes */}
         <div className="flex justify-center mb-12">
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-2 md:space-x-6">
             {["platform", "cardType", "username", "preview"].map(
               (step, index) => (
                 <div key={step} className="flex items-center">
                   <div
-                    className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300 border-2 ${
+                    className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300 border-2 ${
                       currentStep === step
                         ? "bg-primary text-primary-foreground border-primary"
                         : index <
@@ -308,7 +308,7 @@ export default function HomePage() {
                   </div>
                   {index < 3 && (
                     <div
-                      className={`w-20 h-0.5 mx-4 transition-all duration-300 ${
+                      className={`w-8 md:w-20 h-0.5 mx-2 md:mx-4 transition-all duration-300 ${
                         index <
                         ["platform", "cardType", "username", "preview"].indexOf(
                           currentStep
@@ -337,36 +337,36 @@ export default function HomePage() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {platforms.map((platformOption) => (
                   <div
                     key={platformOption.value}
                     onClick={() =>
                       setPlatform(platformOption.value as Platform)
                     }
-                    className={`relative p-8 rounded-xl cursor-pointer transition-all duration-300 border-2 ${
+                    className={`relative p-6 sm:p-8 rounded-xl cursor-pointer transition-all duration-300 border-2 ${
                       platform === platformOption.value
                         ? "bg-primary/10 border-primary shadow-lg"
                         : "bg-card border-border hover:border-primary/50 hover:bg-card/80"
                     }`}
                   >
-                    <div className="text-center space-y-4">
-                      <div className="flex justify-center mb-4">
+                    <div className="text-center space-y-3 sm:space-y-4">
+                      <div className="flex justify-center mb-3 sm:mb-4">
                         <PlatformIcon
                           platform={platformOption.value as Platform}
-                          size={64}
-                          className="rounded-lg"
+                          size={48}
+                          className="rounded-lg sm:w-16 sm:h-16"
                         />
                       </div>
-                      <h3 className="text-2xl font-bold text-foreground">
+                      <h3 className="text-xl sm:text-2xl font-bold text-foreground">
                         {platformOption.label}
                       </h3>
-                      <p className="text-muted-foreground">
+                      <p className="text-sm sm:text-base text-muted-foreground px-2">
                         {platformOption.description}
                       </p>
                     </div>
                     {platform === platformOption.value && (
-                      <div className="absolute top-4 right-4 w-3 h-3 bg-primary rounded-full"></div>
+                      <div className="absolute top-3 right-3 sm:top-4 sm:right-4 w-3 h-3 bg-primary rounded-full"></div>
                     )}
                   </div>
                 ))}
@@ -394,33 +394,33 @@ export default function HomePage() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 {cardTypes.map((cardTypeOption) => (
                   <div
                     key={cardTypeOption.value}
                     onClick={() =>
                       setCardType(cardTypeOption.value as CardType)
                     }
-                    className={`relative p-8 rounded-xl cursor-pointer transition-all duration-300 border-2 ${
+                    className={`relative p-6 sm:p-8 rounded-xl cursor-pointer transition-all duration-300 border-2 ${
                       cardType === cardTypeOption.value
                         ? "bg-primary/10 border-primary shadow-lg"
                         : "bg-card border-border hover:border-primary/50 hover:bg-card/80"
                     }`}
                   >
-                    <div className="text-center space-y-4">
-                      <div className="text-5xl mb-4">{cardTypeOption.icon}</div>
-                      <h3 className="text-2xl font-bold text-foreground">
+                    <div className="text-center space-y-3 sm:space-y-4">
+                      <div className="text-4xl sm:text-5xl mb-3 sm:mb-4">{cardTypeOption.icon}</div>
+                      <h3 className="text-xl sm:text-2xl font-bold text-foreground">
                         {cardTypeOption.label}
                       </h3>
-                      <p className="text-muted-foreground">
+                      <p className="text-sm sm:text-base text-muted-foreground px-2">
                         {cardTypeOption.description}
                       </p>
-                      <div className="text-sm text-muted-foreground bg-muted px-3 py-1 rounded-full inline-block">
+                      <div className="text-xs sm:text-sm text-muted-foreground bg-muted px-2 sm:px-3 py-1 rounded-full inline-block">
                         {cardTypeOption.size}
                       </div>
                     </div>
                     {cardType === cardTypeOption.value && (
-                      <div className="absolute top-4 right-4 w-3 h-3 bg-primary rounded-full"></div>
+                      <div className="absolute top-3 right-3 sm:top-4 sm:right-4 w-3 h-3 bg-primary rounded-full"></div>
                     )}
                   </div>
                 ))}
@@ -577,20 +577,22 @@ export default function HomePage() {
                 />
               )}
 
-              <div className="text-center space-x-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
                 <Button
                   onClick={goToPreviousStep}
                   variant="outline"
-                  className="px-8 py-3"
+                  className="px-6 sm:px-8 py-3 w-full sm:w-auto"
                 >
-                  ← Modifier les paramètres
+                  <span className="hidden sm:inline">← Modifier les paramètres</span>
+                  <span className="sm:hidden">← Modifier</span>
                 </Button>
                 <Button
                   onClick={resetToStart}
                   variant="outline"
-                  className="px-8 py-3"
+                  className="px-6 sm:px-8 py-3 w-full sm:w-auto"
                 >
-                  🔄 Recommencer
+                  <span className="hidden sm:inline">🔄 Recommencer</span>
+                  <span className="sm:hidden">🔄 Recommencer</span>
                 </Button>
               </div>
             </div>

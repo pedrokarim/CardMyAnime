@@ -41,10 +41,10 @@ export default function AboutPage() {
                 className="rounded-xl"
               />
             </div>
-            <h1 className="text-6xl font-bold text-foreground mb-4 flex items-center justify-center gap-4">
-              <Info className="w-16 h-16 text-primary" />À propos
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-4 flex items-center justify-center gap-2 sm:gap-4">
+              <Info className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 text-primary" />À propos
             </h1>
-            <div className="h-1 bg-primary rounded-full w-32 mx-auto"></div>
+            <div className="h-1 bg-primary rounded-full w-24 sm:w-32 mx-auto"></div>
           </div>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
             Découvrez l'histoire et les technologies derrière{" "}
@@ -81,12 +81,12 @@ export default function AboutPage() {
             <h2 className="text-3xl font-bold text-foreground mb-6">
               Fonctionnalités
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-primary/10 rounded-lg">
-                  <Database className="w-6 h-6 text-primary" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+              <div className="flex items-start gap-3 sm:gap-4">
+                <div className="p-3 bg-primary/10 rounded-lg flex-shrink-0">
+                  <Database className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <h3 className="font-semibold text-foreground mb-2">
                     Multi-plateformes
                   </h3>
@@ -97,11 +97,11 @@ export default function AboutPage() {
                 </div>
               </div>
 
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-primary/10 rounded-lg">
-                  <Palette className="w-6 h-6 text-primary" />
+              <div className="flex items-start gap-3 sm:gap-4">
+                <div className="p-3 bg-primary/10 rounded-lg flex-shrink-0">
+                  <Palette className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <h3 className="font-semibold text-foreground mb-2">
                     4 types de cartes
                   </h3>
@@ -112,11 +112,11 @@ export default function AboutPage() {
                 </div>
               </div>
 
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-primary/10 rounded-lg">
-                  <Code className="w-6 h-6 text-primary" />
+              <div className="flex items-start gap-3 sm:gap-4">
+                <div className="p-3 bg-primary/10 rounded-lg flex-shrink-0">
+                  <Code className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <h3 className="font-semibold text-foreground mb-2">
                     Génération serveur
                   </h3>
@@ -127,11 +127,11 @@ export default function AboutPage() {
                 </div>
               </div>
 
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-primary/10 rounded-lg">
-                  <Users className="w-6 h-6 text-primary" />
+              <div className="flex items-start gap-3 sm:gap-4">
+                <div className="p-3 bg-primary/10 rounded-lg flex-shrink-0">
+                  <Users className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <h3 className="font-semibold text-foreground mb-2">
                     Classement
                   </h3>
@@ -256,27 +256,27 @@ export default function AboutPage() {
           </div>
 
           {/* Développeur */}
-          <div className="bg-card rounded-xl p-8 border border-border">
-            <h2 className="text-3xl font-bold text-foreground mb-6">
+          <div className="bg-card rounded-xl p-6 sm:p-8 border border-border">
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-6">
               Développeur
             </h2>
-            <div className="flex items-center gap-6">
-              <div className="p-4 bg-primary/10 rounded-full w-20 h-20 flex items-center justify-center">
-                <Heart className="w-10 h-10 text-primary" />
+            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+              <div className="p-4 bg-primary/10 rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center flex-shrink-0">
+                <Heart className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
               </div>
-              <div>
-                <h3 className="text-2xl font-bold text-foreground mb-2">
+              <div className="text-center sm:text-left">
+                <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-2">
                   {SITE_CONFIG.creator.pseudo}
                 </h3>
-                <p className="text-muted-foreground mb-4">
+                <p className="text-muted-foreground mb-4 text-sm sm:text-base">
                   Développeur passionné d'anime et de technologies web modernes
                 </p>
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                   <a
                     href={SITE_CONFIG.social.github}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors w-full sm:w-auto"
                   >
                     <Code className="w-4 h-4" />
                     GitHub
@@ -285,7 +285,7 @@ export default function AboutPage() {
                     href={SITE_CONFIG.social.discord}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 border border-border text-foreground rounded-lg hover:bg-accent transition-colors"
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2 border border-border text-foreground rounded-lg hover:bg-accent transition-colors w-full sm:w-auto"
                   >
                     <Users className="w-4 h-4" />
                     Discord
