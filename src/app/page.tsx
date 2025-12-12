@@ -344,10 +344,10 @@ export default function HomePage() {
                     onClick={() =>
                       setPlatform(platformOption.value as Platform)
                     }
-                    className={`relative p-6 sm:p-8 rounded-xl cursor-pointer transition-all duration-300 border-2 ${
+                    className={`relative p-6 sm:p-8 rounded-2xl cursor-pointer transition-all duration-300 border border-border/50 backdrop-blur-sm ${
                       platform === platformOption.value
-                        ? "bg-primary/10 border-primary shadow-lg"
-                        : "bg-card border-border hover:border-primary/50 hover:bg-card/80"
+                        ? "bg-primary/5 border-primary/60 shadow-[0_4px_16px_rgba(0,0,0,0.12)] scale-[1.02]"
+                        : "bg-card/50 hover:border-primary/30 hover:bg-card/70 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] hover:scale-[1.01]"
                     }`}
                   >
                     <div className="text-center space-y-3 sm:space-y-4">
@@ -366,7 +366,7 @@ export default function HomePage() {
                       </p>
                     </div>
                     {platform === platformOption.value && (
-                      <div className="absolute top-3 right-3 sm:top-4 sm:right-4 w-3 h-3 bg-primary rounded-full"></div>
+                      <div className="absolute top-3 right-3 sm:top-4 sm:right-4 w-3 h-3 bg-primary rounded-full shadow-[0_0_8px_rgba(var(--primary),0.5)]"></div>
                     )}
                   </div>
                 ))}
@@ -401,10 +401,10 @@ export default function HomePage() {
                     onClick={() =>
                       setCardType(cardTypeOption.value as CardType)
                     }
-                    className={`relative p-6 sm:p-8 rounded-xl cursor-pointer transition-all duration-300 border-2 ${
+                    className={`relative p-6 sm:p-8 rounded-2xl cursor-pointer transition-all duration-300 border border-border/50 backdrop-blur-sm ${
                       cardType === cardTypeOption.value
-                        ? "bg-primary/10 border-primary shadow-lg"
-                        : "bg-card border-border hover:border-primary/50 hover:bg-card/80"
+                        ? "bg-primary/5 border-primary/60 shadow-[0_4px_16px_rgba(0,0,0,0.12)] scale-[1.02]"
+                        : "bg-card/50 hover:border-primary/30 hover:bg-card/70 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] hover:scale-[1.01]"
                     }`}
                   >
                     <div className="text-center space-y-3 sm:space-y-4">
@@ -420,14 +420,14 @@ export default function HomePage() {
                       </div>
                     </div>
                     {cardType === cardTypeOption.value && (
-                      <div className="absolute top-3 right-3 sm:top-4 sm:right-4 w-3 h-3 bg-primary rounded-full"></div>
+                      <div className="absolute top-3 right-3 sm:top-4 sm:right-4 w-3 h-3 bg-primary rounded-full shadow-[0_0_8px_rgba(var(--primary),0.5)]"></div>
                     )}
                   </div>
                 ))}
               </div>
 
               {/* Toggle pour l'arrière-plan du dernier anime */}
-              <div className="flex items-center justify-center space-x-3 p-4 bg-white/5 rounded-lg border border-white/10">
+              <div className="flex items-center justify-center space-x-3 p-4 bg-card/50 rounded-2xl border border-border/50 backdrop-blur-sm shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
                 <span className="text-white text-sm">
                   Arrière-plan avec le dernier anime
                 </span>

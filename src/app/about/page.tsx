@@ -54,7 +54,7 @@ export default function AboutPage() {
 
         <div className="max-w-4xl mx-auto space-y-12">
           {/* Description du projet */}
-          <div className="bg-card rounded-xl p-8 border border-border">
+          <div className="bg-card/50 rounded-2xl p-8 border border-border/50 backdrop-blur-sm shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
             <h2 className="text-3xl font-bold text-foreground mb-6">
               Qu'est-ce que {SITE_CONFIG.site.name} ?
             </h2>
@@ -77,7 +77,7 @@ export default function AboutPage() {
           </div>
 
           {/* Fonctionnalités */}
-          <div className="bg-card rounded-xl p-8 border border-border">
+          <div className="bg-card/50 rounded-2xl p-8 border border-border/50 backdrop-blur-sm shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
             <h2 className="text-3xl font-bold text-foreground mb-6">
               Fonctionnalités
             </h2>
@@ -145,7 +145,7 @@ export default function AboutPage() {
           </div>
 
           {/* Plateformes supportées */}
-          <div className="bg-card rounded-xl p-8 border border-border">
+          <div className="bg-card/50 rounded-2xl p-8 border border-border/50 backdrop-blur-sm shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
             <h2 className="text-3xl font-bold text-foreground mb-6">
               Plateformes supportées
             </h2>
@@ -204,7 +204,7 @@ export default function AboutPage() {
           </div>
 
           {/* Technologies */}
-          <div className="bg-card rounded-xl p-8 border border-border">
+          <div className="bg-card/50 rounded-2xl p-8 border border-border/50 backdrop-blur-sm shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
             <h2 className="text-3xl font-bold text-foreground mb-6">
               Technologies utilisées
             </h2>
@@ -296,7 +296,7 @@ export default function AboutPage() {
           </div>
 
           {/* Licence */}
-          <div className="bg-card rounded-xl p-8 border border-border">
+          <div className="bg-card/50 rounded-2xl p-8 border border-border/50 backdrop-blur-sm shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
             <h2 className="text-3xl font-bold text-foreground mb-6">
               Licence & Contribution
             </h2>

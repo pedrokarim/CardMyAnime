@@ -168,9 +168,9 @@ export function CardPreview({
   return (
     <div className="space-y-8">
       {/* Informations utilisateur */}
-      <div className="bg-card rounded-xl p-8 border border-border">
+      <div className="bg-card/50 rounded-2xl p-8 border border-border/50 backdrop-blur-sm shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
         {isGenerating && (
-          <div className="mb-4 p-4 bg-primary/10 border border-primary/20 rounded-lg">
+          <div className="mb-4 p-4 bg-primary/10 border border-primary/20 rounded-xl backdrop-blur-sm">
             <div className="flex items-center gap-3">
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
               <span className="text-primary font-medium">
@@ -252,7 +252,7 @@ export function CardPreview({
           userData?.stats.favoriteGenres) && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             {userData?.personalMessage && (
-              <div className="bg-muted/30 rounded-lg p-4">
+              <div className="bg-muted/20 rounded-xl p-4 border border-border/30 backdrop-blur-sm">
                 <h4 className="text-sm font-semibold text-primary mb-2 flex items-center gap-2">
                   <span className="text-lg">💬</span>
                   Message personnel
@@ -264,7 +264,7 @@ export function CardPreview({
             )}
 
             {userData?.profile?.joinDate && (
-              <div className="bg-muted/30 rounded-lg p-4">
+              <div className="bg-muted/20 rounded-xl p-4 border border-border/30 backdrop-blur-sm">
                 <h4 className="text-sm font-semibold text-primary mb-2 flex items-center gap-2">
                   <span className="text-lg">📅</span>
                   Membre depuis
@@ -287,7 +287,7 @@ export function CardPreview({
 
             {userData?.stats.favoriteGenres &&
               userData.stats.favoriteGenres.length > 0 && (
-                <div className="bg-muted/30 rounded-lg p-4">
+                <div className="bg-muted/20 rounded-xl p-4 border border-border/30 backdrop-blur-sm">
                   <h4 className="text-sm font-semibold text-primary mb-2 flex items-center gap-2">
                     <span className="text-lg">🎭</span>
                     Genres favoris
@@ -529,9 +529,9 @@ export function CardPreview({
         </Button>
       </div>
 
-      {/* Sélecteur de type de carte */}
-      {showCardTypeSelector && (
-        <div className="bg-card rounded-xl p-6 border border-border">
+        {/* Sélecteur de type de carte */}
+        {showCardTypeSelector && (
+          <div className="bg-card/50 rounded-2xl p-6 border border-border/50 backdrop-blur-sm shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
           <h3 className="text-xl font-bold text-foreground mb-4 text-center">
             Changer le type de carte
           </h3>
@@ -542,10 +542,10 @@ export function CardPreview({
                 onClick={() =>
                   onCardTypeChange?.(cardTypeOption.value as CardType)
                 }
-                className={`relative p-4 rounded-lg cursor-pointer transition-all duration-300 border-2 ${
+                className={`relative p-4 rounded-xl cursor-pointer transition-all duration-300 border border-border/50 backdrop-blur-sm ${
                   cardType === cardTypeOption.value
-                    ? "bg-primary/10 border-primary shadow-lg"
-                    : "bg-card border-border hover:border-primary/50 hover:bg-card/80"
+                    ? "bg-primary/5 border-primary/60 shadow-[0_4px_16px_rgba(0,0,0,0.12)] scale-[1.02]"
+                    : "bg-card/50 hover:border-primary/30 hover:bg-card/70 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] hover:scale-[1.01]"
                 }`}
               >
                 <div className="text-center space-y-2">
@@ -561,7 +561,7 @@ export function CardPreview({
                   </div>
                 </div>
                 {cardType === cardTypeOption.value && (
-                  <div className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full"></div>
+                  <div className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full shadow-[0_0_8px_rgba(var(--primary),0.5)]"></div>
                 )}
               </div>
             ))}
@@ -573,7 +573,7 @@ export function CardPreview({
       <div className="flex justify-center">
         <div className="relative">
           <div
-            className="relative rounded-xl overflow-hidden shadow-lg border border-border bg-card"
+            className="relative rounded-2xl overflow-hidden shadow-[0_4px_16px_rgba(0,0,0,0.12)] border border-border/50 bg-card/50 backdrop-blur-sm"
             style={{
               width: Math.min(dimensions.width, 600),
               height: Math.min(dimensions.height, 500),

@@ -45,7 +45,7 @@ export default function ContactPage() {
         <div className="max-w-4xl mx-auto">
           {/* Méthodes de contact */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-            <div className="bg-card rounded-xl p-8 border border-border">
+            <div className="bg-card/50 rounded-2xl p-8 border border-border/50 backdrop-blur-sm shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
               <div className="text-center space-y-4">
                 <div className="p-4 bg-primary/10 rounded-full w-16 h-16 mx-auto flex items-center justify-center">
                   <MessageSquare className="w-8 h-8 text-primary" />
@@ -66,7 +66,7 @@ export default function ContactPage() {
               </div>
             </div>
 
-            <div className="bg-card rounded-xl p-8 border border-border">
+            <div className="bg-card/50 rounded-2xl p-8 border border-border/50 backdrop-blur-sm shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
               <div className="text-center space-y-4">
                 <div className="p-4 bg-primary/10 rounded-full w-16 h-16 mx-auto flex items-center justify-center">
                   <Github className="w-8 h-8 text-primary" />
@@ -122,7 +122,7 @@ export default function ContactPage() {
                 href={SITE_CONFIG.social.github}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-3 sm:p-4 bg-card border border-border rounded-xl hover:bg-accent transition-colors"
+                className="p-3 sm:p-4 bg-card/50 border border-border/50 rounded-2xl hover:bg-card/70 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] transition-all duration-300 backdrop-blur-sm"
                 title="GitHub"
               >
                 <Github className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground" />
