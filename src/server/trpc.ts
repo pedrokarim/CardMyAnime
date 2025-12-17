@@ -214,18 +214,30 @@ export const appRouter = createTRPCRouter({
             break;
         }
 
-        const [cards, totalCount] = await Promise.all([
-          prisma.cardGeneration.findMany({
-            where: whereClause,
-            orderBy,
-            skip,
-            take: input.limit,
-            distinct: ["platform", "username", "cardType"], // Éviter les doublons
-          }),
-          prisma.cardGeneration.count({
-            where: whereClause,
-          }),
-        ]);
+        // Récupérer les cartes avec un peu plus d'éléments pour compenser les éventuels doublons
+        // Le filtrage côté client garantira l'unicité
+        const cardsRaw = await prisma.cardGeneration.findMany({
+          where: whereClause,
+          orderBy,
+          skip,
+          take: input.limit * 2, // Prendre plus d'éléments pour compenser les doublons
+        });
+
+        // Filtrer les doublons côté serveur pour garantir l'unicité
+        const seen = new Map<string, any>();
+        const cards: any[] = [];
+        for (const card of cardsRaw) {
+          const key = `${card.platform}-${card.username}-${card.cardType}`;
+          if (!seen.has(key)) {
+            seen.set(key, card);
+            cards.push(card);
+            if (cards.length >= input.limit) break;
+          }
+        }
+
+        const totalCount = await prisma.cardGeneration.count({
+          where: whereClause,
+        });
 
         return {
           cards,

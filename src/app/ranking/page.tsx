@@ -55,14 +55,20 @@ export default function RankingPage() {
   });
 
   // Filtrer les doublons côté client pour éviter les problèmes d'affichage
-  const displayCards = (data?.cards || []).filter((card, index, self) => {
-    const key = `${card.platform}-${card.username}-${card.cardType}`;
-    return (
-      self.findIndex(
-        (c) => `${c.platform}-${c.username}-${c.cardType}` === key
-      ) === index
-    );
-  });
+  // Utiliser un Map pour garantir l'unicité basée sur platform-username-cardType
+  const displayCards = (() => {
+    const seen = new Map<string, any>();
+    const cards = data?.cards || [];
+
+    for (const card of cards) {
+      const key = `${card.platform}-${card.username}-${card.cardType}`;
+      if (!seen.has(key)) {
+        seen.set(key, card);
+      }
+    }
+
+    return Array.from(seen.values());
+  })();
   const displayTotalCount = data?.totalCount || 0;
   const displayTotalPages = data?.totalPages || 0;
 
@@ -212,112 +218,144 @@ export default function RankingPage() {
             return (
               <div
                 key={card.id}
-                className="grid grid-cols-[auto_1fr_auto] gap-x-4 gap-y-1 p-4 hover:bg-accent/50 rounded-lg transition-colors sm:flex sm:items-center sm:justify-between"
+                className="p-4 hover:bg-accent/50 rounded-lg transition-colors"
               >
-                {/* Ligne 1 - Mobile: Numero | Nom | Stats */}
-                <span className="text-sm text-muted-foreground w-8 flex-shrink-0 row-start-1 col-start-1">
-                  #{globalIndex + 1}
-                </span>
-                <span className="font-medium truncate row-start-1 col-start-2 sm:col-start-auto">
-                  {card.username}
-                </span>
-                <div className="flex items-center gap-4 row-start-1 col-start-3 sm:col-start-auto sm:flex-shrink-0">
-                  <div className="text-center">
-                    <div className="flex items-center gap-1">
-                      <Eye className="w-3 h-3 text-muted-foreground" />
-                      <span className="text-sm font-medium">
-                        {card.views?.toLocaleString() || "0"}
-                      </span>
+                {/* Version Mobile - Grid layout */}
+                <div className="grid grid-cols-[auto_1fr_auto] gap-x-4 gap-y-1 sm:hidden">
+                  {/* Ligne 1 - Mobile: Numero | Nom | Stats */}
+                  <span className="text-sm text-muted-foreground w-8 flex-shrink-0 row-start-1 col-start-1">
+                    #{globalIndex + 1}
+                  </span>
+                  <span className="font-medium truncate row-start-1 col-start-2">
+                    {card.username}
+                  </span>
+                  <div className="flex items-center gap-4 row-start-1 col-start-3">
+                    <div className="text-center">
+                      <div className="flex items-center gap-1">
+                        <Eye className="w-3 h-3 text-muted-foreground" />
+                        <span className="text-sm font-medium">
+                          {card.views?.toLocaleString() || "0"}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">vues</p>
                     </div>
-                    <p className="text-xs text-muted-foreground">vues</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="flex items-center gap-1">
-                      <TrendingUp className="w-3 h-3 text-muted-foreground" />
-                      <span className="text-sm font-medium">
-                        {card.views24h?.toLocaleString() || "0"}
-                      </span>
+                    <div className="text-center">
+                      <div className="flex items-center gap-1">
+                        <TrendingUp className="w-3 h-3 text-muted-foreground" />
+                        <span className="text-sm font-medium">
+                          {card.views24h?.toLocaleString() || "0"}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">24h</p>
                     </div>
-                    <p className="text-xs text-muted-foreground">24h</p>
                   </div>
-                </div>
 
-                {/* Ligne 2 - Mobile: (vide) | date | (vide) */}
-                <div className="col-start-2 row-start-2 sm:hidden"></div>
-                <p className="text-xs text-muted-foreground col-start-2 row-start-2 sm:hidden">
-                  {new Date(card.createdAt).toLocaleDateString("fr-FR")}
-                </p>
-                <div className="col-start-3 row-start-2 sm:hidden"></div>
+                  {/* Ligne 2 - Mobile: (vide) | date | (vide) */}
+                  <div className="col-start-2 row-start-2"></div>
+                  <p className="text-xs text-muted-foreground col-start-2 row-start-2">
+                    {new Date(card.createdAt).toLocaleDateString("fr-FR")}
+                  </p>
+                  <div className="col-start-3 row-start-2"></div>
 
-                {/* Ligne 3 - Mobile: (vide) | platform + type | Voir */}
-                <div className="col-start-2 row-start-3 sm:hidden">
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1">
-                      <PlatformIcon platform={card.platform} size={12} />
+                  {/* Ligne 3 - Mobile: (vide) | platform + type | Voir */}
+                  <div className="col-start-2 row-start-3">
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
+                        <PlatformIcon platform={card.platform} size={12} />
+                        <span className="text-xs text-muted-foreground">
+                          {
+                            platformLabels[
+                              card.platform as keyof typeof platformLabels
+                            ]
+                          }
+                        </span>
+                      </div>
                       <span className="text-xs text-muted-foreground">
                         {
-                          platformLabels[
-                            card.platform as keyof typeof platformLabels
+                          cardTypeLabels[
+                            card.cardType as keyof typeof cardTypeLabels
                           ]
                         }
                       </span>
                     </div>
-                    <span className="text-xs text-muted-foreground">
-                      {
-                        cardTypeLabels[
-                          card.cardType as keyof typeof cardTypeLabels
-                        ]
-                      }
-                    </span>
                   </div>
-                </div>
-                <div className="flex justify-end col-start-3 row-start-3 sm:hidden">
-                  <a
-                    href={`/card?platform=${
-                      card.platform
-                    }&username=${encodeURIComponent(card.username)}&type=${
-                      card.cardType
-                    }`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-primary hover:underline whitespace-nowrap"
-                  >
-                    Voir →
-                  </a>
+                  <div className="flex justify-end col-start-3 row-start-3">
+                    <a
+                      href={`/card?platform=${
+                        card.platform
+                      }&username=${encodeURIComponent(card.username)}&type=${
+                        card.cardType
+                      }`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-primary hover:underline whitespace-nowrap"
+                    >
+                      Voir →
+                    </a>
+                  </div>
                 </div>
 
-                {/* Version Desktop - cachée sur mobile */}
-                <div className="hidden sm:flex sm:items-center sm:gap-4 sm:flex-shrink-0">
-                  <div className="text-center">
-                    <div className="flex items-center gap-1">
-                      <Eye className="w-3 h-3 text-muted-foreground" />
-                      <span className="text-sm font-medium">
-                        {card.views?.toLocaleString() || "0"}
+                {/* Version Desktop - Flex layout */}
+                <div className="hidden sm:flex sm:items-center sm:justify-between sm:gap-4">
+                  <div className="flex items-center gap-4 flex-1 min-w-0">
+                    <span className="text-sm text-muted-foreground w-8 flex-shrink-0">
+                      #{globalIndex + 1}
+                    </span>
+                    <span className="font-medium truncate">
+                      {card.username}
+                    </span>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <div className="flex items-center gap-1">
+                        <PlatformIcon platform={card.platform} size={12} />
+                        <span className="text-xs text-muted-foreground">
+                          {
+                            platformLabels[
+                              card.platform as keyof typeof platformLabels
+                            ]
+                          }
+                        </span>
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        {
+                          cardTypeLabels[
+                            card.cardType as keyof typeof cardTypeLabels
+                          ]
+                        }
                       </span>
                     </div>
-                    <p className="text-xs text-muted-foreground">vues</p>
                   </div>
-                  <div className="text-center">
-                    <div className="flex items-center gap-1">
-                      <TrendingUp className="w-3 h-3 text-muted-foreground" />
-                      <span className="text-sm font-medium">
-                        {card.views24h?.toLocaleString() || "0"}
-                      </span>
+                  <div className="flex items-center gap-4 flex-shrink-0">
+                    <div className="text-center">
+                      <div className="flex items-center gap-1">
+                        <Eye className="w-3 h-3 text-muted-foreground" />
+                        <span className="text-sm font-medium">
+                          {card.views?.toLocaleString() || "0"}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">vues</p>
                     </div>
-                    <p className="text-xs text-muted-foreground">24h</p>
+                    <div className="text-center">
+                      <div className="flex items-center gap-1">
+                        <TrendingUp className="w-3 h-3 text-muted-foreground" />
+                        <span className="text-sm font-medium">
+                          {card.views24h?.toLocaleString() || "0"}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">24h</p>
+                    </div>
+                    <a
+                      href={`/card?platform=${
+                        card.platform
+                      }&username=${encodeURIComponent(card.username)}&type=${
+                        card.cardType
+                      }`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-primary hover:underline whitespace-nowrap"
+                    >
+                      Voir →
+                    </a>
                   </div>
-                  <a
-                    href={`/card?platform=${
-                      card.platform
-                    }&username=${encodeURIComponent(card.username)}&type=${
-                      card.cardType
-                    }`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-primary hover:underline whitespace-nowrap"
-                  >
-                    Voir →
-                  </a>
                 </div>
               </div>
             );
