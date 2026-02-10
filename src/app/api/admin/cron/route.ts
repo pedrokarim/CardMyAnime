@@ -138,12 +138,26 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        // Execute the command
+        // Execute the command with extended PATH for bun/node
         const { exec } = require("child_process");
+        const home = process.env.HOME || "";
+        const extendedPath = [
+          process.env.PATH,
+          "/usr/local/bin",
+          `${home}/.bun/bin`,
+          `${home}/.local/bin`,
+          `${home}/.nvm/versions/node`,
+        ].filter(Boolean).join(":");
+
         const result = await new Promise<{ stdout: string; stderr: string; error: any }>((resolve) => {
           exec(
             jobToRun.command,
-            { cwd: process.cwd(), timeout: 60000 },
+            {
+              cwd: process.cwd(),
+              timeout: 60000,
+              shell: "/bin/bash",
+              env: { ...process.env, PATH: extendedPath },
+            },
             (error: any, stdout: string, stderr: string) => {
               resolve({ stdout, stderr, error });
             }
