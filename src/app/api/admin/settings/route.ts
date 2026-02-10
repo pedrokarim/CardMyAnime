@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 import { appSettings } from "@/lib/services/appSettings";
+
+const unauthorized = () =>
+  NextResponse.json({ error: "Non autorisé" }, { status: 401 });
 
 export async function GET() {
   try {
+    const session = await auth();
+    if (!session?.user?.email) return unauthorized();
+
     const settings = await appSettings.getAll();
     return NextResponse.json(settings);
   } catch (error) {
@@ -16,6 +23,9 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth();
+    if (!session?.user?.email) return unauthorized();
+
     const body = await request.json();
     await appSettings.setMany(body);
     return NextResponse.json({

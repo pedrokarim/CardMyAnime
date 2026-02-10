@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 import { prisma, ensurePrismaConnection } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await auth();
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+    }
+
     await ensurePrismaConnection();
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1");

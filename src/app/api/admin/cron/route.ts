@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 import { prisma, ensurePrismaConnection } from "@/lib/prisma";
+
+const unauthorized = () =>
+  NextResponse.json({ error: "Non autorisé" }, { status: 401 });
 
 export async function GET() {
   try {
+    const session = await auth();
+    if (!session?.user?.email) return unauthorized();
+
     await ensurePrismaConnection();
 
     const jobs = await prisma.cronJob.findMany({
@@ -21,6 +28,9 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth();
+    if (!session?.user?.email) return unauthorized();
+
     await ensurePrismaConnection();
     const body = await request.json();
     const { action } = body;

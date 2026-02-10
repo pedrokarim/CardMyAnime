@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 import { userDataCache } from "@/lib/services/userDataCache";
 import { viewTracker } from "@/lib/services/viewTracker";
 import { prisma, ensurePrismaConnection } from "@/lib/prisma";
 
+const unauthorized = () =>
+  NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth();
+    if (!session?.user?.email) return unauthorized();
+
     await ensurePrismaConnection();
     const { action } = await request.json();
 
@@ -60,6 +67,9 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   try {
+    const session = await auth();
+    if (!session?.user?.email) return unauthorized();
+
     await ensurePrismaConnection();
     // Retourner des statistiques sur le cache et les vues
     const [totalCards, totalViews, totalViews24h, cacheStats, viewStats] =
