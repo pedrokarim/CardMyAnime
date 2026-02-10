@@ -6,7 +6,7 @@ export async function generateNeonCard(
   userData: UserData,
   platform: string,
   useLastAnimeBackground: boolean = true
-): Promise<string> {
+): Promise<Buffer> {
   const width = 600;
   const height = 350;
   const helper = new ServerCanvasHelper(width, height);
@@ -325,5 +325,5 @@ export async function generateNeonCard(
     size: 25,
   });
 
-  return helper.toDataURL();
+  return helper.toBuffer();
 }

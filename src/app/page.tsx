@@ -133,6 +133,27 @@ export default function HomePage() {
       size: "800×600",
       icon: "📈",
     },
+    {
+      value: "neon",
+      label: "Néon",
+      description: "Style cyberpunk avec effets néon lumineux",
+      size: "600×350",
+      icon: "💜",
+    },
+    {
+      value: "minimal",
+      label: "Minimal",
+      description: "Design épuré et élégant sur fond clair",
+      size: "500×250",
+      icon: "✨",
+    },
+    {
+      value: "glassmorphism",
+      label: "Glass",
+      description: "Effet verre givré avec fond coloré",
+      size: "700×400",
+      icon: "💎",
+    },
   ];
 
   const fetchUserDataMutation = trpc.fetchUserData.useMutation({
@@ -394,7 +415,7 @@ export default function HomePage() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {cardTypes.map((cardTypeOption) => (
                   <div
                     key={cardTypeOption.value}

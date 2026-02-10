@@ -6,7 +6,7 @@ export async function generateMediumCard(
   userData: UserData,
   platform: string,
   useLastAnimeBackground: boolean = true
-): Promise<string> {
+): Promise<Buffer> {
   const width = 600;
   const height = 300;
   const helper = new ServerCanvasHelper(width, height);
@@ -240,5 +240,5 @@ export async function generateMediumCard(
     size: 30,
   });
 
-  return helper.toDataURL();
+  return helper.toBuffer();
 }

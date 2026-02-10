@@ -1,7 +1,5 @@
-import { ServerCanvasHelper } from "./serverCanvasHelpers";
+import { ServerCanvasHelper, getStaticAsset } from "./serverCanvasHelpers";
 import { loadImage as canvasLoadImage } from "canvas";
-
-// Import dynamique pour éviter les problèmes de build
 
 export interface WatermarkOptions {
   position?:
@@ -35,10 +33,11 @@ export async function addWatermark(
   // Sauvegarder l'état actuel du contexte
   ctx.save();
 
-  // Charger le logo CMA
+  // Charger le logo CMA (depuis le cache statique)
   try {
-    const logoPath = process.cwd() + "/public/images/cma-logo-watermark.png";
-    const logo = await canvasLoadImage(logoPath);
+    const logo = await getStaticAsset("watermark") ?? await canvasLoadImage(
+      process.cwd() + "/public/images/cma-logo-watermark.png"
+    );
 
     // Calculer la position du watermark
     let x: number, y: number;
@@ -126,19 +125,22 @@ export async function addPlatformLogo(
   // Sauvegarder l'état actuel du contexte
   ctx.save();
 
-  // Déterminer le logo selon la plateforme
-  let logoPath: string;
+  // Déterminer le logo selon la plateforme (depuis le cache statique)
   const platformStr = String(platform || "").toLowerCase();
+  let cacheKey: "logoMal" | "logoAnilist" | "logoNautiljon";
+  let fallbackPath: string;
   switch (platformStr) {
     case "mal":
-      logoPath = process.cwd() + "/public/images/MAL_Favicon_2020.png";
+      cacheKey = "logoMal";
+      fallbackPath = process.cwd() + "/public/images/MAL_Favicon_2020.png";
       break;
     case "anilist":
-      logoPath =
-        process.cwd() + "/public/images/anilist-android-chrome-512x512.png";
+      cacheKey = "logoAnilist";
+      fallbackPath = process.cwd() + "/public/images/anilist-android-chrome-512x512.png";
       break;
     case "nautiljon":
-      logoPath = process.cwd() + "/public/images/nautiljon-logo.jpg";
+      cacheKey = "logoNautiljon";
+      fallbackPath = process.cwd() + "/public/images/nautiljon-logo.jpg";
       break;
     default:
       // Pas de logo si plateforme inconnue ou vide
@@ -148,7 +150,7 @@ export async function addPlatformLogo(
   }
 
   try {
-    const logo = await canvasLoadImage(logoPath);
+    const logo = await getStaticAsset(cacheKey) ?? await canvasLoadImage(fallbackPath);
 
     // Calculer la position du logo
     let x: number, y: number;

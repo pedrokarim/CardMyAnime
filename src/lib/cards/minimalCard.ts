@@ -6,7 +6,7 @@ export async function generateMinimalCard(
   userData: UserData,
   platform: string,
   useLastAnimeBackground: boolean = true
-): Promise<string> {
+): Promise<Buffer> {
   const width = 500;
   const height = 250;
   const helper = new ServerCanvasHelper(width, height);
@@ -245,5 +245,5 @@ export async function generateMinimalCard(
     size: 22,
   });
 
-  return helper.toDataURL();
+  return helper.toBuffer();
 }

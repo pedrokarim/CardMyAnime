@@ -6,7 +6,7 @@ export async function generateLargeCard(
   userData: UserData,
   platform: string,
   useLastAnimeBackground: boolean = true
-): Promise<string> {
+): Promise<Buffer> {
   const width = 800;
   const height = 500;
   const helper = new ServerCanvasHelper(width, height);
@@ -162,7 +162,19 @@ export async function generateLargeCard(
   });
 
   const recentAnimes = userData.lastAnimes.slice(0, 3);
+  const recentMangas = userData.lastMangas.slice(0, 3);
   let animeY = 240;
+
+  // Pré-charger toutes les covers en parallèle (animes + mangas)
+  const allCovers = [
+    ...recentAnimes.map((a) => a.coverUrl),
+    ...recentMangas.map((m) => m.coverUrl),
+  ];
+  const preloadedImages = await Promise.all(
+    allCovers.map((url) => (url ? helper.preloadImage(url) : Promise.resolve(null)))
+  );
+  const animeCoverImages = preloadedImages.slice(0, recentAnimes.length);
+  const mangaCoverImages = preloadedImages.slice(recentAnimes.length);
 
   if (recentAnimes.length === 0) {
     // Message quand aucun anime n'est trouvé
@@ -180,23 +192,15 @@ export async function generateLargeCard(
       const anime = recentAnimes[i];
       const x = 40 + i * 220;
 
-      // Image de couverture
-      if (anime.coverUrl) {
-        try {
-          await helper.drawRoundedImage(
-            {
-              x,
-              y: animeY,
-              width: 60,
-              height: 80,
-              borderRadius: 8,
-              shadow: true,
-            },
-            anime.coverUrl
-          );
-        } catch (error) {
-          helper.drawRoundedRect(x, animeY, 60, 80, 8, "#333333");
-        }
+      // Image de couverture (pré-chargée)
+      const coverImg = animeCoverImages[i];
+      if (coverImg) {
+        helper.drawPreloadedImage(
+          { x, y: animeY, width: 60, height: 80, borderRadius: 8, shadow: true },
+          coverImg
+        );
+      } else if (anime.coverUrl) {
+        helper.drawRoundedRect(x, animeY, 60, 80, 8, "#333333");
       }
 
       // Titre (tronqué)
@@ -235,7 +239,6 @@ export async function generateLargeCard(
     textAlign: "left",
   });
 
-  const recentMangas = userData.lastMangas.slice(0, 3);
   let mangaY = 380;
 
   if (recentMangas.length === 0) {
@@ -254,23 +257,15 @@ export async function generateLargeCard(
       const manga = recentMangas[i];
       const x = 40 + i * 220;
 
-      // Image de couverture
-      if (manga.coverUrl) {
-        try {
-          await helper.drawRoundedImage(
-            {
-              x,
-              y: mangaY,
-              width: 60,
-              height: 80,
-              borderRadius: 8,
-              shadow: true,
-            },
-            manga.coverUrl
-          );
-        } catch (error) {
-          helper.drawRoundedRect(x, mangaY, 60, 80, 8, "#333333");
-        }
+      // Image de couverture (pré-chargée)
+      const coverImg = mangaCoverImages[i];
+      if (coverImg) {
+        helper.drawPreloadedImage(
+          { x, y: mangaY, width: 60, height: 80, borderRadius: 8, shadow: true },
+          coverImg
+        );
+      } else if (manga.coverUrl) {
+        helper.drawRoundedRect(x, mangaY, 60, 80, 8, "#333333");
       }
 
       // Titre (tronqué)
@@ -312,5 +307,5 @@ export async function generateLargeCard(
     size: 30,
   });
 
-  return helper.toDataURL();
+  return helper.toBuffer();
 }

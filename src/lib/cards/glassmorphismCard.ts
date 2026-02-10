@@ -6,7 +6,7 @@ export async function generateGlassmorphismCard(
   userData: UserData,
   platform: string,
   useLastAnimeBackground: boolean = true
-): Promise<string> {
+): Promise<Buffer> {
   const width = 700;
   const height = 400;
   const helper = new ServerCanvasHelper(width, height);
@@ -352,5 +352,5 @@ export async function generateGlassmorphismCard(
     size: 25,
   });
 
-  return helper.toDataURL();
+  return helper.toBuffer();
 }

@@ -97,52 +97,52 @@ export async function GET(request: NextRequest) {
     );
 
     // Générer la carte avec node-canvas (Vercel + local)
-    let cardDataUrl: string;
+    let cardBuffer: Buffer;
     switch (validType) {
       case "small":
-        cardDataUrl = await generateSmallCard(
+        cardBuffer = await generateSmallCard(
           userData,
           platform,
           useLastAnimeBackground
         );
         break;
       case "medium":
-        cardDataUrl = await generateMediumCard(
+        cardBuffer = await generateMediumCard(
           userData,
           platform,
           useLastAnimeBackground
         );
         break;
       case "large":
-        cardDataUrl = await generateLargeCard(
+        cardBuffer = await generateLargeCard(
           userData,
           platform,
           useLastAnimeBackground
         );
         break;
       case "summary":
-        cardDataUrl = await generateSummaryCard(
+        cardBuffer = await generateSummaryCard(
           userData,
           platform,
           useLastAnimeBackground
         );
         break;
       case "neon":
-        cardDataUrl = await generateNeonCard(
+        cardBuffer = await generateNeonCard(
           userData,
           validPlatform,
           useLastAnimeBackground
         );
         break;
       case "minimal":
-        cardDataUrl = await generateMinimalCard(
+        cardBuffer = await generateMinimalCard(
           userData,
           validPlatform,
           useLastAnimeBackground
         );
         break;
       case "glassmorphism":
-        cardDataUrl = await generateGlassmorphismCard(
+        cardBuffer = await generateGlassmorphismCard(
           userData,
           validPlatform,
           useLastAnimeBackground
@@ -155,12 +155,8 @@ export async function GET(request: NextRequest) {
         );
     }
 
-    // Convertir le data URL en buffer
-    const base64Data = cardDataUrl.replace(/^data:image\/[a-z]+;base64,/, "");
-    const buffer = Buffer.from(base64Data, "base64");
-
-    // Retourner l'image
-    return new NextResponse(buffer, {
+    // Retourner l'image directement depuis le buffer
+    return new NextResponse(new Uint8Array(cardBuffer), {
       headers: {
         "Content-Type": "image/png",
         "Cache-Control": "public, max-age=3600", // Cache 1 heure

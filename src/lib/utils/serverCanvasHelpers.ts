@@ -1,10 +1,62 @@
 import {
   createCanvas,
   loadImage,
+  Image,
   Canvas,
   CanvasRenderingContext2D,
 } from "canvas";
 import path from "path";
+
+// --- Cache statique pour les assets locaux ---
+const staticAssetCache = new Map<string, Image>();
+let staticAssetsLoaded = false;
+let staticAssetsLoading: Promise<void> | null = null;
+
+const STATIC_ASSETS = {
+  watermark: path.join(process.cwd(), "public", "images", "cma-logo-watermark.png"),
+  background: path.join(process.cwd(), "public", "images", "thumbails-radial.png"),
+  avatarFallback: path.join(process.cwd(), "public", "images", "avatar-fallback.png"),
+  logoMal: path.join(process.cwd(), "public", "images", "MAL_Favicon_2020.png"),
+  logoAnilist: path.join(process.cwd(), "public", "images", "anilist-android-chrome-512x512.png"),
+  logoNautiljon: path.join(process.cwd(), "public", "images", "nautiljon-logo.jpg"),
+} as const;
+
+async function loadStaticAssets(): Promise<void> {
+  if (staticAssetsLoaded) return;
+  if (staticAssetsLoading) return staticAssetsLoading;
+
+  staticAssetsLoading = (async () => {
+    const entries = Object.entries(STATIC_ASSETS);
+    const results = await Promise.allSettled(
+      entries.map(async ([key, filePath]) => {
+        const img = await loadImage(filePath);
+        return { key, img };
+      })
+    );
+
+    for (const result of results) {
+      if (result.status === "fulfilled") {
+        staticAssetCache.set(result.value.key, result.value.img);
+      } else {
+        console.error("Erreur chargement asset statique:", result.reason);
+      }
+    }
+
+    staticAssetsLoaded = true;
+    console.log(`Assets statiques pré-chargés: ${staticAssetCache.size}/${entries.length}`);
+  })();
+
+  return staticAssetsLoading;
+}
+
+/**
+ * Récupère un asset statique pré-chargé.
+ * Charge les assets si ce n'est pas encore fait.
+ */
+export async function getStaticAsset(key: keyof typeof STATIC_ASSETS): Promise<Image | null> {
+  await loadStaticAssets();
+  return staticAssetCache.get(key) ?? null;
+}
 
 export interface CanvasConfig {
   width: number;
@@ -195,6 +247,71 @@ export class ServerCanvasHelper {
       }
     }
     this.ctx.fillText(line, x, currentY);
+  }
+
+  /**
+   * Pré-charge une image depuis une URL (ou le cache statique pour les assets locaux).
+   * Utile pour charger plusieurs images en parallèle avec Promise.all avant de les dessiner.
+   */
+  async preloadImage(imageUrl: string): Promise<Image | null> {
+    try {
+      if (!imageUrl || imageUrl.trim() === "") return null;
+
+      if (imageUrl.includes("nautiljon.com")) {
+        const response = await fetch(imageUrl, {
+          headers: {
+            "User-Agent":
+              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+            Referer: "https://www.nautiljon.com/",
+            Accept: "image/webp,image/apng,image/*,*/*;q=0.8",
+            "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8",
+          },
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const buffer = await response.arrayBuffer();
+        let processedBuffer = Buffer.from(new Uint8Array(buffer));
+        if (imageUrl.includes(".webp") && typeof window === "undefined") {
+          try {
+            const { convertWebPToPNG } = await import("./imageConverter");
+            processedBuffer = Buffer.from(await convertWebPToPNG(processedBuffer));
+          } catch {
+            // Utiliser le buffer original
+          }
+        }
+        return await loadImage(processedBuffer);
+      }
+
+      return await loadImage(imageUrl);
+    } catch (error) {
+      console.error("Erreur preload image:", error);
+      return null;
+    }
+  }
+
+  /**
+   * Dessine une image déjà chargée avec bordure arrondie.
+   */
+  drawPreloadedImage(config: ImageConfig, img: Image) {
+    this.ctx.save();
+
+    this.ctx.beginPath();
+    const radius = config.borderRadius || 0;
+    if (radius > 0) {
+      this.ctx.roundRect(config.x, config.y, config.width, config.height, radius);
+    } else {
+      this.ctx.rect(config.x, config.y, config.width, config.height);
+    }
+    this.ctx.clip();
+
+    if (config.shadow) {
+      this.ctx.shadowColor = "rgba(0, 0, 0, 0.3)";
+      this.ctx.shadowBlur = 10;
+      this.ctx.shadowOffsetX = 2;
+      this.ctx.shadowOffsetY = 2;
+    }
+
+    this.ctx.drawImage(img, config.x, config.y, config.width, config.height);
+    this.ctx.restore();
   }
 
   // Dessiner une image avec bordure arrondie
@@ -429,8 +546,8 @@ export class ServerCanvasHelper {
    */
   async createSimpleBackground(): Promise<void> {
     try {
-      // Charger l'image de background
-      const backgroundImage = await loadImage(
+      // Utiliser le cache statique pour le background
+      const backgroundImage = await getStaticAsset("background") ?? await loadImage(
         path.join(process.cwd(), "public", "images", "thumbails-radial.png")
       );
 
@@ -471,8 +588,8 @@ export class ServerCanvasHelper {
     }
   }
 
-  // Exporter le canvas en buffer
-  toBuffer(): any {
+  // Exporter le canvas en buffer PNG
+  toBuffer(): Buffer {
     return this.canvas.toBuffer("image/png");
   }
 

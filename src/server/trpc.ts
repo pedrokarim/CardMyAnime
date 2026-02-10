@@ -62,53 +62,53 @@ export const appRouter = createTRPCRouter({
         );
 
         // Générer la carte selon le type demandé
-        let cardDataUrl: string;
+        let cardBuffer: Buffer;
 
         switch (input.cardType) {
           case "small":
-            cardDataUrl = await generateSmallCard(
+            cardBuffer = await generateSmallCard(
               userData,
               input.platform,
               input.useLastAnimeBackground
             );
             break;
           case "medium":
-            cardDataUrl = await generateMediumCard(
+            cardBuffer = await generateMediumCard(
               userData,
               input.platform,
               input.useLastAnimeBackground
             );
             break;
           case "large":
-            cardDataUrl = await generateLargeCard(
+            cardBuffer = await generateLargeCard(
               userData,
               input.platform,
               input.useLastAnimeBackground
             );
             break;
           case "summary":
-            cardDataUrl = await generateSummaryCard(
+            cardBuffer = await generateSummaryCard(
               userData,
               input.platform,
               input.useLastAnimeBackground
             );
             break;
           case "neon":
-            cardDataUrl = await generateNeonCard(
+            cardBuffer = await generateNeonCard(
               userData,
               input.platform,
               input.useLastAnimeBackground
             );
             break;
           case "minimal":
-            cardDataUrl = await generateMinimalCard(
+            cardBuffer = await generateMinimalCard(
               userData,
               input.platform,
               input.useLastAnimeBackground
             );
             break;
           case "glassmorphism":
-            cardDataUrl = await generateGlassmorphismCard(
+            cardBuffer = await generateGlassmorphismCard(
               userData,
               input.platform,
               input.useLastAnimeBackground
@@ -117,6 +117,9 @@ export const appRouter = createTRPCRouter({
           default:
             throw new Error("Type de carte non supporté");
         }
+
+        // Convertir le buffer en data URL pour l'affichage côté client
+        const cardDataUrl = `data:image/png;base64,${cardBuffer.toString("base64")}`;
 
         // Sauvegarder en base de données
         await ensurePrismaConnection();
@@ -211,9 +214,6 @@ export const appRouter = createTRPCRouter({
       z.object({
         page: z.number().min(1).default(1),
         limit: z.number().min(1).max(100).default(20),
-        cardTypes: z
-          .array(z.enum(["small", "medium", "large", "summary", "neon", "minimal", "glassmorphism"]))
-          .optional(),
         search: z.string().optional(),
         sortBy: z.enum(["views", "views24h", "createdAt"]).default("views"),
       })
@@ -221,14 +221,8 @@ export const appRouter = createTRPCRouter({
     .query(async ({ input }) => {
       try {
         await ensurePrismaConnection();
-        const skip = (input.page - 1) * input.limit;
 
         let whereClause: any = {};
-
-        // Filtrer par type de carte
-        if (input.cardTypes && input.cardTypes.length > 0) {
-          whereClause.cardType = { in: input.cardTypes };
-        }
 
         // Filtrer par recherche (pseudo)
         if (input.search && input.search.trim()) {
@@ -238,57 +232,89 @@ export const appRouter = createTRPCRouter({
           };
         }
 
-        // Déterminer l'ordre de tri
-        let orderBy: any = {};
-        switch (input.sortBy) {
-          case "views24h":
-            orderBy.views24h = "desc";
-            break;
-          case "createdAt":
-            orderBy.createdAt = "desc";
-            break;
-          case "views":
-          default:
-            orderBy.views = "desc";
-            break;
-        }
-
-        // Récupérer les cartes avec un peu plus d'éléments pour compenser les éventuels doublons
-        // Le filtrage côté client garantira l'unicité
-        const cardsRaw = await prisma.cardGeneration.findMany({
+        // Récupérer toutes les cartes correspondant au filtre
+        const allCards = await prisma.cardGeneration.findMany({
           where: whereClause,
-          orderBy,
-          skip,
-          take: input.limit * 2, // Prendre plus d'éléments pour compenser les doublons
+          orderBy: { views: "desc" },
         });
 
-        // Filtrer les doublons côté serveur pour garantir l'unicité
-        const seen = new Map<string, any>();
-        const cards: any[] = [];
-        for (const card of cardsRaw) {
-          const key = `${card.platform}-${card.username}-${card.cardType}`;
-          if (!seen.has(key)) {
-            seen.set(key, card);
-            cards.push(card);
-            if (cards.length >= input.limit) break;
+        // Regrouper par (platform + username) et additionner les vues
+        const grouped = new Map<string, {
+          platform: string;
+          username: string;
+          totalViews: number;
+          totalViews24h: number;
+          lastCreatedAt: Date;
+          cardTypes: Array<{
+            cardType: string;
+            views: number;
+            views24h: number;
+            createdAt: Date;
+          }>;
+        }>();
+
+        for (const card of allCards) {
+          const key = `${card.platform}-${card.username}`;
+          const existing = grouped.get(key);
+
+          const cardInfo = {
+            cardType: card.cardType,
+            views: card.views,
+            views24h: card.views24h,
+            createdAt: card.createdAt,
+          };
+
+          if (existing) {
+            existing.totalViews += card.views;
+            existing.totalViews24h += card.views24h;
+            if (card.createdAt > existing.lastCreatedAt) {
+              existing.lastCreatedAt = card.createdAt;
+            }
+            existing.cardTypes.push(cardInfo);
+          } else {
+            grouped.set(key, {
+              platform: card.platform,
+              username: card.username,
+              totalViews: card.views,
+              totalViews24h: card.views24h,
+              lastCreatedAt: card.createdAt,
+              cardTypes: [cardInfo],
+            });
           }
         }
 
-        const totalCount = await prisma.cardGeneration.count({
-          where: whereClause,
-        });
+        // Convertir en tableau et trier
+        let users = Array.from(grouped.values());
+
+        switch (input.sortBy) {
+          case "views24h":
+            users.sort((a, b) => b.totalViews24h - a.totalViews24h);
+            break;
+          case "createdAt":
+            users.sort((a, b) => b.lastCreatedAt.getTime() - a.lastCreatedAt.getTime());
+            break;
+          case "views":
+          default:
+            users.sort((a, b) => b.totalViews - a.totalViews);
+            break;
+        }
+
+        const totalCount = users.length;
+        const totalPages = Math.ceil(totalCount / input.limit);
+        const skip = (input.page - 1) * input.limit;
+        const paginatedUsers = users.slice(skip, skip + input.limit);
 
         return {
-          cards,
+          users: paginatedUsers,
           totalCount,
-          totalPages: Math.ceil(totalCount / input.limit),
+          totalPages,
           currentPage: input.page,
         };
       } catch (error) {
         await prisma.$disconnect();
-        console.error("Erreur lors de la récupération des top cards:", error);
+        console.error("Erreur lors de la récupération du classement:", error);
         return {
-          cards: [],
+          users: [],
           totalCount: 0,
           totalPages: 0,
           currentPage: input.page,

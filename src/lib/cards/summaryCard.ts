@@ -6,7 +6,7 @@ export async function generateSummaryCard(
   userData: UserData,
   platform: string,
   useLastAnimeBackground: boolean = true
-): Promise<string> {
+): Promise<Buffer> {
   // Génération de la carte résumé
   console.log("=== GÉNÉRATION CARTE RÉSUMÉ ===");
   console.log("Répertoire de travail:", process.cwd());
@@ -532,5 +532,5 @@ export async function generateSummaryCard(
     size: 30,
   });
 
-  return helper.toDataURL();
+  return helper.toBuffer();
 }

@@ -6,7 +6,7 @@ export async function generateSmallCard(
   userData: UserData,
   platform: string,
   useLastAnimeBackground: boolean = true
-): Promise<string> {
+): Promise<Buffer> {
   const width = 400;
   const height = 200;
   const helper = new ServerCanvasHelper(width, height);
@@ -182,5 +182,5 @@ export async function generateSmallCard(
     size: 30,
   });
 
-  return helper.toDataURL();
+  return helper.toBuffer();
 }
