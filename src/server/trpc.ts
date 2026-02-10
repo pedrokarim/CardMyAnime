@@ -478,9 +478,32 @@ export const appRouter = createTRPCRouter({
               : null,
         }));
 
+      // Enrichir avec les données AniList (banners, genres, studios, etc.)
+      let enrichedMap = new Map<string, any>();
+      try {
+        const { mediaEnrichment } = await import("@/lib/services/mediaEnrichment");
+        const allItems = [
+          ...trendingAnimes.map((a) => ({ title: a.title, type: "ANIME" as const })),
+          ...trendingMangas.map((m) => ({ title: m.title, type: "MANGA" as const })),
+        ];
+        enrichedMap = await mediaEnrichment.enrichMedia(allItems);
+      } catch (error) {
+        console.error("Erreur enrichissement media:", error);
+      }
+
+      const enrichedAnimes = trendingAnimes.map((a) => ({
+        ...a,
+        enriched: enrichedMap.get(a.title.toLowerCase().trim()) ?? null,
+      }));
+
+      const enrichedMangas = trendingMangas.map((m) => ({
+        ...m,
+        enriched: enrichedMap.get(m.title.toLowerCase().trim()) ?? null,
+      }));
+
       return {
-        animes: trendingAnimes,
-        mangas: trendingMangas,
+        animes: enrichedAnimes,
+        mangas: enrichedMangas,
         totalUsers: uniqueUsers.size,
       };
     } catch (error) {

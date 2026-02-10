@@ -2,6 +2,87 @@ import { UserData } from "../types";
 
 const ANILIST_API_URL = "https://graphql.anilist.co";
 
+const MEDIA_SEARCH_QUERY = `
+  query ($search: String, $type: MediaType) {
+    Media(search: $search, type: $type) {
+      id
+      bannerImage
+      coverImage { large extraLarge }
+      title { romaji english native userPreferred }
+      genres
+      studios(isMain: true) { nodes { name isAnimationStudio } }
+      description(asHtml: false)
+      format
+      episodes
+      chapters
+      volumes
+      averageScore
+      meanScore
+      season
+      seasonYear
+      status
+      nextAiringEpisode { airingAt episode timeUntilAiring }
+      startDate { year month day }
+      source
+      popularity
+    }
+  }
+`;
+
+export interface AniListMediaResult {
+  id: number;
+  bannerImage: string | null;
+  coverImage: { large: string; extraLarge: string };
+  title: { romaji: string; english: string | null; native: string | null; userPreferred: string };
+  genres: string[];
+  studios: { nodes: { name: string; isAnimationStudio: boolean }[] };
+  description: string | null;
+  format: string | null;
+  episodes: number | null;
+  chapters: number | null;
+  volumes: number | null;
+  averageScore: number | null;
+  meanScore: number | null;
+  season: string | null;
+  seasonYear: number | null;
+  status: string | null;
+  nextAiringEpisode: { airingAt: number; episode: number; timeUntilAiring: number } | null;
+  startDate: { year: number | null; month: number | null; day: number | null };
+  source: string | null;
+  popularity: number | null;
+}
+
+export async function searchMedia(
+  title: string,
+  type: "ANIME" | "MANGA"
+): Promise<AniListMediaResult | null> {
+  try {
+    const response = await fetch(ANILIST_API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: MEDIA_SEARCH_QUERY,
+        variables: { search: title, type },
+      }),
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (!response.ok) {
+      if (response.status === 429) {
+        throw new Error("RATE_LIMITED");
+      }
+      return null;
+    }
+
+    const data = await response.json();
+    return data.data?.Media ?? null;
+  } catch (error: any) {
+    if (error.message === "RATE_LIMITED") throw error;
+    console.error(`Erreur searchMedia pour "${title}":`, error);
+    return null;
+  }
+}
+
 const USER_QUERY = `
   query ($username: String) {
     User(name: $username) {

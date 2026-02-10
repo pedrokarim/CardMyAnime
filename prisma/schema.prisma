@@ -175,3 +175,16 @@ model CronJob {
 
   @@index([enabled])
 }
+
+model MediaCache {
+  id          String   @id @default(cuid())
+  title       String   @unique
+  anilistId   Int?
+  type        String
+  data        String
+  lastFetched DateTime @default(now())
+  expiresAt   DateTime
+
+  @@index([expiresAt])
+  @@index([type])
+}

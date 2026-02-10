@@ -21,12 +21,16 @@ export function Navbar({ currentPlatform }: NavbarProps) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // Badge "NEW" visible pendant 20 jours après la refonte Tendances (10 fév 2026)
+  const TENDANCES_LAUNCH = new Date("2026-02-10");
+  const isTendancesNew = Date.now() - TENDANCES_LAUNCH.getTime() < 20 * 24 * 60 * 60 * 1000;
+
   const navLinks = [
-    { href: "/", label: "Accueil" },
-    { href: "/ranking", label: "Classement" },
-    { href: "/tendances", label: "Tendances" },
-    { href: "/contact", label: "Contact" },
-    { href: "/about", label: "À propos" },
+    { href: "/", label: "Accueil", isNew: false },
+    { href: "/ranking", label: "Classement", isNew: false },
+    { href: "/tendances", label: "Tendances", isNew: isTendancesNew },
+    { href: "/contact", label: "Contact", isNew: false },
+    { href: "/about", label: "À propos", isNew: false },
   ];
 
   const socialLinks = [
@@ -71,13 +75,18 @@ export function Navbar({ currentPlatform }: NavbarProps) {
                   key={index}
                   href={link.href}
                   className={cn(
-                    "text-[16px] font-medium transition-colors px-4 py-2",
+                    "relative text-[16px] font-medium transition-colors px-4 py-2",
                     isActive
                       ? "text-foreground"
                       : "text-muted-foreground hover:text-foreground"
                   )}
                 >
                   {link.label}
+                  {link.isNew && (
+                    <span className="absolute -top-1 -right-1 px-1.5 py-0.5 text-[10px] font-bold leading-none rounded-full bg-orange-500 text-white">
+                      NEW
+                    </span>
+                  )}
                 </Link>
               );
             })}
@@ -151,6 +160,11 @@ export function Navbar({ currentPlatform }: NavbarProps) {
                     >
                       <IconComponent className="w-5 h-5" />
                       <span>{link.label}</span>
+                      {link.isNew && (
+                        <span className="px-1.5 py-0.5 text-[10px] font-bold leading-none rounded-full bg-orange-500 text-white">
+                          NEW
+                        </span>
+                      )}
                     </Link>
                   );
                 })}
