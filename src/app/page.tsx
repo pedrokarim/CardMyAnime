@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ButtonLoading } from "@/components/ui/loading";
 import { SITE_CONFIG } from "@/lib/constants";
 import Link from "next/link";
+import { CardStyleSvg } from "@/components/CardStyleSvg";
 
 type Step = "platform" | "cardType" | "username" | "preview";
 
@@ -429,7 +430,9 @@ export default function HomePage() {
                     }`}
                   >
                     <div className="text-center space-y-3 sm:space-y-4">
-                      <div className="text-4xl sm:text-5xl mb-3 sm:mb-4">{cardTypeOption.icon}</div>
+                      <div className="flex justify-center mb-3 sm:mb-4">
+                        <CardStyleSvg type={cardTypeOption.value as CardType} size={100} />
+                      </div>
                       <h3 className="text-xl sm:text-2xl font-bold text-foreground">
                         {cardTypeOption.label}
                       </h3>

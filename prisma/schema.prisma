@@ -160,3 +160,18 @@ model AppSettings {
 
   @@index([key])
 }
+
+model CronJob {
+  id         String    @id @default(cuid())
+  name       String
+  command    String
+  schedule   String    // Expression cron ex: "0 */6 * * *"
+  enabled    Boolean   @default(true)
+  lastRunAt  DateTime?
+  lastStatus String?   // "success" | "error"
+  lastOutput String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([enabled])
+}

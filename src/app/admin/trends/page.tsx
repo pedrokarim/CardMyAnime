@@ -1,143 +1,55 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
-  TrendingUp,
-  Camera,
   Trash2,
   RefreshCw,
-  Clock,
-  Database,
-  Calendar,
-  AlertTriangle,
+  Users,
+  Star,
+  BookOpen,
+  Flame,
+  ImageOff,
 } from "lucide-react";
-import {
-  InlineLoading,
-  ButtonLoading,
-} from "@/components/ui/loading";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { InlineLoading } from "@/components/ui/loading";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
-interface TrendStats {
-  totalSnapshots: number;
-  lastSnapshotAt: string | null;
-  snapshotsToday: number;
-  snapshots7d: number;
-}
+import { trpc } from "@/lib/trpc/client";
 
 export default function AdminTrendsPage() {
   const { data: session } = useSession();
-  const [stats, setStats] = useState<TrendStats | null>(null);
-  const [settings, setSettings] = useState({
-    snapshotIntervalHours: "6",
-    snapshotEnabled: "true",
-  });
-  const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [savingSettings, setSavingSettings] = useState(false);
+  const { data, isLoading, refetch } = trpc.getTrends.useQuery();
+  const [imgErrors, setImgErrors] = useState<Set<string>>(new Set());
+  const [clearing, setClearing] = useState(false);
 
-  useEffect(() => {
-    if (session) {
-      fetchData();
-    }
-  }, [session]);
-
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const [statsRes, settingsRes] = await Promise.all([
-        fetch("/api/admin/trends"),
-        fetch("/api/admin/settings"),
-      ]);
-
-      if (statsRes.ok) {
-        setStats(await statsRes.json());
-      }
-      if (settingsRes.ok) {
-        const allSettings = await settingsRes.json();
-        setSettings({
-          snapshotIntervalHours:
-            allSettings.snapshotIntervalHours || "6",
-          snapshotEnabled: allSettings.snapshotEnabled || "true",
-        });
-      }
-    } catch (error) {
-      console.error("Erreur lors du chargement:", error);
-    } finally {
-      setLoading(false);
-    }
+  const handleImgError = (key: string) => {
+    setImgErrors((prev) => new Set(prev).add(key));
   };
 
-  const handleAction = async (action: string) => {
-    if (
-      action === "delete-all" &&
-      !confirm(
-        "Voulez-vous vraiment supprimer tous les snapshots ? Cette action est irréversible."
-      )
-    ) {
-      return;
-    }
+  const handleClearCache = async () => {
+    if (!confirm("Vider le cache des données utilisateur ? Les tendances seront recalculées au prochain chargement.")) return;
 
-    setActionLoading(action);
+    setClearing(true);
     try {
-      const response = await fetch("/api/admin/trends", {
+      const res = await fetch("/api/admin/cache", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action }),
+        body: JSON.stringify({ action: "cleanup-expired" }),
       });
-      const result = await response.json();
-
-      if (response.ok) {
-        alert(result.message);
-        await fetchData();
+      if (res.ok) {
+        const result = await res.json();
+        alert(result.message || "Cache nettoyé");
+        refetch();
       } else {
-        alert(result.error || "Erreur lors de l'action");
+        alert("Erreur lors du nettoyage");
       }
-    } catch (error) {
-      console.error("Erreur:", error);
-      alert("Erreur lors de l'action");
+    } catch {
+      alert("Erreur lors du nettoyage");
     } finally {
-      setActionLoading(null);
+      setClearing(false);
     }
   };
 
-  const handleSaveSettings = async () => {
-    setSavingSettings(true);
-    try {
-      const response = await fetch("/api/admin/settings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(settings),
-      });
-
-      if (response.ok) {
-        alert("Configuration sauvegardée");
-      } else {
-        alert("Erreur lors de la sauvegarde");
-      }
-    } catch (error) {
-      console.error("Erreur:", error);
-      alert("Erreur lors de la sauvegarde");
-    } finally {
-      setSavingSettings(false);
-    }
-  };
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
         <InlineLoading />
@@ -146,223 +58,163 @@ export default function AdminTrendsPage() {
     );
   }
 
+  const animes = data?.animes || [];
+  const mangas = data?.mangas || [];
+  const totalUsers = data?.totalUsers || 0;
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground mb-2">Tendances</h1>
-        <p className="text-muted-foreground">
-          Gestion des snapshots et du système de tendances
-        </p>
-      </div>
-
-      {/* Configuration des snapshots */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="w-5 h-5" />
-            Configuration des Snapshots
-          </CardTitle>
-          <CardDescription>
-            Paramètres de fréquence et activation des snapshots automatiques
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">
-                Intervalle des snapshots
-              </label>
-              <Select
-                value={settings.snapshotIntervalHours}
-                onValueChange={(value) =>
-                  setSettings((prev) => ({
-                    ...prev,
-                    snapshotIntervalHours: value,
-                  }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">Toutes les heures</SelectItem>
-                  <SelectItem value="6">Toutes les 6 heures</SelectItem>
-                  <SelectItem value="12">Toutes les 12 heures</SelectItem>
-                  <SelectItem value="24">Toutes les 24 heures</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Statut</label>
-              <Select
-                value={settings.snapshotEnabled}
-                onValueChange={(value) =>
-                  setSettings((prev) => ({
-                    ...prev,
-                    snapshotEnabled: value,
-                  }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="true">Activés</SelectItem>
-                  <SelectItem value="false">Désactivés</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <Button onClick={handleSaveSettings} disabled={savingSettings}>
-            {savingSettings ? "Sauvegarde..." : "Sauvegarder la configuration"}
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Statistiques des snapshots */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Database className="w-5 h-5" />
-            Statistiques des Snapshots
-          </CardTitle>
-          <CardDescription>
-            État actuel du système de capture des tendances
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {stats ? (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              <div className="bg-background border border-border rounded-lg p-4">
-                <div className="flex items-center gap-3 mb-3">
-                  <Database className="w-5 h-5 text-blue-500" />
-                  <h3 className="font-semibold text-sm">Total Snapshots</h3>
-                </div>
-                <p className="text-2xl font-bold text-foreground">
-                  {stats.totalSnapshots.toLocaleString()}
-                </p>
-              </div>
-
-              <div className="bg-background border border-border rounded-lg p-4">
-                <div className="flex items-center gap-3 mb-3">
-                  <Clock className="w-5 h-5 text-green-500" />
-                  <h3 className="font-semibold text-sm">Dernier Snapshot</h3>
-                </div>
-                <p className="text-sm font-medium text-foreground">
-                  {stats.lastSnapshotAt
-                    ? new Date(stats.lastSnapshotAt).toLocaleString("fr-FR")
-                    : "Aucun"}
-                </p>
-              </div>
-
-              <div className="bg-background border border-border rounded-lg p-4">
-                <div className="flex items-center gap-3 mb-3">
-                  <Calendar className="w-5 h-5 text-orange-500" />
-                  <h3 className="font-semibold text-sm">Snapshots 24h</h3>
-                </div>
-                <p className="text-2xl font-bold text-foreground">
-                  {stats.snapshotsToday.toLocaleString()}
-                </p>
-              </div>
-
-              <div className="bg-background border border-border rounded-lg p-4">
-                <div className="flex items-center gap-3 mb-3">
-                  <TrendingUp className="w-5 h-5 text-purple-500" />
-                  <h3 className="font-semibold text-sm">Snapshots 7j</h3>
-                </div>
-                <p className="text-2xl font-bold text-foreground">
-                  {stats.snapshots7d.toLocaleString()}
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <InlineLoading />
-              <p className="text-muted-foreground mt-4">Chargement...</p>
-            </div>
-          )}
-
-          <Button
-            onClick={fetchData}
-            variant="outline"
-            className="flex items-center gap-2"
-          >
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Tendances</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            {totalUsers} profil{totalUsers > 1 ? "s" : ""} indexé{totalUsers > 1 ? "s" : ""}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => refetch()}>
             <RefreshCw className="w-4 h-4" />
             Actualiser
           </Button>
-        </CardContent>
-      </Card>
+          <Button variant="destructive" size="sm" onClick={handleClearCache} disabled={clearing}>
+            <Trash2 className="w-4 h-4" />
+            {clearing ? "Nettoyage..." : "Vider le cache"}
+          </Button>
+        </div>
+      </div>
 
-      {/* Actions manuelles */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Actions Manuelles</CardTitle>
-          <CardDescription>
-            Gérer les snapshots de tendances manuellement
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button
-              onClick={() => handleAction("take-snapshot")}
-              disabled={actionLoading !== null}
-              className="flex items-center gap-2 h-auto p-4"
-              variant="outline"
-            >
-              {actionLoading === "take-snapshot" ? (
-                <ButtonLoading size="sm" />
-              ) : (
-                <Camera className="w-5 h-5" />
-              )}
-              <div className="text-left">
-                <div className="font-semibold">Prendre un snapshot</div>
-                <div className="text-sm text-muted-foreground">
-                  Capturer l&apos;état actuel des vues
-                </div>
-              </div>
-            </Button>
-
-            <Button
-              onClick={() => handleAction("cleanup")}
-              disabled={actionLoading !== null}
-              className="flex items-center gap-2 h-auto p-4"
-              variant="outline"
-            >
-              {actionLoading === "cleanup" ? (
-                <ButtonLoading size="sm" />
-              ) : (
-                <Trash2 className="w-5 h-5" />
-              )}
-              <div className="text-left">
-                <div className="font-semibold">Nettoyer les anciens</div>
-                <div className="text-sm text-muted-foreground">
-                  Supprimer les snapshots &gt; 90 jours
-                </div>
-              </div>
-            </Button>
-
-            <Button
-              onClick={() => handleAction("delete-all")}
-              disabled={actionLoading !== null}
-              className="flex items-center gap-2 h-auto p-4"
-              variant="destructive"
-            >
-              {actionLoading === "delete-all" ? (
-                <ButtonLoading size="sm" />
-              ) : (
-                <AlertTriangle className="w-5 h-5" />
-              )}
-              <div className="text-left">
-                <div className="font-semibold">Tout supprimer</div>
-                <div className="text-sm text-muted-foreground">
-                  Supprimer tous les snapshots
-                </div>
-              </div>
-            </Button>
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="rounded-lg border border-border bg-card p-4">
+          <div className="flex items-center gap-2 text-orange-500 mb-2">
+            <Flame className="w-4 h-4" />
+            <span className="text-xs font-medium">Animés</span>
           </div>
-        </CardContent>
-      </Card>
+          <p className="text-2xl font-semibold">{animes.length}</p>
+        </div>
+        <div className="rounded-lg border border-border bg-card p-4">
+          <div className="flex items-center gap-2 text-purple-500 mb-2">
+            <BookOpen className="w-4 h-4" />
+            <span className="text-xs font-medium">Mangas</span>
+          </div>
+          <p className="text-2xl font-semibold">{mangas.length}</p>
+        </div>
+        <div className="rounded-lg border border-border bg-card p-4">
+          <div className="flex items-center gap-2 text-blue-500 mb-2">
+            <Users className="w-4 h-4" />
+            <span className="text-xs font-medium">Profils</span>
+          </div>
+          <p className="text-2xl font-semibold">{totalUsers}</p>
+        </div>
+      </div>
+
+      {/* Animés */}
+      <div>
+        <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
+          <Flame className="w-4 h-4 text-orange-500" />
+          Animés en tendance ({animes.length})
+        </h2>
+        {animes.length === 0 ? (
+          <p className="text-muted-foreground text-sm py-4">Aucun animé en cache</p>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {animes.map((anime: any, index: number) => {
+              const key = `admin-anime-${index}`;
+              if (imgErrors.has(key)) {
+                return (
+                  <div key={key} className="aspect-[3/4] rounded-lg bg-muted flex items-center justify-center border border-border">
+                    <ImageOff className="w-6 h-6 text-muted-foreground" />
+                  </div>
+                );
+              }
+              return (
+                <div key={key} className="relative aspect-[3/4] rounded-lg overflow-hidden bg-muted border border-border">
+                  <img
+                    src={anime.coverUrl}
+                    alt={anime.title}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                    onError={() => handleImgError(key)}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                  <div className="absolute top-1.5 left-1.5">
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-black/60 text-white">
+                      #{index + 1}
+                    </span>
+                  </div>
+                  {anime.avgScore && (
+                    <div className="absolute top-1.5 right-1.5 flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-black/60">
+                      <Star className="w-2.5 h-2.5 text-amber-400 fill-amber-400" />
+                      <span className="text-[10px] font-medium text-white">{anime.avgScore}</span>
+                    </div>
+                  )}
+                  <div className="absolute bottom-0 left-0 right-0 p-2">
+                    <p className="text-[11px] font-semibold text-white line-clamp-2 leading-tight">{anime.title}</p>
+                    <p className="text-[10px] text-white/70 flex items-center gap-0.5 mt-0.5">
+                      <Users className="w-2.5 h-2.5" />
+                      {anime.viewers}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Mangas */}
+      <div>
+        <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
+          <BookOpen className="w-4 h-4 text-purple-500" />
+          Mangas en tendance ({mangas.length})
+        </h2>
+        {mangas.length === 0 ? (
+          <p className="text-muted-foreground text-sm py-4">Aucun manga en cache</p>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {mangas.map((manga: any, index: number) => {
+              const key = `admin-manga-${index}`;
+              if (imgErrors.has(key)) {
+                return (
+                  <div key={key} className="aspect-[3/4] rounded-lg bg-muted flex items-center justify-center border border-border">
+                    <ImageOff className="w-6 h-6 text-muted-foreground" />
+                  </div>
+                );
+              }
+              return (
+                <div key={key} className="relative aspect-[3/4] rounded-lg overflow-hidden bg-muted border border-border">
+                  <img
+                    src={manga.coverUrl}
+                    alt={manga.title}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                    onError={() => handleImgError(key)}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                  <div className="absolute top-1.5 left-1.5">
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-black/60 text-white">
+                      #{index + 1}
+                    </span>
+                  </div>
+                  {manga.avgScore && (
+                    <div className="absolute top-1.5 right-1.5 flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-black/60">
+                      <Star className="w-2.5 h-2.5 text-amber-400 fill-amber-400" />
+                      <span className="text-[10px] font-medium text-white">{manga.avgScore}</span>
+                    </div>
+                  )}
+                  <div className="absolute bottom-0 left-0 right-0 p-2">
+                    <p className="text-[11px] font-semibold text-white line-clamp-2 leading-tight">{manga.title}</p>
+                    <p className="text-[10px] text-white/70 flex items-center gap-0.5 mt-0.5">
+                      <BookOpen className="w-2.5 h-2.5" />
+                      {manga.readers}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

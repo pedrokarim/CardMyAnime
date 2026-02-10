@@ -33,6 +33,7 @@ import {
   User,
   ChevronsUpDown,
   TrendingUp,
+  Timer,
 } from "lucide-react";
 import Link from "next/link";
 import { SITE_CONFIG } from "@/lib/constants";
@@ -70,6 +71,11 @@ export function AdminSidebar() {
       title: "Tendances",
       url: "/admin/trends",
       icon: TrendingUp,
+    },
+    {
+      title: "Jobs Cron",
+      url: "/admin/cron",
+      icon: Timer,
     },
     {
       title: "Profil",

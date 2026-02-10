@@ -19,6 +19,7 @@ const LABELS: Record<string, string> = {
   logs: "Logs",
   "data-deletion": "Suppressions",
   trends: "Tendances",
+  cron: "Jobs Cron",
   settings: "Paramètres",
 };
 

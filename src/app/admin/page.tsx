@@ -14,19 +14,10 @@ import {
   Users,
   Activity,
   TrendingUp,
+  Timer,
+  Settings,
 } from "lucide-react";
-import {
-  PageLoading,
-  ButtonLoading,
-  InlineLoading,
-} from "@/components/ui/loading";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { ButtonLoading, InlineLoading } from "@/components/ui/loading";
 import { Button } from "@/components/ui/button";
 
 interface CacheStats {
@@ -51,13 +42,11 @@ interface AdminStats {
 }
 
 export default function AdminHomePage() {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const router = useRouter();
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
-
-  // L'authentification est maintenant gérée par AdminAuthWrapper dans le layout
 
   const fetchStats = async () => {
     setLoading(true);
@@ -83,9 +72,7 @@ export default function AdminHomePage() {
     try {
       const response = await fetch("/api/admin/cache", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "cleanup-expired" }),
       });
       const result = await response.json();
@@ -110,254 +97,146 @@ export default function AdminHomePage() {
     }
   }, [session]);
 
-  // L'authentification est maintenant gérée par AdminAuthWrapper dans le layout
-
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground mb-2">
-          Tableau de bord
-        </h1>
-        <p className="text-muted-foreground">
-          Vue d'ensemble de l'administration CardMyAnime
-        </p>
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">
+            Tableau de bord
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Vue d&apos;ensemble de l&apos;administration
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={fetchStats}
+            disabled={loading}
+            variant="outline"
+            size="sm"
+          >
+            {loading ? (
+              <ButtonLoading size="sm" />
+            ) : (
+              <RefreshCw className="w-4 h-4" />
+            )}
+            Actualiser
+          </Button>
+          <Button
+            onClick={cleanupCache}
+            disabled={loading || !stats || stats.cache.expiredEntries === 0}
+            variant="destructive"
+            size="sm"
+          >
+            <Trash2 className="w-4 h-4" />
+            Nettoyer ({stats?.cache.expiredEntries || 0})
+          </Button>
+        </div>
       </div>
 
-      {/* Statistiques du cache */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Database className="w-5 h-5" />
-            Statistiques du Cache
-          </CardTitle>
-          <CardDescription>
-            État actuel du cache et des données temporaires
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {stats ? (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              <div className="bg-background border border-border rounded-lg p-4">
-                <div className="flex items-center gap-3 mb-3">
-                  <Database className="w-5 h-5 text-blue-500" />
-                  <h3 className="font-semibold">Cache Total</h3>
-                </div>
-                <p className="text-2xl font-bold text-foreground">
-                  {stats.cache.totalEntries}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Entrées en cache
-                </p>
+      {!stats ? (
+        <div className="flex items-center justify-center py-16">
+          <InlineLoading />
+          <p className="text-muted-foreground ml-3">Chargement...</p>
+        </div>
+      ) : (
+        <>
+          {/* Statistiques principales */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="rounded-lg border border-border bg-card p-4">
+              <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                <Users className="w-4 h-4" />
+                <span className="text-xs font-medium uppercase tracking-wide">Cartes</span>
               </div>
-
-              <div className="bg-background border border-border rounded-lg p-4">
-                <div className="flex items-center gap-3 mb-3">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <h3 className="font-semibold">Cache Valides</h3>
-                </div>
-                <p className="text-2xl font-bold text-foreground">
-                  {stats.cache.validEntries}
-                </p>
-                <p className="text-sm text-muted-foreground">Entrées valides</p>
-              </div>
-
-              <div className="bg-background border border-border rounded-lg p-4">
-                <div className="flex items-center gap-3 mb-3">
-                  <XCircle className="w-5 h-5 text-red-500" />
-                  <h3 className="font-semibold">Cache Expirés</h3>
-                </div>
-                <p className="text-2xl font-bold text-foreground">
-                  {stats.cache.expiredEntries}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Entrées expirées
-                </p>
-              </div>
-
-              <div className="bg-background border border-border rounded-lg p-4">
-                <div className="flex items-center gap-3 mb-3">
-                  <Eye className="w-5 h-5 text-purple-500" />
-                  <h3 className="font-semibold">Vues Total</h3>
-                </div>
-                <p className="text-2xl font-bold text-foreground">
-                  {stats.views.totalViews.toLocaleString()}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Vues enregistrées
-                </p>
-              </div>
+              <p className="text-2xl font-semibold">{stats.cards.total}</p>
             </div>
-          ) : (
-            <div className="text-center py-8">
-              <InlineLoading />
-              <p className="text-muted-foreground mt-4">
-                Chargement des statistiques...
-              </p>
-            </div>
-          )}
 
-          <div className="flex flex-wrap gap-4">
-            <Button
-              onClick={fetchStats}
-              disabled={loading}
-              className="flex items-center gap-2"
-            >
-              {loading ? (
-                <ButtonLoading size="sm" />
-              ) : (
-                <RefreshCw className="w-4 h-4" />
-              )}
-              Actualiser
-            </Button>
-            <Button
-              onClick={cleanupCache}
-              disabled={loading || !stats || stats.cache.expiredEntries === 0}
-              variant="destructive"
-              className="flex items-center gap-2"
-            >
-              <Trash2 className="w-4 h-4" />
-              Nettoyer le cache ({stats?.cache.expiredEntries || 0})
-            </Button>
+            <div className="rounded-lg border border-border bg-card p-4">
+              <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                <Eye className="w-4 h-4" />
+                <span className="text-xs font-medium uppercase tracking-wide">Vues 24h</span>
+              </div>
+              <p className="text-2xl font-semibold">{stats.cards.totalViews24h.toLocaleString()}</p>
+            </div>
+
+            <div className="rounded-lg border border-border bg-card p-4">
+              <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                <Activity className="w-4 h-4" />
+                <span className="text-xs font-medium uppercase tracking-wide">Uniques 24h</span>
+              </div>
+              <p className="text-2xl font-semibold">{stats.views.uniqueViews24h.toLocaleString()}</p>
+            </div>
+
+            <div className="rounded-lg border border-border bg-card p-4">
+              <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                <Eye className="w-4 h-4" />
+                <span className="text-xs font-medium uppercase tracking-wide">Vues total</span>
+              </div>
+              <p className="text-2xl font-semibold">{stats.views.totalViews.toLocaleString()}</p>
+            </div>
           </div>
 
-          {lastUpdate && (
-            <p className="text-sm text-muted-foreground mt-4 flex items-center gap-2">
-              <Clock className="w-4 h-4" />
-              Dernière mise à jour : {lastUpdate.toLocaleString("fr-FR")}
-            </p>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Statistiques des cartes */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Activity className="w-5 h-5" />
-            Statistiques des Cartes
-          </CardTitle>
-          <CardDescription>
-            Performance et utilisation des cartes générées
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {stats ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-background border border-border rounded-lg p-4">
-                <div className="flex items-center gap-3 mb-3">
-                  <Users className="w-5 h-5 text-blue-500" />
-                  <h3 className="font-semibold">Cartes Total</h3>
+          {/* Cache */}
+          <div>
+            <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-3">Cache</h2>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="rounded-lg border border-border bg-card p-4">
+                <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                  <Database className="w-4 h-4" />
+                  <span className="text-xs font-medium">Total</span>
                 </div>
-                <p className="text-2xl font-bold text-foreground">
-                  {stats.cards.total}
-                </p>
-                <p className="text-sm text-muted-foreground">Cartes générées</p>
+                <p className="text-2xl font-semibold">{stats.cache.totalEntries}</p>
               </div>
 
-              <div className="bg-background border border-border rounded-lg p-4">
-                <div className="flex items-center gap-3 mb-3">
-                  <Eye className="w-5 h-5 text-green-500" />
-                  <h3 className="font-semibold">Vues 24h</h3>
+              <div className="rounded-lg border border-border bg-card p-4">
+                <div className="flex items-center gap-2 text-green-500 mb-2">
+                  <CheckCircle className="w-4 h-4" />
+                  <span className="text-xs font-medium">Valides</span>
                 </div>
-                <p className="text-2xl font-bold text-foreground">
-                  {stats.cards.totalViews24h.toLocaleString()}
-                </p>
-                <p className="text-sm text-muted-foreground">Dernières 24h</p>
+                <p className="text-2xl font-semibold">{stats.cache.validEntries}</p>
               </div>
 
-              <div className="bg-background border border-border rounded-lg p-4">
-                <div className="flex items-center gap-3 mb-3">
-                  <Activity className="w-5 h-5 text-purple-500" />
-                  <h3 className="font-semibold">Vues Uniques 24h</h3>
+              <div className="rounded-lg border border-border bg-card p-4">
+                <div className="flex items-center gap-2 text-red-500 mb-2">
+                  <XCircle className="w-4 h-4" />
+                  <span className="text-xs font-medium">Expirés</span>
                 </div>
-                <p className="text-2xl font-bold text-foreground">
-                  {stats.views.uniqueViews24h.toLocaleString()}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Utilisateurs uniques
-                </p>
+                <p className="text-2xl font-semibold">{stats.cache.expiredEntries}</p>
               </div>
             </div>
-          ) : (
-            <div className="text-center py-8">
-              <InlineLoading />
-              <p className="text-muted-foreground mt-4">
-                Chargement des statistiques...
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Actions rapides */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Actions rapides</CardTitle>
-          <CardDescription>
-            Accès direct aux fonctionnalités d'administration
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Button
-              onClick={() => router.push("/admin/logs")}
-              className="flex items-center gap-2 h-auto p-4"
-              variant="outline"
-            >
-              <Eye className="w-5 h-5" />
-              <div className="text-left">
-                <div className="font-semibold">Voir les logs</div>
-                <div className="text-sm text-muted-foreground">
-                  Consulter les logs de vues
-                </div>
-              </div>
-            </Button>
-
-            <Button
-              onClick={() => router.push("/admin/data-deletion")}
-              className="flex items-center gap-2 h-auto p-4"
-              variant="outline"
-            >
-              <Trash2 className="w-5 h-5" />
-              <div className="text-left">
-                <div className="font-semibold">Suppressions</div>
-                <div className="text-sm text-muted-foreground">
-                  Gérer les demandes de suppression
-                </div>
-              </div>
-            </Button>
-
-            <Button
-              onClick={() => router.push("/admin/trends")}
-              className="flex items-center gap-2 h-auto p-4"
-              variant="outline"
-            >
-              <TrendingUp className="w-5 h-5" />
-              <div className="text-left">
-                <div className="font-semibold">Tendances</div>
-                <div className="text-sm text-muted-foreground">
-                  Gérer les snapshots de tendances
-                </div>
-              </div>
-            </Button>
-
-            <Button
-              onClick={() => router.push("/admin/settings")}
-              className="flex items-center gap-2 h-auto p-4"
-              variant="outline"
-            >
-              <Database className="w-5 h-5" />
-              <div className="text-left">
-                <div className="font-semibold">Paramètres</div>
-                <div className="text-sm text-muted-foreground">
-                  Configuration du système
-                </div>
-              </div>
-            </Button>
           </div>
-        </CardContent>
-      </Card>
+
+          {/* Navigation rapide */}
+          <div>
+            <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-3">Accès rapide</h2>
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+              {[
+                { href: "/admin/logs", icon: Eye, label: "Logs" },
+                { href: "/admin/data-deletion", icon: Trash2, label: "Suppressions" },
+                { href: "/admin/trends", icon: TrendingUp, label: "Tendances" },
+                { href: "/admin/cron", icon: Timer, label: "Jobs Cron" },
+                { href: "/admin/settings", icon: Settings, label: "Paramètres" },
+              ].map((item) => (
+                <button
+                  key={item.href}
+                  onClick={() => router.push(item.href)}
+                  className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 text-left hover:bg-accent transition-colors"
+                >
+                  <item.icon className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">{item.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      {lastUpdate && (
+        <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+          <Clock className="w-3.5 h-3.5" />
+          Mis à jour : {lastUpdate.toLocaleString("fr-FR")}
+        </p>
+      )}
     </div>
   );
 }
