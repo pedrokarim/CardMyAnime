@@ -7,6 +7,9 @@ import { generateSmallCard } from "@/lib/cards/smallCard";
 import { generateMediumCard } from "@/lib/cards/mediumCard";
 import { generateLargeCard } from "@/lib/cards/largeCard";
 import { generateSummaryCard } from "@/lib/cards/summaryCard";
+import { generateNeonCard } from "@/lib/cards/neonCard";
+import { generateMinimalCard } from "@/lib/cards/minimalCard";
+import { generateGlassmorphismCard } from "@/lib/cards/glassmorphismCard";
 import ShareOptions from "./ShareOptions";
 import { trpc } from "@/lib/trpc/client";
 import { PlatformIcon } from "@/components/ui/platform-icon";
@@ -31,6 +34,9 @@ const cardGenerators = {
   medium: generateMediumCard,
   large: generateLargeCard,
   summary: generateSummaryCard,
+  neon: generateNeonCard,
+  minimal: generateMinimalCard,
+  glassmorphism: generateGlassmorphismCard,
 };
 
 const cardDimensions = {
@@ -38,6 +44,9 @@ const cardDimensions = {
   medium: { width: 600, height: 300 },
   large: { width: 800, height: 500 },
   summary: { width: 800, height: 600 },
+  neon: { width: 600, height: 350 },
+  minimal: { width: 500, height: 250 },
+  glassmorphism: { width: 700, height: 400 },
 };
 
 const cardTypes = [
@@ -66,8 +75,29 @@ const cardTypes = [
     value: "summary",
     label: "Résumé",
     description: "Stats détaillées avec derniers animes/mangas",
-    size: "600×400",
+    size: "800×600",
     icon: "📈",
+  },
+  {
+    value: "neon",
+    label: "Néon",
+    description: "Style cyberpunk avec effets néon lumineux",
+    size: "600×350",
+    icon: "💜",
+  },
+  {
+    value: "minimal",
+    label: "Minimal",
+    description: "Design épuré et élégant sur fond clair",
+    size: "500×250",
+    icon: "✨",
+  },
+  {
+    value: "glassmorphism",
+    label: "Glass",
+    description: "Effet verre givré avec fond coloré",
+    size: "700×400",
+    icon: "💎",
   },
 ];
 
@@ -535,7 +565,7 @@ export function CardPreview({
           <h3 className="text-xl font-bold text-foreground mb-4 text-center">
             Changer le type de carte
           </h3>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {cardTypes.map((cardTypeOption) => (
               <div
                 key={cardTypeOption.value}

@@ -12,7 +12,7 @@ interface VercelOgConfig {
   status?: string;
   episodes?: number;
   imageUrl?: string;
-  type: "small" | "medium" | "large" | "summary";
+  type: "small" | "medium" | "large" | "summary" | "neon" | "minimal" | "glassmorphism";
 }
 
 export class VercelOgHelper {
@@ -77,6 +77,12 @@ export class VercelOgHelper {
         return { width: 800, height: 400 };
       case "summary":
         return { width: 500, height: 250 };
+      case "neon":
+        return { width: 600, height: 350 };
+      case "minimal":
+        return { width: 500, height: 250 };
+      case "glassmorphism":
+        return { width: 700, height: 400 };
       default:
         return { width: 400, height: 200 };
     }

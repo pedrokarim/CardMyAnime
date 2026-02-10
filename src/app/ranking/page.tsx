@@ -85,6 +85,9 @@ export default function RankingPage() {
     { value: "medium", label: "Moyenne" },
     { value: "large", label: "Grande" },
     { value: "summary", label: "Résumé" },
+    { value: "neon", label: "Néon" },
+    { value: "minimal", label: "Minimal" },
+    { value: "glassmorphism", label: "Glass" },
   ];
 
   // Réinitialiser la page quand on change les filtres
@@ -94,11 +97,14 @@ export default function RankingPage() {
     }
   }, [selectedCardTypes, searchTerm, sortBy, setCurrentPage]);
 
-  const cardTypeLabels = {
+  const cardTypeLabels: Record<string, string> = {
     small: "Petite",
     medium: "Moyenne",
     large: "Grande",
     summary: "Résumé",
+    neon: "Néon",
+    minimal: "Minimal",
+    glassmorphism: "Glass",
   };
 
   const platformLabels = {

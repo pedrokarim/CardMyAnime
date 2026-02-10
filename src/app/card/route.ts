@@ -6,12 +6,15 @@ import { generateSmallCard } from "@/lib/cards/smallCard";
 import { generateMediumCard } from "@/lib/cards/mediumCard";
 import { generateLargeCard } from "@/lib/cards/largeCard";
 import { generateSummaryCard } from "@/lib/cards/summaryCard";
+import { generateNeonCard } from "@/lib/cards/neonCard";
+import { generateMinimalCard } from "@/lib/cards/minimalCard";
+import { generateGlassmorphismCard } from "@/lib/cards/glassmorphismCard";
 import { prisma, ensurePrismaConnection } from "@/lib/prisma";
 
 const searchParamsSchema = z.object({
   platform: z.enum(["anilist", "mal", "nautiljon"]),
   username: z.string().min(1),
-  type: z.enum(["small", "medium", "large", "summary"]),
+  type: z.enum(["small", "medium", "large", "summary", "neon", "minimal", "glassmorphism"]),
   background: z.string().nullable().optional(), // Accepter null ou undefined
 });
 
@@ -121,6 +124,27 @@ export async function GET(request: NextRequest) {
         cardDataUrl = await generateSummaryCard(
           userData,
           platform,
+          useLastAnimeBackground
+        );
+        break;
+      case "neon":
+        cardDataUrl = await generateNeonCard(
+          userData,
+          validPlatform,
+          useLastAnimeBackground
+        );
+        break;
+      case "minimal":
+        cardDataUrl = await generateMinimalCard(
+          userData,
+          validPlatform,
+          useLastAnimeBackground
+        );
+        break;
+      case "glassmorphism":
+        cardDataUrl = await generateGlassmorphismCard(
+          userData,
+          validPlatform,
           useLastAnimeBackground
         );
         break;

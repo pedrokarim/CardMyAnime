@@ -1,0 +1,279 @@
+{
+  "projectRootName": "CardMyAnime",
+  "sources": {},
+  "routes": [
+    {
+      "id": "app-page:/about",
+      "kind": "app-page",
+      "path": "/about",
+      "segments": [
+        "about"
+      ],
+      "filePath": "src/app/about/page.tsx",
+      "flags": {},
+      "components": {}
+    },
+    {
+      "id": "app-page:/admin/data-deletion",
+      "kind": "app-page",
+      "path": "/admin/data-deletion",
+      "segments": [
+        "admin",
+        "data-deletion"
+      ],
+      "filePath": "src/app/admin/data-deletion/page.tsx",
+      "flags": {},
+      "components": {}
+    },
+    {
+      "id": "app-page:/admin/logs",
+      "kind": "app-page",
+      "path": "/admin/logs",
+      "segments": [
+        "admin",
+        "logs"
+      ],
+      "filePath": "src/app/admin/logs/page.tsx",
+      "flags": {},
+      "components": {}
+    },
+    {
+      "id": "app-page:/admin",
+      "kind": "app-page",
+      "path": "/admin",
+      "segments": [
+        "admin"
+      ],
+      "filePath": "src/app/admin/page.tsx",
+      "flags": {},
+      "components": {}
+    },
+    {
+      "id": "app-page:/admin/profile",
+      "kind": "app-page",
+      "path": "/admin/profile",
+      "segments": [
+        "admin",
+        "profile"
+      ],
+      "filePath": "src/app/admin/profile/page.tsx",
+      "flags": {},
+      "components": {}
+    },
+    {
+      "id": "app-page:/admin/settings",
+      "kind": "app-page",
+      "path": "/admin/settings",
+      "segments": [
+        "admin",
+        "settings"
+      ],
+      "filePath": "src/app/admin/settings/page.tsx",
+      "flags": {},
+      "components": {}
+    },
+    {
+      "id": "app-page:/admin/stats",
+      "kind": "app-page",
+      "path": "/admin/stats",
+      "segments": [
+        "admin",
+        "stats"
+      ],
+      "filePath": "src/app/admin/stats/page.tsx",
+      "flags": {},
+      "components": {}
+    },
+    {
+      "id": "app-api:/api/admin/cache",
+      "kind": "app-api",
+      "path": "/api/admin/cache",
+      "segments": [
+        "api",
+        "admin",
+        "cache"
+      ],
+      "filePath": "src/app/api/admin/cache/route.ts",
+      "flags": {},
+      "components": {}
+    },
+    {
+      "id": "app-api:/api/admin/data-deletion",
+      "kind": "app-api",
+      "path": "/api/admin/data-deletion",
+      "segments": [
+        "api",
+        "admin",
+        "data-deletion"
+      ],
+      "filePath": "src/app/api/admin/data-deletion/route.ts",
+      "flags": {},
+      "components": {}
+    },
+    {
+      "id": "app-api:/api/admin/logs",
+      "kind": "app-api",
+      "path": "/api/admin/logs",
+      "segments": [
+        "api",
+        "admin",
+        "logs"
+      ],
+      "filePath": "src/app/api/admin/logs/route.ts",
+      "flags": {},
+      "components": {}
+    },
+    {
+      "id": "app-api:/api/auth/*nextauth",
+      "kind": "app-api",
+      "path": "/api/auth/*nextauth",
+      "segments": [
+        "api",
+        "auth",
+        "*nextauth"
+      ],
+      "filePath": "src/app/api/auth/[...nextauth]/route.ts",
+      "flags": {
+        "dynamic": true,
+        "catchAll": true
+      },
+      "components": {}
+    },
+    {
+      "id": "app-api:/api/data-deletion",
+      "kind": "app-api",
+      "path": "/api/data-deletion",
+      "segments": [
+        "api",
+        "data-deletion"
+      ],
+      "filePath": "src/app/api/data-deletion/route.ts",
+      "flags": {},
+      "components": {}
+    },
+    {
+      "id": "app-api:/api/health",
+      "kind": "app-api",
+      "path": "/api/health",
+      "segments": [
+        "api",
+        "health"
+      ],
+      "filePath": "src/app/api/health/route.ts",
+      "flags": {},
+      "components": {}
+    },
+    {
+      "id": "app-api:/api/recaptcha",
+      "kind": "app-api",
+      "path": "/api/recaptcha",
+      "segments": [
+        "api",
+        "recaptcha"
+      ],
+      "filePath": "src/app/api/recaptcha/route.ts",
+      "flags": {},
+      "components": {}
+    },
+    {
+      "id": "app-api:/api/trpc/:trpc",
+      "kind": "app-api",
+      "path": "/api/trpc/:trpc",
+      "segments": [
+        "api",
+        "trpc",
+        ":trpc"
+      ],
+      "filePath": "src/app/api/trpc/[trpc]/route.ts",
+      "flags": {
+        "dynamic": true
+      },
+      "components": {}
+    },
+    {
+      "id": "app-page:/auth/error",
+      "kind": "app-page",
+      "path": "/auth/error",
+      "segments": [
+        "auth",
+        "error"
+      ],
+      "filePath": "src/app/auth/error/page.tsx",
+      "flags": {},
+      "components": {}
+    },
+    {
+      "id": "app-page:/auth/signin",
+      "kind": "app-page",
+      "path": "/auth/signin",
+      "segments": [
+        "auth",
+        "signin"
+      ],
+      "filePath": "src/app/auth/signin/page.tsx",
+      "flags": {},
+      "components": {}
+    },
+    {
+      "id": "app-page:/contact",
+      "kind": "app-page",
+      "path": "/contact",
+      "segments": [
+        "contact"
+      ],
+      "filePath": "src/app/contact/page.tsx",
+      "flags": {},
+      "components": {}
+    },
+    {
+      "id": "app-page:/data-deletion",
+      "kind": "app-page",
+      "path": "/data-deletion",
+      "segments": [
+        "data-deletion"
+      ],
+      "filePath": "src/app/data-deletion/page.tsx",
+      "flags": {},
+      "components": {}
+    },
+    {
+      "id": "app-page:/",
+      "kind": "app-page",
+      "path": "/",
+      "segments": [],
+      "filePath": "src/app/page.tsx",
+      "flags": {},
+      "components": {}
+    },
+    {
+      "id": "app-page:/ranking",
+      "kind": "app-page",
+      "path": "/ranking",
+      "segments": [
+        "ranking"
+      ],
+      "filePath": "src/app/ranking/page.tsx",
+      "flags": {},
+      "components": {}
+    },
+    {
+      "id": "app-page:/terms",
+      "kind": "app-page",
+      "path": "/terms",
+      "segments": [
+        "terms"
+      ],
+      "filePath": "src/app/terms/page.tsx",
+      "flags": {},
+      "components": {}
+    }
+  ],
+  "stats": {
+    "total": 22,
+    "appPages": 14,
+    "appApi": 8,
+    "pagesPages": 0,
+    "pagesApi": 0,
+    "dynamic": 2
+  }
+}

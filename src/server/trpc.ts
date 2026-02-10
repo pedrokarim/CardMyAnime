@@ -5,11 +5,14 @@ import { generateSmallCard } from "@/lib/cards/smallCard";
 import { generateMediumCard } from "@/lib/cards/mediumCard";
 import { generateLargeCard } from "@/lib/cards/largeCard";
 import { generateSummaryCard } from "@/lib/cards/summaryCard";
+import { generateNeonCard } from "@/lib/cards/neonCard";
+import { generateMinimalCard } from "@/lib/cards/minimalCard";
+import { generateGlassmorphismCard } from "@/lib/cards/glassmorphismCard";
 import { Platform, CardType } from "@/lib/types";
 import { prisma, ensurePrismaConnection } from "@/lib/prisma";
 
 const platformSchema = z.enum(["anilist", "mal", "nautiljon"]);
-const cardTypeSchema = z.enum(["small", "medium", "large", "summary"]);
+const cardTypeSchema = z.enum(["small", "medium", "large", "summary", "neon", "minimal", "glassmorphism"]);
 
 export const appRouter = createTRPCRouter({
   fetchUserData: publicProcedure
@@ -90,6 +93,27 @@ export const appRouter = createTRPCRouter({
               input.useLastAnimeBackground
             );
             break;
+          case "neon":
+            cardDataUrl = await generateNeonCard(
+              userData,
+              input.platform,
+              input.useLastAnimeBackground
+            );
+            break;
+          case "minimal":
+            cardDataUrl = await generateMinimalCard(
+              userData,
+              input.platform,
+              input.useLastAnimeBackground
+            );
+            break;
+          case "glassmorphism":
+            cardDataUrl = await generateGlassmorphismCard(
+              userData,
+              input.platform,
+              input.useLastAnimeBackground
+            );
+            break;
           default:
             throw new Error("Type de carte non supporté");
         }
@@ -164,6 +188,21 @@ export const appRouter = createTRPCRouter({
         label: "Résumé",
         description: "Style GitHub stats avec graphiques",
       },
+      {
+        value: "neon",
+        label: "Néon",
+        description: "Style cyberpunk avec effets néon",
+      },
+      {
+        value: "minimal",
+        label: "Minimal",
+        description: "Design épuré et élégant",
+      },
+      {
+        value: "glassmorphism",
+        label: "Glass",
+        description: "Effet verre givré moderne",
+      },
     ];
   }),
 
@@ -173,7 +212,7 @@ export const appRouter = createTRPCRouter({
         page: z.number().min(1).default(1),
         limit: z.number().min(1).max(100).default(20),
         cardTypes: z
-          .array(z.enum(["small", "medium", "large", "summary"]))
+          .array(z.enum(["small", "medium", "large", "summary", "neon", "minimal", "glassmorphism"]))
           .optional(),
         search: z.string().optional(),
         sortBy: z.enum(["views", "views24h", "createdAt"]).default("views"),

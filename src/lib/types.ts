@@ -80,7 +80,7 @@ export interface UserData {
 }
 
 export type Platform = "anilist" | "mal" | "nautiljon";
-export type CardType = "small" | "medium" | "large" | "summary";
+export type CardType = "small" | "medium" | "large" | "summary" | "neon" | "minimal" | "glassmorphism";
 
 export interface CardGenerationRequest {
   platform: Platform;

@@ -44,7 +44,7 @@ export default function HomePage() {
   const [cardType, setCardType] = useQueryState<CardType>("cardType", {
     defaultValue: "small",
     parse: (value): CardType => {
-      if (["small", "medium", "large", "summary"].includes(value)) {
+      if (["small", "medium", "large", "summary", "neon", "minimal", "glassmorphism"].includes(value)) {
         return value as CardType;
       }
       return "small";
