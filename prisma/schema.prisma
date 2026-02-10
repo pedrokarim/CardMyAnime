@@ -134,3 +134,29 @@ model DataDeletionRequest {
   @@index([createdAt])
   @@index([requestId])
 }
+
+model TrendSnapshot {
+  id        String   @id @default(cuid())
+  cardId    String
+  platform  String
+  username  String
+  cardType  String
+  views     Int
+  views24h  Int
+  createdAt DateTime @default(now())
+
+  @@index([cardId])
+  @@index([platform, username])
+  @@index([createdAt])
+  @@index([cardId, createdAt])
+}
+
+model AppSettings {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  @@index([key])
+}

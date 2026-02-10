@@ -14,6 +14,7 @@ import ShareOptions from "./ShareOptions";
 import { trpc } from "@/lib/trpc/client";
 import { PlatformIcon } from "@/components/ui/platform-icon";
 import { CardLoading } from "@/components/ui/loading";
+import { CardStyleSvg } from "@/components/CardStyleSvg";
 
 interface CardPreviewProps {
   userData: UserData;
@@ -579,7 +580,9 @@ export function CardPreview({
                 }`}
               >
                 <div className="text-center space-y-2">
-                  <div className="text-3xl mb-2">{cardTypeOption.icon}</div>
+                  <div className="flex justify-center mb-2">
+                    <CardStyleSvg type={cardTypeOption.value as CardType} size={72} />
+                  </div>
                   <h4 className="font-semibold text-foreground text-sm">
                     {cardTypeOption.label}
                   </h4>

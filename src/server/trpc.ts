@@ -321,6 +321,299 @@ export const appRouter = createTRPCRouter({
         };
       }
     }),
+
+  getTrends: publicProcedure
+    .input(
+      z.object({
+        period: z.enum(["24h", "7d", "30d"]).default("7d"),
+        limit: z.number().min(1).max(50).default(10),
+        category: z
+          .enum(["trending", "rising", "mostViewed"])
+          .default("trending"),
+      })
+    )
+    .query(async ({ input }) => {
+      try {
+        await ensurePrismaConnection();
+
+        const now = new Date();
+        const periodMs: Record<string, number> = {
+          "24h": 24 * 60 * 60 * 1000,
+          "7d": 7 * 24 * 60 * 60 * 1000,
+          "30d": 30 * 24 * 60 * 60 * 1000,
+        };
+        const periodStart = new Date(
+          now.getTime() - periodMs[input.period]
+        );
+        const periodHours = periodMs[input.period] / (60 * 60 * 1000);
+
+        // Pour "mostViewed", on utilise directement les données actuelles
+        if (input.category === "mostViewed") {
+          const allCards = await prisma.cardGeneration.findMany({
+            orderBy: { views: "desc" },
+          });
+
+          const grouped = groupCardsByUser(allCards);
+          let users = Array.from(grouped.values());
+          users.sort((a, b) => b.totalViews - a.totalViews);
+
+          return {
+            trends: users.slice(0, input.limit).map((u) => ({
+              platform: u.platform,
+              username: u.username,
+              totalViews: u.totalViews,
+              totalViews24h: u.totalViews24h,
+              viewsGain: 0,
+              velocity: 0,
+              cardTypes: u.cardTypes.map((ct) => ct.cardType),
+            })),
+            period: input.period,
+            category: input.category,
+          };
+        }
+
+        // Pour "trending" et "rising", on utilise les snapshots
+        const snapshotCount = await prisma.trendSnapshot.count({
+          where: { createdAt: { gte: periodStart } },
+        });
+
+        // Fallback : si pas de snapshots, utiliser views24h comme proxy
+        if (snapshotCount === 0) {
+          const allCards = await prisma.cardGeneration.findMany({
+            where: { views24h: { gt: 0 } },
+            orderBy: { views24h: "desc" },
+          });
+
+          const grouped = groupCardsByUser(allCards);
+          let users = Array.from(grouped.values());
+
+          if (input.category === "rising") {
+            // "rising" = peu de vues totales mais actif récemment
+            users = users.filter(
+              (u) => u.totalViews < 100 && u.totalViews24h > 0
+            );
+          }
+
+          users.sort((a, b) => b.totalViews24h - a.totalViews24h);
+
+          return {
+            trends: users.slice(0, input.limit).map((u) => ({
+              platform: u.platform,
+              username: u.username,
+              totalViews: u.totalViews,
+              totalViews24h: u.totalViews24h,
+              viewsGain: u.totalViews24h,
+              velocity: u.totalViews24h / 24,
+              cardTypes: u.cardTypes.map((ct) => ct.cardType),
+            })),
+            period: input.period,
+            category: input.category,
+          };
+        }
+
+        // Récupérer les snapshots les plus anciens et les plus récents dans la période par cardId
+        const oldestSnapshots = await prisma.trendSnapshot.findMany({
+          where: { createdAt: { gte: periodStart } },
+          orderBy: { createdAt: "asc" },
+          distinct: ["cardId"],
+          select: {
+            cardId: true,
+            platform: true,
+            username: true,
+            cardType: true,
+            views: true,
+          },
+        });
+
+        const latestSnapshots = await prisma.trendSnapshot.findMany({
+          where: { createdAt: { gte: periodStart } },
+          orderBy: { createdAt: "desc" },
+          distinct: ["cardId"],
+          select: {
+            cardId: true,
+            platform: true,
+            username: true,
+            cardType: true,
+            views: true,
+          },
+        });
+
+        // Créer un map des snapshots les plus anciens par cardId
+        const oldestMap = new Map<
+          string,
+          { views: number; platform: string; username: string; cardType: string }
+        >();
+        for (const s of oldestSnapshots) {
+          oldestMap.set(s.cardId, {
+            views: s.views,
+            platform: s.platform,
+            username: s.username,
+            cardType: s.cardType,
+          });
+        }
+
+        // Calculer la vélocité par carte
+        const cardVelocities: Array<{
+          platform: string;
+          username: string;
+          cardType: string;
+          viewsGain: number;
+          velocity: number;
+          totalViews: number;
+        }> = [];
+
+        for (const latest of latestSnapshots) {
+          const oldest = oldestMap.get(latest.cardId);
+          if (oldest) {
+            const viewsGain = latest.views - oldest.views;
+            const velocity = viewsGain / periodHours;
+            cardVelocities.push({
+              platform: latest.platform,
+              username: latest.username,
+              cardType: latest.cardType,
+              viewsGain,
+              velocity,
+              totalViews: latest.views,
+            });
+          }
+        }
+
+        // Grouper par (platform + username)
+        const userTrends = new Map<
+          string,
+          {
+            platform: string;
+            username: string;
+            totalViews: number;
+            totalViewsGain: number;
+            totalVelocity: number;
+            cardTypes: string[];
+          }
+        >();
+
+        for (const cv of cardVelocities) {
+          const key = `${cv.platform}-${cv.username}`;
+          const existing = userTrends.get(key);
+
+          if (existing) {
+            existing.totalViews += cv.totalViews;
+            existing.totalViewsGain += cv.viewsGain;
+            existing.totalVelocity += cv.velocity;
+            if (!existing.cardTypes.includes(cv.cardType)) {
+              existing.cardTypes.push(cv.cardType);
+            }
+          } else {
+            userTrends.set(key, {
+              platform: cv.platform,
+              username: cv.username,
+              totalViews: cv.totalViews,
+              totalViewsGain: cv.viewsGain,
+              totalVelocity: cv.velocity,
+              cardTypes: [cv.cardType],
+            });
+          }
+        }
+
+        let results = Array.from(userTrends.values());
+
+        if (input.category === "rising") {
+          // "rising" = peu de vues totales mais vélocité positive
+          results = results.filter(
+            (u) => u.totalViews < 100 && u.totalViewsGain > 0
+          );
+        } else {
+          // "trending" = vélocité la plus élevée
+          results = results.filter((u) => u.totalViewsGain > 0);
+        }
+
+        results.sort((a, b) => b.totalVelocity - a.totalVelocity);
+
+        return {
+          trends: results.slice(0, input.limit).map((u) => ({
+            platform: u.platform,
+            username: u.username,
+            totalViews: u.totalViews,
+            totalViews24h: 0,
+            viewsGain: u.totalViewsGain,
+            velocity: u.totalVelocity,
+            cardTypes: u.cardTypes,
+          })),
+          period: input.period,
+          category: input.category,
+        };
+      } catch (error) {
+        console.error(
+          "Erreur lors de la récupération des tendances:",
+          error
+        );
+        return {
+          trends: [],
+          period: input.period,
+          category: input.category,
+        };
+      }
+    }),
 });
+
+// Fonction utilitaire de groupement par (platform + username)
+function groupCardsByUser(
+  cards: Array<{
+    platform: string;
+    username: string;
+    cardType: string;
+    views: number;
+    views24h: number;
+    createdAt: Date;
+  }>
+) {
+  const grouped = new Map<
+    string,
+    {
+      platform: string;
+      username: string;
+      totalViews: number;
+      totalViews24h: number;
+      lastCreatedAt: Date;
+      cardTypes: Array<{
+        cardType: string;
+        views: number;
+        views24h: number;
+        createdAt: Date;
+      }>;
+    }
+  >();
+
+  for (const card of cards) {
+    const key = `${card.platform}-${card.username}`;
+    const existing = grouped.get(key);
+
+    const cardInfo = {
+      cardType: card.cardType,
+      views: card.views,
+      views24h: card.views24h,
+      createdAt: card.createdAt,
+    };
+
+    if (existing) {
+      existing.totalViews += card.views;
+      existing.totalViews24h += card.views24h;
+      if (card.createdAt > existing.lastCreatedAt) {
+        existing.lastCreatedAt = card.createdAt;
+      }
+      existing.cardTypes.push(cardInfo);
+    } else {
+      grouped.set(key, {
+        platform: card.platform,
+        username: card.username,
+        totalViews: card.views,
+        totalViews24h: card.views24h,
+        lastCreatedAt: card.createdAt,
+        cardTypes: [cardInfo],
+      });
+    }
+  }
+
+  return grouped;
+}
 
 export type AppRouter = typeof appRouter;

@@ -18,6 +18,7 @@ const LABELS: Record<string, string> = {
   stats: "Statistiques",
   logs: "Logs",
   "data-deletion": "Suppressions",
+  trends: "Tendances",
   settings: "Paramètres",
 };
 

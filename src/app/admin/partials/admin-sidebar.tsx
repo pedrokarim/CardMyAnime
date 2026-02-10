@@ -32,6 +32,7 @@ import {
   LogOut,
   User,
   ChevronsUpDown,
+  TrendingUp,
 } from "lucide-react";
 import Link from "next/link";
 import { SITE_CONFIG } from "@/lib/constants";
@@ -64,6 +65,11 @@ export function AdminSidebar() {
       title: "Suppressions",
       url: "/admin/data-deletion",
       icon: Trash2,
+    },
+    {
+      title: "Tendances",
+      url: "/admin/trends",
+      icon: TrendingUp,
     },
     {
       title: "Profil",

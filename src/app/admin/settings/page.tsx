@@ -2,9 +2,17 @@
 
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { Settings, Database, Shield, Users, Bell } from "lucide-react";
-import { PageLoading } from "@/components/ui/loading";
+import {
+  Settings,
+  Database,
+  Shield,
+  Bell,
+  TrendingUp,
+  Save,
+  RotateCcw,
+  CheckCircle,
+} from "lucide-react";
+import { InlineLoading } from "@/components/ui/loading";
 import {
   Card,
   CardContent,
@@ -14,7 +22,6 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -23,24 +30,84 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+const DEFAULTS: Record<string, string> = {
+  cacheExpiration: "24",
+  maxLogsRetention: "30",
+  enableNotifications: "true",
+  maintenanceMode: "false",
+  snapshotIntervalHours: "6",
+  snapshotEnabled: "true",
+};
+
 export default function SettingsPage() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-  const [settings, setSettings] = useState({
-    cacheExpiration: "24",
-    maxLogsRetention: "30",
-    enableNotifications: "true",
-    maintenanceMode: "false",
-  });
+  const { data: session } = useSession();
+  const [settings, setSettings] = useState<Record<string, string>>(DEFAULTS);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
 
-  // L'authentification est maintenant gérée par AdminAuthWrapper dans le layout
+  useEffect(() => {
+    if (session) {
+      fetchSettings();
+    }
+  }, [session]);
 
-  const handleSave = async () => {
-    // Ici tu peux ajouter la logique pour sauvegarder les paramètres
-    alert("Paramètres sauvegardés (fonctionnalité à implémenter)");
+  const fetchSettings = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/admin/settings");
+      if (response.ok) {
+        const data = await response.json();
+        setSettings(data);
+      }
+    } catch (error) {
+      console.error("Erreur lors du chargement des paramètres:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // L'authentification est maintenant gérée par AdminAuthWrapper dans le layout
+  const handleSave = async () => {
+    setSaving(true);
+    setSaved(false);
+    try {
+      const response = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(settings),
+      });
+      if (response.ok) {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3000);
+      } else {
+        alert("Erreur lors de la sauvegarde des paramètres");
+      }
+    } catch (error) {
+      console.error("Erreur lors de la sauvegarde:", error);
+      alert("Erreur lors de la sauvegarde des paramètres");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleReset = () => {
+    setSettings({ ...DEFAULTS });
+  };
+
+  const updateSetting = (key: string, value: string) => {
+    setSettings((prev) => ({ ...prev, [key]: value }));
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <InlineLoading />
+        <p className="text-muted-foreground ml-4">
+          Chargement des paramètres...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -48,7 +115,7 @@ export default function SettingsPage() {
       <div>
         <h1 className="text-2xl font-bold text-foreground mb-2">Paramètres</h1>
         <p className="text-muted-foreground">
-          Configuration du système d'administration
+          Configuration du système d&apos;administration
         </p>
       </div>
 
@@ -67,16 +134,13 @@ export default function SettingsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">
-                Durée d'expiration du cache (heures)
+                Durée d&apos;expiration du cache (heures)
               </label>
               <Input
                 type="number"
                 value={settings.cacheExpiration}
                 onChange={(e) =>
-                  setSettings((prev) => ({
-                    ...prev,
-                    cacheExpiration: e.target.value,
-                  }))
+                  updateSetting("cacheExpiration", e.target.value)
                 }
                 placeholder="24"
               />
@@ -89,13 +153,73 @@ export default function SettingsPage() {
                 type="number"
                 value={settings.maxLogsRetention}
                 onChange={(e) =>
-                  setSettings((prev) => ({
-                    ...prev,
-                    maxLogsRetention: e.target.value,
-                  }))
+                  updateSetting("maxLogsRetention", e.target.value)
                 }
                 placeholder="30"
               />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Paramètres des tendances */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="w-5 h-5" />
+            Tendances
+          </CardTitle>
+          <CardDescription>
+            Configuration du système de snapshots pour le suivi des tendances
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Intervalle des snapshots
+              </label>
+              <Select
+                value={settings.snapshotIntervalHours}
+                onValueChange={(value) =>
+                  updateSetting("snapshotIntervalHours", value)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">Toutes les heures</SelectItem>
+                  <SelectItem value="6">Toutes les 6 heures</SelectItem>
+                  <SelectItem value="12">Toutes les 12 heures</SelectItem>
+                  <SelectItem value="24">Toutes les 24 heures</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Fréquence de capture des données de tendances
+              </p>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Snapshots activés
+              </label>
+              <Select
+                value={settings.snapshotEnabled}
+                onValueChange={(value) =>
+                  updateSetting("snapshotEnabled", value)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="true">Activés</SelectItem>
+                  <SelectItem value="false">Désactivés</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Active ou désactive la capture automatique des snapshots
+              </p>
             </div>
           </div>
         </CardContent>
@@ -109,7 +233,7 @@ export default function SettingsPage() {
             Sécurité
           </CardTitle>
           <CardDescription>
-            Configuration des paramètres de sécurité et d'accès
+            Configuration des paramètres de sécurité et d&apos;accès
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -118,7 +242,7 @@ export default function SettingsPage() {
             <Select
               value={settings.maintenanceMode}
               onValueChange={(value) =>
-                setSettings((prev) => ({ ...prev, maintenanceMode: value }))
+                updateSetting("maintenanceMode", value)
               }
             >
               <SelectTrigger>
@@ -130,7 +254,7 @@ export default function SettingsPage() {
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
-              Active le mode maintenance pour limiter l'accès au site
+              Active le mode maintenance pour limiter l&apos;accès au site
             </p>
           </div>
         </CardContent>
@@ -155,7 +279,7 @@ export default function SettingsPage() {
             <Select
               value={settings.enableNotifications}
               onValueChange={(value) =>
-                setSettings((prev) => ({ ...prev, enableNotifications: value }))
+                updateSetting("enableNotifications", value)
               }
             >
               <SelectTrigger>
@@ -213,8 +337,23 @@ export default function SettingsPage() {
 
       {/* Actions */}
       <div className="flex justify-end gap-4">
-        <Button variant="outline">Réinitialiser</Button>
-        <Button onClick={handleSave}>Sauvegarder</Button>
+        <Button variant="outline" onClick={handleReset}>
+          <RotateCcw className="w-4 h-4 mr-2" />
+          Réinitialiser
+        </Button>
+        <Button onClick={handleSave} disabled={saving}>
+          {saved ? (
+            <>
+              <CheckCircle className="w-4 h-4 mr-2" />
+              Sauvegardé
+            </>
+          ) : (
+            <>
+              <Save className="w-4 h-4 mr-2" />
+              {saving ? "Sauvegarde..." : "Sauvegarder"}
+            </>
+          )}
+        </Button>
       </div>
     </div>
   );

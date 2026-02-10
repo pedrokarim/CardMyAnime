@@ -13,6 +13,7 @@ import {
   Eye,
   Users,
   Activity,
+  TrendingUp,
 } from "lucide-react";
 import {
   PageLoading,
@@ -298,7 +299,7 @@ export default function AdminHomePage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Button
               onClick={() => router.push("/admin/logs")}
               className="flex items-center gap-2 h-auto p-4"
@@ -323,6 +324,20 @@ export default function AdminHomePage() {
                 <div className="font-semibold">Suppressions</div>
                 <div className="text-sm text-muted-foreground">
                   Gérer les demandes de suppression
+                </div>
+              </div>
+            </Button>
+
+            <Button
+              onClick={() => router.push("/admin/trends")}
+              className="flex items-center gap-2 h-auto p-4"
+              variant="outline"
+            >
+              <TrendingUp className="w-5 h-5" />
+              <div className="text-left">
+                <div className="font-semibold">Tendances</div>
+                <div className="text-sm text-muted-foreground">
+                  Gérer les snapshots de tendances
                 </div>
               </div>
             </Button>

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Home, Trophy, Mail, Info, Github, Twitter, Menu, X } from "lucide-react";
+import { Home, Trophy, TrendingUp, Mail, Info, Github, Twitter, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { PlatformIcon } from "@/components/ui/platform-icon";
@@ -24,6 +24,7 @@ export function Navbar({ currentPlatform }: NavbarProps) {
   const navLinks = [
     { href: "/", label: "Accueil" },
     { href: "/ranking", label: "Classement" },
+    { href: "/tendances", label: "Tendances" },
     { href: "/contact", label: "Contact" },
     { href: "/about", label: "À propos" },
   ];
@@ -133,7 +134,8 @@ export function Navbar({ currentPlatform }: NavbarProps) {
               <div className="space-y-2">
                 {navLinks.map((link, index) => {
                   const isActive = pathname === link.href;
-                  const IconComponent = index === 0 ? Home : index === 1 ? Trophy : index === 2 ? Mail : Info;
+                  const mobileIcons = [Home, Trophy, TrendingUp, Mail, Info];
+                  const IconComponent = mobileIcons[index] || Info;
 
                   return (
                     <Link
