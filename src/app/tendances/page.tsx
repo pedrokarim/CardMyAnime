@@ -1,6 +1,6 @@
 "use client";
 
-import { Flame, Star, Users, BookOpen, LayoutList, LayoutGrid } from "lucide-react";
+import { Flame, Star, Users, BookOpen, LayoutGrid, Rows3 } from "lucide-react";
 import { trpc } from "@/lib/trpc/client";
 import { PageLoading } from "@/components/ui/loading";
 import { motion } from "framer-motion";
@@ -9,12 +9,12 @@ import { HeroBannerCarousel } from "@/components/tendances/HeroBannerCarousel";
 import { TrendCard } from "@/components/tendances/TrendCard";
 import { cardContainerVariants } from "@/components/tendances/animations";
 
-type ViewMode = "detailed" | "grid";
+type ViewMode = "grid" | "compact";
 
 export default function TendancesPage() {
   const { data, isLoading, error } = trpc.getTrends.useQuery();
   const [imgErrors, setImgErrors] = useState<Set<string>>(new Set());
-  const [viewMode, setViewMode] = useState<ViewMode>("detailed");
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
 
   const handleImgError = (key: string) => {
     setImgErrors((prev) => new Set(prev).add(key));
@@ -49,7 +49,7 @@ export default function TendancesPage() {
         {/* Hero Banner Carousel */}
         {animes.length > 0 && <HeroBannerCarousel animes={animes} />}
 
-        {/* Stats bar */}
+        {/* Stats bar + view toggle */}
         <motion.div
           initial={{ opacity: 0, y: -5 }}
           animate={{ opacity: 1, y: 0 }}
@@ -70,17 +70,6 @@ export default function TendancesPage() {
           {/* View toggle */}
           <div className="flex items-center gap-1 p-1 rounded-lg bg-muted/50 border border-border/50">
             <button
-              onClick={() => setViewMode("detailed")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                viewMode === "detailed"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <LayoutList className="w-4 h-4" />
-              <span className="hidden sm:inline">Détaillé</span>
-            </button>
-            <button
               onClick={() => setViewMode("grid")}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
                 viewMode === "grid"
@@ -90,6 +79,17 @@ export default function TendancesPage() {
             >
               <LayoutGrid className="w-4 h-4" />
               <span className="hidden sm:inline">Grille</span>
+            </button>
+            <button
+              onClick={() => setViewMode("compact")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                viewMode === "compact"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Rows3 className="w-4 h-4" />
+              <span className="hidden sm:inline">Compact</span>
             </button>
           </div>
         </motion.div>
@@ -129,12 +129,12 @@ export default function TendancesPage() {
               </div>
             </motion.div>
 
-            {viewMode === "detailed" ? (
+            {viewMode === "grid" ? (
               <motion.div
                 variants={cardContainerVariants}
                 initial="hidden"
                 animate="visible"
-                className="flex flex-col gap-4"
+                className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5"
               >
                 {animes.map((anime: any, index: number) => {
                   const key = `anime-${index}`;
@@ -157,10 +157,10 @@ export default function TendancesPage() {
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                 {animes.map((anime: any, index: number) => {
-                  const key = `anime-grid-${index}`;
+                  const key = `anime-compact-${index}`;
                   if (imgErrors.has(key)) return null;
                   return (
-                    <GridCard
+                    <CompactCard
                       key={key}
                       rank={index + 1}
                       title={anime.enriched?.title.userPreferred ?? anime.title}
@@ -201,12 +201,12 @@ export default function TendancesPage() {
               </div>
             </motion.div>
 
-            {viewMode === "detailed" ? (
+            {viewMode === "grid" ? (
               <motion.div
                 variants={cardContainerVariants}
                 initial="hidden"
                 animate="visible"
-                className="flex flex-col gap-4"
+                className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5"
               >
                 {mangas.map((manga: any, index: number) => {
                   const key = `manga-${index}`;
@@ -229,10 +229,10 @@ export default function TendancesPage() {
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                 {mangas.map((manga: any, index: number) => {
-                  const key = `manga-grid-${index}`;
+                  const key = `manga-compact-${index}`;
                   if (imgErrors.has(key)) return null;
                   return (
-                    <GridCard
+                    <CompactCard
                       key={key}
                       rank={index + 1}
                       title={manga.enriched?.title.userPreferred ?? manga.title}
@@ -255,8 +255,8 @@ export default function TendancesPage() {
   );
 }
 
-// Grid card (compact cover-only view, same as original)
-function GridCard({
+// Compact card (cover-only view)
+function CompactCard({
   rank,
   title,
   coverUrl,
@@ -278,9 +278,9 @@ function GridCard({
   onImgError: () => void;
 }) {
   const score = enrichedScore
-    ? (enrichedScore / 10).toFixed(1)
+    ? Math.round(enrichedScore)
     : avgScore
-    ? avgScore.toFixed(1)
+    ? Math.round(avgScore * 10)
     : null;
 
   return (
@@ -321,7 +321,7 @@ function GridCard({
           <div className="absolute top-2 right-2 flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-black/60 backdrop-blur-sm">
             <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
             <span className="text-[11px] font-medium text-white">
-              {score}
+              {score}%
             </span>
           </div>
         )}
