@@ -87,14 +87,17 @@ COPY --from=builder /app/prisma ./prisma
 # Copie les polices personnalisées
 COPY --from=builder /app/public/fonts ./public/fonts
 
+# Copie les scripts cron (snapshot, enrichissement)
+COPY --from=builder --chown=nextjs:nodegrp /app/scripts ./scripts
+
 # Copie les fichiers de build
 COPY --from=builder --chown=nextjs:nodegrp /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodegrp /app/.next/static ./.next/static
 
-# Crée le répertoire node_modules et installe Prisma CLI
-# (nécessaire car Next.js standalone n'inclut pas tous les node_modules)
+# Crée le répertoire node_modules et installe les dépendances runtime
+# prisma + @prisma/client pour les migrations, pg + @prisma/adapter-pg pour les scripts cron
 RUN mkdir -p /app/node_modules /app/.npm \
-    && npm install --legacy-peer-deps --production --no-save prisma @prisma/client \
+    && npm install --legacy-peer-deps --production --no-save prisma @prisma/client @prisma/adapter-pg pg \
     && chown -R nextjs:nodegrp /app/.npm /app/node_modules
 
 # Copie le client Prisma généré (déjà généré par postinstall dans builder)
