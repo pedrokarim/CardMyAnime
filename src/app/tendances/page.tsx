@@ -61,7 +61,7 @@ export default function TendancesPage() {
       {animes.length > 0 && <HeroBannerCarousel animes={animes} />}
 
       {/* Content overlaps the carousel via negative margin */}
-      <div className={`container mx-auto px-4 relative z-10 ${hasCarousel ? "-mt-28 sm:-mt-32" : "pt-8"}`}>
+      <div className={`container mx-auto px-4 relative z-10 ${hasCarousel ? "mt-0 sm:-mt-28 lg:-mt-32" : "pt-8"}`}>
         {/* Stats bar + view toggle */}
         <motion.div
           initial={{ opacity: 0, y: -5 }}

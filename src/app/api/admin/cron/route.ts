@@ -158,7 +158,8 @@ export async function POST(request: NextRequest) {
           `${home}/.bun/bin`,
           `${home}/.local/bin`,
           `${home}/.nvm/versions/node`,
-          // Common bun install locations
+          // Bun installed on other common users
+          "/home/kagura/.bun/bin",
           "/opt/bun/bin",
           "/snap/bin",
         ].filter(Boolean).join(":");
