@@ -40,6 +40,7 @@ const MEDIA_SEARCH_QUERY = `
       startDate { year month day }
       source
       popularity
+      isAdult
     }
   }
 `;
@@ -102,6 +103,7 @@ function mediaToEnriched(result) {
     startDate: result.startDate,
     source: result.source,
     popularity: result.popularity,
+    isAdult: result.isAdult ?? false,
   };
 }
 

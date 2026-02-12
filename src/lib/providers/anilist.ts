@@ -25,6 +25,7 @@ const MEDIA_SEARCH_QUERY = `
       startDate { year month day }
       source
       popularity
+      isAdult
     }
   }
 `;
@@ -50,6 +51,7 @@ export interface AniListMediaResult {
   startDate: { year: number | null; month: number | null; day: number | null };
   source: string | null;
   popularity: number | null;
+  isAdult: boolean;
 }
 
 export async function searchMedia(

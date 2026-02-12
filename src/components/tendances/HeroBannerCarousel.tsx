@@ -26,7 +26,7 @@ interface HeroBannerCarouselProps {
 
 export function HeroBannerCarousel({ animes }: HeroBannerCarouselProps) {
   const slides: HeroSlide[] = animes
-    .filter((a) => a.enriched?.bannerImage)
+    .filter((a) => a.enriched?.bannerImage && !a.enriched?.isAdult)
     .slice(0, 5)
     .map((a) => ({
       title: a.enriched!.title.userPreferred ?? a.title,
@@ -123,7 +123,7 @@ export function HeroBannerCarousel({ animes }: HeroBannerCarouselProps) {
       </AnimatePresence>
 
       {/* Dot indicators - positioned above the overlap zone */}
-      <div className="absolute bottom-32 sm:bottom-36 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+      <div className="absolute bottom-28 sm:bottom-32 left-1/2 -translate-x-1/2 flex gap-2 z-20">
         {slides.map((_, i) => (
           <button
             key={i}
@@ -150,12 +150,12 @@ function SlideOverlay({ slide }: { slide: HeroSlide }) {
     : null;
 
   return (
-    <div className="absolute bottom-28 sm:bottom-32 left-0 right-0 px-6 sm:px-8 lg:px-12 z-10">
+    <div className="absolute inset-0 flex items-end justify-center z-10 pb-40 sm:pb-44 px-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2, duration: 0.5 }}
-        className="max-w-3xl"
+        className="text-center max-w-2xl"
       >
         <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2 drop-shadow-lg">
           {slide.title}
@@ -167,7 +167,7 @@ function SlideOverlay({ slide }: { slide: HeroSlide }) {
 
         {/* Genre pills */}
         {slide.enriched.genres && slide.enriched.genres.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mb-3">
+          <div className="flex flex-wrap justify-center gap-1.5 mb-3">
             {slide.enriched.genres.slice(0, 4).map((genre) => {
               const color = getGenreColor(genre);
               return (
@@ -183,7 +183,7 @@ function SlideOverlay({ slide }: { slide: HeroSlide }) {
         )}
 
         {/* Stats row */}
-        <div className="flex items-center gap-4 text-sm text-white/80">
+        <div className="flex items-center justify-center gap-4 text-sm text-white/80">
           <span className="flex items-center gap-1.5">
             <Users className="w-4 h-4" />
             {slide.viewers} viewer{slide.viewers > 1 ? "s" : ""}

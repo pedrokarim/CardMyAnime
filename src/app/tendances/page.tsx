@@ -1,25 +1,60 @@
 "use client";
 
-import { Flame, Star, Users, BookOpen, LayoutGrid, Rows3 } from "lucide-react";
+import { Flame, Star, Users, BookOpen, LayoutGrid, Rows3, ShieldAlert } from "lucide-react";
 import { trpc } from "@/lib/trpc/client";
 import { PageLoading } from "@/components/ui/loading";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { HeroBannerCarousel } from "@/components/tendances/HeroBannerCarousel";
 import { TrendCard } from "@/components/tendances/TrendCard";
 import { EmptyState } from "@/components/tendances/EmptyState";
+import { AdultContentModal } from "@/components/tendances/AdultContentModal";
 import { cardContainerVariants } from "@/components/tendances/animations";
 
 type ViewMode = "grid" | "compact";
+
+const ADULT_STORAGE_KEY = "cardmyanime_adult_verified";
+
+function getAdultVerified(): boolean {
+  try {
+    return sessionStorage.getItem(ADULT_STORAGE_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+function setAdultVerified() {
+  try {
+    sessionStorage.setItem(ADULT_STORAGE_KEY, "true");
+  } catch {
+    // sessionStorage not available
+  }
+}
 
 export default function TendancesPage() {
   const { data, isLoading, error } = trpc.getTrends.useQuery();
   const [imgErrors, setImgErrors] = useState<Set<string>>(new Set());
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [adultUnlocked, setAdultUnlocked] = useState(() => getAdultVerified());
+  const [showAdultModal, setShowAdultModal] = useState(false);
 
   const handleImgError = (key: string) => {
     setImgErrors((prev) => new Set(prev).add(key));
   };
+
+  const handleAdultClick = useCallback(() => {
+    setShowAdultModal(true);
+  }, []);
+
+  const handleAdultConfirm = useCallback(() => {
+    setAdultUnlocked(true);
+    setAdultVerified();
+    setShowAdultModal(false);
+  }, []);
+
+  const handleAdultCancel = useCallback(() => {
+    setShowAdultModal(false);
+  }, []);
 
   if (isLoading) {
     return <PageLoading message="Chargement des tendances..." />;
@@ -57,6 +92,13 @@ export default function TendancesPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Adult content modal */}
+      <AdultContentModal
+        open={showAdultModal}
+        onConfirm={handleAdultConfirm}
+        onCancel={handleAdultCancel}
+      />
+
       {/* Hero Banner - full bleed, outside container */}
       {animes.length > 0 && <HeroBannerCarousel animes={animes} />}
 
@@ -150,6 +192,8 @@ export default function TendancesPage() {
                       avgScore={anime.avgScore}
                       enriched={anime.enriched}
                       onImgError={() => handleImgError(key)}
+                      isAdultUnlocked={adultUnlocked}
+                      onAdultClick={handleAdultClick}
                     />
                   );
                 })}
@@ -169,6 +213,9 @@ export default function TendancesPage() {
                       countLabel="viewers"
                       avgScore={anime.avgScore}
                       enrichedScore={anime.enriched?.averageScore}
+                      isAdult={anime.enriched?.isAdult === true}
+                      isAdultUnlocked={adultUnlocked}
+                      onAdultClick={handleAdultClick}
                       delay={0.02 * index}
                       onImgError={() => handleImgError(key)}
                     />
@@ -222,6 +269,8 @@ export default function TendancesPage() {
                       avgScore={manga.avgScore}
                       enriched={manga.enriched}
                       onImgError={() => handleImgError(key)}
+                      isAdultUnlocked={adultUnlocked}
+                      onAdultClick={handleAdultClick}
                     />
                   );
                 })}
@@ -241,6 +290,9 @@ export default function TendancesPage() {
                       countLabel="lecteurs"
                       avgScore={manga.avgScore}
                       enrichedScore={manga.enriched?.averageScore}
+                      isAdult={manga.enriched?.isAdult === true}
+                      isAdultUnlocked={adultUnlocked}
+                      onAdultClick={handleAdultClick}
                       delay={0.02 * index}
                       onImgError={() => handleImgError(key)}
                     />
@@ -264,6 +316,9 @@ function CompactCard({
   countLabel,
   avgScore,
   enrichedScore,
+  isAdult = false,
+  isAdultUnlocked = false,
+  onAdultClick,
   delay,
   onImgError,
 }: {
@@ -274,6 +329,9 @@ function CompactCard({
   countLabel: string;
   avgScore: number | null;
   enrichedScore?: number | null;
+  isAdult?: boolean;
+  isAdultUnlocked?: boolean;
+  onAdultClick?: () => void;
   delay: number;
   onImgError: () => void;
 }) {
@@ -283,6 +341,8 @@ function CompactCard({
     ? Math.round(avgScore * 10)
     : null;
 
+  const isBlurred = isAdult && !isAdultUnlocked;
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -290,57 +350,74 @@ function CompactCard({
       transition={{ delay }}
       className="group"
     >
-      <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-muted border border-border/50 shadow-sm group-hover:shadow-lg group-hover:border-primary/30 transition-all duration-300">
+      <div
+        className={`relative aspect-[3/4] rounded-xl overflow-hidden bg-muted border border-border/50 shadow-sm group-hover:shadow-lg group-hover:border-primary/30 transition-all duration-300 ${isBlurred ? "cursor-pointer" : ""}`}
+        onClick={isBlurred ? onAdultClick : undefined}
+      >
         <img
           src={coverUrl}
           alt={title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          className={`w-full h-full object-cover transition-all duration-500 ${
+            isBlurred ? "blur-xl scale-110" : "group-hover:scale-105"
+          }`}
           loading="lazy"
           onError={onImgError}
         />
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-
-        {rank <= 3 && (
-          <div className="absolute top-2 left-2">
-            <span
-              className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                rank === 1
-                  ? "bg-amber-500 text-black"
-                  : rank === 2
-                  ? "bg-gray-300 text-black"
-                  : "bg-orange-700 text-white"
-              }`}
-            >
-              #{rank}
-            </span>
+        {isBlurred ? (
+          /* Adult overlay for compact card */
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+            <div className="text-center">
+              <ShieldAlert className="w-8 h-8 text-red-400 mx-auto mb-1.5" />
+              <span className="text-xs font-medium text-white/80">18+</span>
+            </div>
           </div>
-        )}
+        ) : (
+          <>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
-        {score && (
-          <div className="absolute top-2 right-2 flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-black/60 backdrop-blur-sm">
-            <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
-            <span className="text-[11px] font-medium text-white">
-              {score}%
-            </span>
-          </div>
-        )}
-
-        <div className="absolute bottom-0 left-0 right-0 p-3">
-          <h3 className="text-sm font-semibold text-white leading-tight line-clamp-2 mb-1">
-            {title}
-          </h3>
-          <div className="flex items-center gap-1 text-white/70">
-            {countLabel === "viewers" ? (
-              <Users className="w-3 h-3" />
-            ) : (
-              <BookOpen className="w-3 h-3" />
+            {rank <= 3 && (
+              <div className="absolute top-2 left-2">
+                <span
+                  className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                    rank === 1
+                      ? "bg-amber-500 text-black"
+                      : rank === 2
+                      ? "bg-gray-300 text-black"
+                      : "bg-orange-700 text-white"
+                  }`}
+                >
+                  #{rank}
+                </span>
+              </div>
             )}
-            <span className="text-[11px]">
-              {count} {countLabel}
-            </span>
-          </div>
-        </div>
+
+            {score && (
+              <div className="absolute top-2 right-2 flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-black/60 backdrop-blur-sm">
+                <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
+                <span className="text-[11px] font-medium text-white">
+                  {score}%
+                </span>
+              </div>
+            )}
+
+            <div className="absolute bottom-0 left-0 right-0 p-3">
+              <h3 className="text-sm font-semibold text-white leading-tight line-clamp-2 mb-1">
+                {title}
+              </h3>
+              <div className="flex items-center gap-1 text-white/70">
+                {countLabel === "viewers" ? (
+                  <Users className="w-3 h-3" />
+                ) : (
+                  <BookOpen className="w-3 h-3" />
+                )}
+                <span className="text-[11px]">
+                  {count} {countLabel}
+                </span>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </motion.div>
   );

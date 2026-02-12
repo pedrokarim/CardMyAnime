@@ -28,7 +28,6 @@ const DEFAULTS: Record<string, string> = {
   maxLogsRetention: "30",
   enableNotifications: "true",
   maintenanceMode: "false",
-  snapshotIntervalHours: "6",
   snapshotEnabled: "true",
 };
 
@@ -163,39 +162,23 @@ export default function SettingsPage() {
             <TrendingUp className="w-4 h-4 text-muted-foreground" />
             <h2 className="text-sm font-semibold uppercase tracking-wide">Tendances</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">Intervalle des snapshots</label>
-              <Select
-                value={settings.snapshotIntervalHours}
-                onValueChange={(value) => updateSetting("snapshotIntervalHours", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">Toutes les heures</SelectItem>
-                  <SelectItem value="6">Toutes les 6 heures</SelectItem>
-                  <SelectItem value="12">Toutes les 12 heures</SelectItem>
-                  <SelectItem value="24">Toutes les 24 heures</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">Snapshots</label>
-              <Select
-                value={settings.snapshotEnabled}
-                onValueChange={(value) => updateSetting("snapshotEnabled", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="true">Activés</SelectItem>
-                  <SelectItem value="false">Désactivés</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-1.5 max-w-xs">
+            <label className="text-sm font-medium">Snapshots</label>
+            <Select
+              value={settings.snapshotEnabled}
+              onValueChange={(value) => updateSetting("snapshotEnabled", value)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="true">Activés</SelectItem>
+                <SelectItem value="false">Désactivés</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              La fréquence est gérée via le système de cron.
+            </p>
           </div>
         </section>
 

@@ -25,6 +25,7 @@ export interface EnrichedMediaData {
   startDate: { year: number | null; month: number | null; day: number | null };
   source: string | null;
   popularity: number | null;
+  isAdult: boolean;
 }
 
 function normalizeTitle(title: string): string {
@@ -59,6 +60,7 @@ function mediaResultToEnriched(result: AniListMediaResult): EnrichedMediaData {
     startDate: result.startDate,
     source: result.source,
     popularity: result.popularity,
+    isAdult: result.isAdult ?? false,
   };
 }
 
