@@ -150,23 +150,34 @@ export async function POST(request: NextRequest) {
 
         // Execute the command with extended PATH for bun/node
         const { exec } = require("child_process");
-        const home = process.env.HOME || "";
+        const home = process.env.HOME || "/root";
         const extendedPath = [
           process.env.PATH,
           "/usr/local/bin",
+          "/usr/bin",
           `${home}/.bun/bin`,
           `${home}/.local/bin`,
           `${home}/.nvm/versions/node`,
+          // Common bun install locations
+          "/opt/bun/bin",
+          "/snap/bin",
         ].filter(Boolean).join(":");
+
+        // Resolve project root from cwd or __dirname
+        const projectRoot = process.cwd();
 
         const result = await new Promise<{ stdout: string; stderr: string; error: any }>((resolve) => {
           exec(
             jobToRun.command,
             {
-              cwd: process.cwd(),
-              timeout: 60000,
+              cwd: projectRoot,
+              timeout: 120000, // 2 minutes for enrichment scripts
               shell: "/bin/bash",
-              env: { ...process.env, PATH: extendedPath },
+              env: {
+                ...process.env,
+                PATH: extendedPath,
+                HOME: home,
+              },
             },
             (error: any, stdout: string, stderr: string) => {
               resolve({ stdout, stderr, error });

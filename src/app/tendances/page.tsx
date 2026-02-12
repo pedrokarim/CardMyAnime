@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { HeroBannerCarousel } from "@/components/tendances/HeroBannerCarousel";
 import { TrendCard } from "@/components/tendances/TrendCard";
+import { EmptyState } from "@/components/tendances/EmptyState";
 import { cardContainerVariants } from "@/components/tendances/animations";
 
 type ViewMode = "grid" | "compact";
@@ -43,12 +44,24 @@ export default function TendancesPage() {
   const totalUsers = data?.totalUsers || 0;
   const hasContent = animes.length > 0 || mangas.length > 0;
 
+  const hasCarousel = animes.some((a: any) => a.enriched?.bannerImage);
+
+  // Empty state: beautiful backdrop with message
+  if (!hasContent) {
+    return (
+      <div className="min-h-screen bg-background">
+        <EmptyState />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
-        {/* Hero Banner Carousel */}
-        {animes.length > 0 && <HeroBannerCarousel animes={animes} />}
+      {/* Hero Banner - full bleed, outside container */}
+      {animes.length > 0 && <HeroBannerCarousel animes={animes} />}
 
+      {/* Content overlaps the carousel via negative margin */}
+      <div className={`container mx-auto px-4 relative z-10 ${hasCarousel ? "-mt-28 sm:-mt-32" : "pt-8"}`}>
         {/* Stats bar + view toggle */}
         <motion.div
           initial={{ opacity: 0, y: -5 }}
@@ -93,19 +106,6 @@ export default function TendancesPage() {
             </button>
           </div>
         </motion.div>
-
-        {!hasContent && (
-          <div className="text-center py-20">
-            <Flame className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">
-              Pas encore de tendances
-            </h3>
-            <p className="text-muted-foreground text-sm max-w-md mx-auto">
-              Les tendances apparaîtront une fois que des utilisateurs auront
-              généré des cartes.
-            </p>
-          </div>
-        )}
 
         {/* Animés tendance */}
         {animes.length > 0 && (

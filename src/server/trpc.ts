@@ -478,17 +478,28 @@ export const appRouter = createTRPCRouter({
               : null,
         }));
 
-      // Enrichir avec les données AniList (banners, genres, studios, etc.)
-      let enrichedMap = new Map<string, any>();
+      // Lire l'enrichissement depuis le cache MediaCache (pré-calculé par le script enrich-trends.js)
+      const enrichedMap = new Map<string, any>();
       try {
-        const { mediaEnrichment } = await import("@/lib/services/mediaEnrichment");
-        const allItems = [
-          ...trendingAnimes.map((a) => ({ title: a.title, type: "ANIME" as const })),
-          ...trendingMangas.map((m) => ({ title: m.title, type: "MANGA" as const })),
+        const allKeys = [
+          ...trendingAnimes.map((a) => a.title.toLowerCase().trim()),
+          ...trendingMangas.map((m) => m.title.toLowerCase().trim()),
         ];
-        enrichedMap = await mediaEnrichment.enrichMedia(allItems);
-      } catch (error) {
-        console.error("Erreur enrichissement media:", error);
+        const cachedMedia = await prisma.mediaCache.findMany({
+          where: {
+            title: { in: allKeys },
+            expiresAt: { gt: new Date() },
+          },
+        });
+        for (const entry of cachedMedia) {
+          try {
+            enrichedMap.set(entry.title, JSON.parse(entry.data));
+          } catch {
+            // Ignorer les entrées mal formées
+          }
+        }
+      } catch {
+        // Table MediaCache peut ne pas exister, on continue sans enrichissement
       }
 
       const enrichedAnimes = trendingAnimes.map((a) => ({

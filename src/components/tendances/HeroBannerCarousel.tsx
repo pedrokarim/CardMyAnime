@@ -62,13 +62,14 @@ export function HeroBannerCarousel({ animes }: HeroBannerCarouselProps) {
   if (slides.length === 1) {
     const slide = slides[0];
     return (
-      <div className="relative h-[300px] sm:h-[400px] lg:h-[500px] rounded-2xl overflow-hidden mb-8">
+      <div className="relative h-[400px] sm:h-[500px] lg:h-[600px] overflow-hidden">
         <img
           src={slide.bannerImage}
           alt={slide.title}
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+        {/* Netflix-style gradient: strong dark bottom fading to transparent */}
+        <div className="absolute inset-0 bg-gradient-to-t from-background from-5% via-background/50 via-35% to-transparent to-70%" />
         <SlideOverlay slide={slide} />
       </div>
     );
@@ -92,7 +93,7 @@ export function HeroBannerCarousel({ animes }: HeroBannerCarouselProps) {
   };
 
   return (
-    <div className="relative h-[300px] sm:h-[400px] lg:h-[500px] rounded-2xl overflow-hidden mb-8">
+    <div className="relative h-[400px] sm:h-[500px] lg:h-[600px] overflow-hidden">
       <AnimatePresence initial={false} custom={direction} mode="popLayout">
         <motion.div
           key={current}
@@ -113,16 +114,16 @@ export function HeroBannerCarousel({ animes }: HeroBannerCarouselProps) {
             transition={{ duration: 8, ease: "linear" }}
           />
 
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+          {/* Heavy bottom gradient that bleeds into page background */}
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 via-30% to-transparent" />
 
           {/* Content overlay */}
           <SlideOverlay slide={slides[current]} />
         </motion.div>
       </AnimatePresence>
 
-      {/* Dot indicators */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+      {/* Dot indicators - positioned above the overlap zone */}
+      <div className="absolute bottom-32 sm:bottom-36 left-1/2 -translate-x-1/2 flex gap-2 z-20">
         {slides.map((_, i) => (
           <button
             key={i}
@@ -149,13 +150,14 @@ function SlideOverlay({ slide }: { slide: HeroSlide }) {
     : null;
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8 z-10">
+    <div className="absolute bottom-28 sm:bottom-32 left-0 right-0 px-6 sm:px-8 lg:px-12 z-10">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2, duration: 0.5 }}
+        className="max-w-3xl"
       >
-        <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2 drop-shadow-lg">
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2 drop-shadow-lg">
           {slide.title}
         </h2>
 
