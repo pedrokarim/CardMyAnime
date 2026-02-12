@@ -94,15 +94,9 @@ COPY --from=builder --chown=nextjs:nodegrp /app/scripts ./scripts
 COPY --from=builder --chown=nextjs:nodegrp /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodegrp /app/.next/static ./.next/static
 
-# Crée le répertoire node_modules et installe les dépendances runtime
-# prisma + @prisma/client pour les migrations, pg + @prisma/adapter-pg pour les scripts cron
-RUN mkdir -p /app/node_modules /app/.npm \
-    && npm install --legacy-peer-deps --production --no-save prisma @prisma/client @prisma/adapter-pg pg \
-    && chown -R nextjs:nodegrp /app/.npm /app/node_modules
-
-# Copie le client Prisma généré (déjà généré par postinstall dans builder)
-COPY --from=builder --chown=nextjs:nodegrp /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder --chown=nextjs:nodegrp /app/node_modules/@prisma ./node_modules/@prisma
+# Copie les node_modules depuis le builder (toutes les dépendances déjà résolues)
+RUN mkdir -p /app/node_modules /app/.npm
+COPY --from=builder --chown=nextjs:nodegrp /app/node_modules ./node_modules
 
 # Change vers l'utilisateur non-root
 USER nextjs
