@@ -1,12 +1,8 @@
 #!/usr/bin/env node
 
-/**
- * Script pour capturer un snapshot des vues (tendances)
- * À exécuter périodiquement via un cron job
- *
- * Exemple crontab (toutes les 6 heures) :
- * 0 *\/6 * * * cd /path/to/CardMyAnime && node scripts/snapshot-trends.js
- */
+// Script pour capturer un snapshot des vues (tendances)
+// À exécuter périodiquement via un cron job
+// Commande cron : node scripts/snapshot-trends.js
 
 const { PrismaClient } = require('@prisma/client');
 const { PrismaPg } = require('@prisma/adapter-pg');

@@ -98,6 +98,9 @@ COPY --from=builder --chown=nextjs:nodegrp /app/.next/static ./.next/static
 RUN mkdir -p /app/node_modules /app/.npm
 COPY --from=builder --chown=nextjs:nodegrp /app/node_modules ./node_modules
 
+# Crée le dossier logs avec les bons droits (point de montage du volume)
+RUN mkdir -p /app/logs && chown -R nextjs:nodegrp /app/logs
+
 # Change vers l'utilisateur non-root
 USER nextjs
 

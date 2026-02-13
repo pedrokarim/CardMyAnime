@@ -1,12 +1,8 @@
 #!/usr/bin/env node
 
-/**
- * Script pour pré-enrichir les données de tendances via l'API AniList
- * Remplit la table MediaCache pour que la page /tendances charge instantanément
- *
- * Exemple crontab (toutes les 12 heures) :
- * 0 */12 * * * cd /path/to/CardMyAnime && node scripts/enrich-trends.js
- */
+// Script pour pré-enrichir les données de tendances via l'API AniList
+// Remplit la table MediaCache pour que la page /tendances charge instantanément
+// Commande cron : node scripts/enrich-trends.js
 
 const { PrismaClient } = require("@prisma/client");
 const { PrismaPg } = require("@prisma/adapter-pg");
