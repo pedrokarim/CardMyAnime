@@ -12,6 +12,7 @@ import { Platform } from "@/lib/types";
 import { SITE_CONFIG } from "@/lib/constants";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface NavbarProps {
   currentPlatform?: Platform;
@@ -105,16 +106,20 @@ export function Navbar({ currentPlatform }: NavbarProps) {
                 </Link>
               );
             })}
+
+            <ThemeToggle className="text-muted-foreground hover:text-foreground" />
           </div>
 
-          {/* Mobile Menu Button */}
-          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-            <SheetTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="md:hidden text-foreground hover:bg-muted"
-              >
+          {/* Mobile: Theme Toggle + Menu Button */}
+          <div className="flex md:hidden items-center gap-1">
+            <ThemeToggle className="text-muted-foreground hover:text-foreground" />
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-foreground hover:bg-muted"
+                >
                 <Menu className="h-6 w-6" />
                 <span className="sr-only">Ouvrir le menu</span>
               </Button>
@@ -196,6 +201,7 @@ export function Navbar({ currentPlatform }: NavbarProps) {
               </div>
             </SheetContent>
           </Sheet>
+          </div>
         </div>
       </div>
     </nav>
