@@ -1,9 +1,18 @@
 import type { CronJob } from "@prisma/client";
-import { exec as execCallback } from "node:child_process";
-import { promisify } from "node:util";
+import { spawn } from "node:child_process";
+import { EventEmitter } from "node:events";
 import { ensurePrismaConnection, prisma } from "@/lib/prisma";
 
-const exec = promisify(execCallback);
+// Global event emitter for SSE streaming
+declare global {
+  // eslint-disable-next-line no-var
+  var __cardmyanimeCronEmitter: EventEmitter | undefined;
+}
+if (!globalThis.__cardmyanimeCronEmitter) {
+  globalThis.__cardmyanimeCronEmitter = new EventEmitter();
+  globalThis.__cardmyanimeCronEmitter.setMaxListeners(50);
+}
+export const cronEmitter = globalThis.__cardmyanimeCronEmitter;
 
 const DEFAULT_COMMAND_TIMEOUT_MS = 120_000;
 const DEFAULT_POLL_INTERVAL_MS = 30_000;
@@ -72,6 +81,19 @@ export type RunCronJobResult = {
 
 const parsedScheduleCache = new Map<string, ParsedCronExpression>();
 
+export type SchedulerStatus = {
+  alive: boolean;
+  enabled: boolean;
+  startedAt: string | null;
+  lastTickAt: string | null;
+  tickCount: number;
+  jobsChecked: number;
+  jobsExecuted: number;
+  lastError: string | null;
+  pollIntervalMs: number;
+  uptimeSeconds: number | null;
+};
+
 declare global {
   // eslint-disable-next-line no-var
   var __cardmyanimeCronSchedulerStarted: boolean | undefined;
@@ -81,6 +103,20 @@ declare global {
   var __cardmyanimeCronSchedulerLastMinute: string | undefined;
   // eslint-disable-next-line no-var
   var __cardmyanimeCronSchedulerInterval: NodeJS.Timeout | undefined;
+  // eslint-disable-next-line no-var
+  var __cardmyanimeCronSchedulerStartedAt: string | undefined;
+  // eslint-disable-next-line no-var
+  var __cardmyanimeCronSchedulerLastTickAt: string | undefined;
+  // eslint-disable-next-line no-var
+  var __cardmyanimeCronSchedulerTickCount: number | undefined;
+  // eslint-disable-next-line no-var
+  var __cardmyanimeCronSchedulerJobsChecked: number | undefined;
+  // eslint-disable-next-line no-var
+  var __cardmyanimeCronSchedulerJobsExecuted: number | undefined;
+  // eslint-disable-next-line no-var
+  var __cardmyanimeCronSchedulerLastError: string | undefined;
+  // eslint-disable-next-line no-var
+  var __cardmyanimeCronSchedulerPollMs: number | undefined;
 }
 
 function parseNumberEnv(
@@ -336,37 +372,40 @@ export function validateCronExpression(schedule: string): {
   }
 }
 
-function mergeOutput(stdout: string, stderr: string, fallback = ""): string {
-  const chunks = [stdout.trim(), stderr.trim()].filter(Boolean);
-  if (chunks.length > 0) return chunks.join("\n");
-  return fallback;
-}
-
-async function executeJobCommand(
-  command: string
-): Promise<{ status: CronExecutionStatus; output: string }> {
-  const timeoutMs = parseNumberEnv(
-    "CRON_COMMAND_TIMEOUT_MS",
-    DEFAULT_COMMAND_TIMEOUT_MS,
-    1000
-  );
-
+/** Find the next Date that matches a cron expression (searches up to 7 days ahead). */
+export function getNextRunTime(schedule: string, from?: Date): Date | null {
   try {
-    const { stdout = "", stderr = "" } = await exec(command, {
-      cwd: process.cwd(),
-      env: { ...process.env },
-      timeout: timeoutMs,
-      shell: resolveCommandShell(),
-      maxBuffer: 4 * 1024 * 1024,
-    });
-    return { status: "success", output: mergeOutput(stdout, stderr) };
-  } catch (error: unknown) {
-    const execError = error as { stdout?: string; stderr?: string };
-    const fallback = error instanceof Error ? error.message : "Execution echouee";
-    return {
-      status: "error",
-      output: mergeOutput(execError.stdout ?? "", execError.stderr ?? "", fallback),
-    };
+    const parsed = parseCronExpression(schedule);
+    const cursor = new Date(from ?? Date.now());
+    // Start from the next full minute
+    cursor.setSeconds(0, 0);
+    cursor.setMinutes(cursor.getMinutes() + 1);
+
+    const maxIterations = 7 * 24 * 60; // 7 days of minutes
+    for (let i = 0; i < maxIterations; i++) {
+      const minuteMatch = parsed.minute.values.has(cursor.getMinutes());
+      const hourMatch = parsed.hour.values.has(cursor.getHours());
+      const monthMatch = parsed.month.values.has(cursor.getMonth() + 1);
+      const dayOfMonthMatch = parsed.dayOfMonth.values.has(cursor.getDate());
+      const dayOfWeekMatch = parsed.dayOfWeek.values.has(cursor.getDay());
+
+      const dayMatch =
+        parsed.dayOfMonth.wildcard && parsed.dayOfWeek.wildcard
+          ? true
+          : parsed.dayOfMonth.wildcard
+          ? dayOfWeekMatch
+          : parsed.dayOfWeek.wildcard
+          ? dayOfMonthMatch
+          : dayOfMonthMatch || dayOfWeekMatch;
+
+      if (minuteMatch && hourMatch && monthMatch && dayMatch) {
+        return cursor;
+      }
+      cursor.setMinutes(cursor.getMinutes() + 1);
+    }
+    return null;
+  } catch {
+    return null;
   }
 }
 
@@ -375,7 +414,16 @@ export async function runCronJob(
   trigger: RunTrigger = "manual"
 ): Promise<RunCronJobResult> {
   const startTimestamp = new Date().toISOString();
-  const commandResult = await executeJobCommand(job.command);
+
+  cronEmitter.emit("job:start", {
+    jobId: job.id,
+    jobName: job.name,
+    command: job.command,
+    trigger,
+    timestamp: startTimestamp,
+  });
+
+  const commandResult = await executeJobCommandStreaming(job.id, job.command);
 
   const decoratedOutput = [
     `[${startTimestamp}] [${trigger}] ${job.command}`,
@@ -394,11 +442,69 @@ export async function runCronJob(
     },
   });
 
+  cronEmitter.emit("job:end", {
+    jobId: job.id,
+    jobName: job.name,
+    status: commandResult.status,
+    output: decoratedOutput.slice(0, MAX_OUTPUT_FOR_API),
+    timestamp: new Date().toISOString(),
+  });
+
   return {
     success: commandResult.status === "success",
     status: commandResult.status,
     output: decoratedOutput.slice(0, MAX_OUTPUT_FOR_API),
   };
+}
+
+/** Streaming execution using spawn — emits job:output events for SSE */
+function executeJobCommandStreaming(
+  jobId: string,
+  command: string
+): Promise<{ status: CronExecutionStatus; output: string }> {
+  const timeoutMs = parseNumberEnv(
+    "CRON_COMMAND_TIMEOUT_MS",
+    DEFAULT_COMMAND_TIMEOUT_MS,
+    1000
+  );
+  const shell = resolveCommandShell();
+
+  return new Promise((resolve) => {
+    const chunks: string[] = [];
+    const args = process.platform === "win32" ? ["/c", command] : ["-c", command];
+    const child = spawn(shell, args, {
+      cwd: process.cwd(),
+      env: { ...process.env },
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+
+    const timeout = setTimeout(() => {
+      child.kill("SIGTERM");
+      const output = chunks.join("") || "Timeout: commande tuee apres " + timeoutMs + "ms";
+      resolve({ status: "error", output });
+    }, timeoutMs);
+
+    const onData = (stream: "stdout" | "stderr") => (data: Buffer) => {
+      const text = data.toString();
+      chunks.push(text);
+      cronEmitter.emit("job:output", { jobId, stream, chunk: text });
+    };
+
+    child.stdout?.on("data", onData("stdout"));
+    child.stderr?.on("data", onData("stderr"));
+
+    child.on("close", (code) => {
+      clearTimeout(timeout);
+      const output = chunks.join("") || (code === 0 ? "" : `Exit code: ${code}`);
+      resolve({ status: code === 0 ? "success" : "error", output });
+    });
+
+    child.on("error", (err) => {
+      clearTimeout(timeout);
+      const output = chunks.join("") || err.message;
+      resolve({ status: "error", output });
+    });
+  });
 }
 
 function schedulerEnabled(): boolean {
@@ -452,6 +558,12 @@ async function runSchedulerTick(now: Date): Promise<void> {
     },
   });
 
+  globalThis.__cardmyanimeCronSchedulerTickCount =
+    (globalThis.__cardmyanimeCronSchedulerTickCount ?? 0) + 1;
+  globalThis.__cardmyanimeCronSchedulerLastTickAt = now.toISOString();
+  globalThis.__cardmyanimeCronSchedulerJobsChecked =
+    (globalThis.__cardmyanimeCronSchedulerJobsChecked ?? 0) + jobs.length;
+
   if (jobs.length === 0) return;
 
   const minuteStart = new Date(now);
@@ -462,10 +574,13 @@ async function runSchedulerTick(now: Date): Promise<void> {
     try {
       dueNow = shouldRunNow(job.schedule, now);
     } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
       console.error(
         `[CronScheduler] Schedule invalide pour "${job.name}" (${job.id}): ${job.schedule}`,
         error
       );
+      globalThis.__cardmyanimeCronSchedulerLastError =
+        `[${now.toISOString()}] Schedule invalide "${job.name}": ${msg}`;
       continue;
     }
 
@@ -476,12 +591,21 @@ async function runSchedulerTick(now: Date): Promise<void> {
 
     console.log(`[CronScheduler] Execution automatique: ${job.name}`);
     try {
-      await runCronJob(job, "scheduler");
+      const result = await runCronJob(job, "scheduler");
+      globalThis.__cardmyanimeCronSchedulerJobsExecuted =
+        (globalThis.__cardmyanimeCronSchedulerJobsExecuted ?? 0) + 1;
+      if (!result.success) {
+        globalThis.__cardmyanimeCronSchedulerLastError =
+          `[${now.toISOString()}] Echec "${job.name}": ${result.output.slice(0, 200)}`;
+      }
     } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
       console.error(
         `[CronScheduler] Echec de l'execution automatique pour "${job.name}" (${job.id})`,
         error
       );
+      globalThis.__cardmyanimeCronSchedulerLastError =
+        `[${now.toISOString()}] Exception "${job.name}": ${msg}`;
     }
   }
 }
@@ -501,6 +625,12 @@ export function startCronScheduler(): void {
     5000
   );
 
+  globalThis.__cardmyanimeCronSchedulerStartedAt = new Date().toISOString();
+  globalThis.__cardmyanimeCronSchedulerPollMs = pollIntervalMs;
+  globalThis.__cardmyanimeCronSchedulerTickCount = 0;
+  globalThis.__cardmyanimeCronSchedulerJobsChecked = 0;
+  globalThis.__cardmyanimeCronSchedulerJobsExecuted = 0;
+
   const tick = async () => {
     if (globalThis.__cardmyanimeCronSchedulerRunning) return;
 
@@ -514,7 +644,10 @@ export function startCronScheduler(): void {
     try {
       await runSchedulerTick(now);
     } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
       console.error("[CronScheduler] Tick en erreur", error);
+      globalThis.__cardmyanimeCronSchedulerLastError =
+        `[${now.toISOString()}] Tick error: ${msg}`;
     } finally {
       globalThis.__cardmyanimeCronSchedulerRunning = false;
     }
@@ -541,4 +674,37 @@ export function stopCronScheduler(): void {
   globalThis.__cardmyanimeCronSchedulerStarted = false;
   globalThis.__cardmyanimeCronSchedulerRunning = false;
   globalThis.__cardmyanimeCronSchedulerLastMinute = undefined;
+  globalThis.__cardmyanimeCronSchedulerStartedAt = undefined;
+  globalThis.__cardmyanimeCronSchedulerLastTickAt = undefined;
+}
+
+export function getSchedulerStatus(): SchedulerStatus {
+  const startedAt = globalThis.__cardmyanimeCronSchedulerStartedAt ?? null;
+  let uptimeSeconds: number | null = null;
+  if (startedAt) {
+    uptimeSeconds = Math.floor(
+      (Date.now() - new Date(startedAt).getTime()) / 1000
+    );
+  }
+
+  return {
+    alive: !!globalThis.__cardmyanimeCronSchedulerStarted,
+    enabled: schedulerEnabled(),
+    startedAt,
+    lastTickAt: globalThis.__cardmyanimeCronSchedulerLastTickAt ?? null,
+    tickCount: globalThis.__cardmyanimeCronSchedulerTickCount ?? 0,
+    jobsChecked: globalThis.__cardmyanimeCronSchedulerJobsChecked ?? 0,
+    jobsExecuted: globalThis.__cardmyanimeCronSchedulerJobsExecuted ?? 0,
+    lastError: globalThis.__cardmyanimeCronSchedulerLastError ?? null,
+    pollIntervalMs: globalThis.__cardmyanimeCronSchedulerPollMs ?? DEFAULT_POLL_INTERVAL_MS,
+    uptimeSeconds,
+  };
+}
+
+/** Fallback: ensures the scheduler is started (safe to call multiple times) */
+export function ensureSchedulerStarted(): void {
+  if (!globalThis.__cardmyanimeCronSchedulerStarted) {
+    console.info("[CronScheduler] Demarrage via fallback (API call)");
+    startCronScheduler();
+  }
 }

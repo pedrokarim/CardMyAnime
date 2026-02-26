@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma, ensurePrismaConnection } from "@/lib/prisma";
-import { runCronJob, validateCronExpression } from "@/lib/services/cron";
+import {
+  runCronJob,
+  validateCronExpression,
+  getSchedulerStatus,
+  ensureSchedulerStarted,
+} from "@/lib/services/cron";
 
 const unauthorized = () =>
   NextResponse.json({ error: "Non autorisé" }, { status: 401 });
@@ -11,13 +16,18 @@ export async function GET() {
     const session = await auth();
     if (!session?.user?.email) return unauthorized();
 
+    // Fallback: if instrumentation.ts didn't start the scheduler, start it now
+    ensureSchedulerStarted();
+
     await ensurePrismaConnection();
 
     const jobs = await prisma.cronJob.findMany({
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json({ jobs });
+    const scheduler = getSchedulerStatus();
+
+    return NextResponse.json({ jobs, scheduler });
   } catch (error) {
     console.error("Erreur récupération cron jobs:", error);
     return NextResponse.json(

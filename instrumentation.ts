@@ -1,6 +1,11 @@
 export async function register() {
-  if (process.env.NEXT_RUNTIME !== "nodejs") return;
+  // Skip Edge runtime — only run on Node.js server
+  if (process.env.NEXT_RUNTIME === "edge") return;
 
-  const { startCronScheduler } = await import("./src/lib/services/cron");
-  startCronScheduler();
+  try {
+    const { startCronScheduler } = await import("@/lib/services/cron");
+    startCronScheduler();
+  } catch (error) {
+    console.error("[Instrumentation] Echec du demarrage du cron scheduler:", error);
+  }
 }
