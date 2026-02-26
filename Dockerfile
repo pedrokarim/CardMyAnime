@@ -114,6 +114,9 @@ ENV NODE_ENV=production
 # Configure npm pour utiliser un cache dans /app au lieu de /nonexistent
 ENV NPM_CONFIG_CACHE=/app/.npm
 ENV HOME=/home/nextjs
+ENV CRON_SCHEDULER_ENABLED=true
+ENV CRON_POLL_INTERVAL_MS=30000
+ENV CRON_COMMAND_TIMEOUT_MS=120000
 
 # Script de démarrage avec initialisation de la DB
 # Utilise le binaire Prisma directement pour éviter les problèmes npm

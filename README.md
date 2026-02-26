@@ -210,50 +210,24 @@ bun run reset-views24h      # Remettre à zéro les vues 24h
 bun run cleanup-view-logs   # Nettoyer les logs de vues
 ```
 
-### 🔄 Configuration du cron job pour les vues 24h
+### 🔄 Jobs planifiés (admin)
 
-**Important :** Pour que le système de vues 24h fonctionne correctement, il faut configurer un cron job qui remet automatiquement les compteurs à zéro tous les jours.
+Les jobs cron sont gérés directement dans l'admin via `/admin/cron` (création, édition, exécution manuelle, activation/désactivation).
 
-#### Sur Linux/macOS :
+En production, un scheduler interne les exécute automatiquement selon leur champ `schedule`.
 
-1. **Ouvrir l'éditeur de cron :**
-   ```bash
-   crontab -e
-   ```
+Variables utiles :
 
-2. **Ajouter cette ligne** (remplace `/path/to/your/project` par le chemin réel) :
-   ```bash
-   0 0 * * * cd /home/kagura/CardMyAnime && bun run reset-views24h
-   ```
+```bash
+CRON_SCHEDULER_ENABLED=true
+CRON_POLL_INTERVAL_MS=30000
+CRON_COMMAND_TIMEOUT_MS=120000
+```
 
-   Cette commande s'exécute tous les jours à minuit (00:00).
+Notes :
 
-3. **Vérifier que le cron job est configuré :**
-   ```bash
-   crontab -l
-   ```
-
-#### Sur Windows :
-
-Utilisez le Planificateur de tâches :
-
-1. **Ouvrir le Planificateur de tâches** : Rechercher "Planificateur de tâches" dans le menu Démarrer
-
-2. **Créer une tâche** :
-   - Clic droit → "Créer une tâche..."
-   - Nom : "Reset vues 24h CardMyAnime"
-   - Onglet "Déclencheurs" → "Nouveau" → "Tous les jours" à 00:00:00
-
-3. **Dans l'onglet "Actions"** :
-   - "Nouvelle action" → "Démarrer un programme"
-   - Programme : `C:\Program Files\PowerShell\7\pwsh.exe` (ou `cmd.exe`)
-   - Arguments : `-Command "cd 'C:\path\to\your\project'; bun run reset-views24h"`
-
-#### Vérification :
-
-Après avoir configuré le cron job, vérifiez que les vues 24h se remettent bien à zéro tous les jours dans le classement.
-
-**Note :** Si vous utilisez Docker, le cron job doit être configuré sur la machine hôte, pas dans le conteneur.
+- En développement, le scheduler interne est désactivé par défaut (mettre `CRON_SCHEDULER_ENABLED=true` pour tester localement).
+- Si vous déployez plusieurs instances de l'app, préférez un scheduler externe unique (crontab, GitHub Actions, Vercel Cron) pour éviter les exécutions concurrentes.
 
 ## 🐳 Docker
 

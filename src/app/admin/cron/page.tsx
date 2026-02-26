@@ -360,7 +360,8 @@ export default function AdminCronPage() {
       )}
 
       <p className="text-xs text-muted-foreground">
-        Les jobs servent de registre. Pour l&apos;exécution automatique, configurez un scheduler externe (crontab, Vercel Cron, GitHub Actions).
+        Les jobs sont exécutés automatiquement par le scheduler interne (production).
+        Vous pouvez le désactiver avec <code className="font-mono">CRON_SCHEDULER_ENABLED=false</code>.
       </p>
     </div>
   );

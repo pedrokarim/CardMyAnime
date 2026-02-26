@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma, ensurePrismaConnection } from "@/lib/prisma";
+import { runCronJob, validateCronExpression } from "@/lib/services/cron";
 
 const unauthorized = () =>
   NextResponse.json({ error: "Non autorisé" }, { status: 401 });
@@ -45,6 +46,16 @@ export async function POST(request: NextRequest) {
           );
         }
 
+        const scheduleValidation = validateCronExpression(schedule);
+        if (!scheduleValidation.valid) {
+          return NextResponse.json(
+            {
+              error: `Expression cron invalide: ${scheduleValidation.error}`,
+            },
+            { status: 400 }
+          );
+        }
+
         const job = await prisma.cronJob.create({
           data: {
             name,
@@ -64,6 +75,18 @@ export async function POST(request: NextRequest) {
             { error: "ID requis" },
             { status: 400 }
           );
+        }
+
+        if (updates.schedule !== undefined) {
+          const scheduleValidation = validateCronExpression(updates.schedule);
+          if (!scheduleValidation.valid) {
+            return NextResponse.json(
+              {
+                error: `Expression cron invalide: ${scheduleValidation.error}`,
+              },
+              { status: 400 }
+            );
+          }
         }
 
         // Only allow updating specific fields
@@ -147,44 +170,14 @@ export async function POST(request: NextRequest) {
             { status: 404 }
           );
         }
-
-        // Execute the command via bash
-        const { exec } = require("child_process");
-        const projectRoot = process.cwd();
-
-        const result = await new Promise<{ stdout: string; stderr: string; error: any }>((resolve) => {
-          exec(
-            jobToRun.command,
-            {
-              cwd: projectRoot,
-              timeout: 120000, // 2 minutes for enrichment scripts
-              shell: "/bin/bash",
-              env: { ...process.env },
-            },
-            (error: any, stdout: string, stderr: string) => {
-              resolve({ stdout, stderr, error });
-            }
-          );
-        });
-
-        const status = result.error ? "error" : "success";
-        const output = (result.stdout || "") + (result.stderr ? `\n${result.stderr}` : "");
-
-        await prisma.cronJob.update({
-          where: { id: runId },
-          data: {
-            lastRunAt: new Date(),
-            lastStatus: status,
-            lastOutput: output.slice(0, 5000), // Limit output size
-          },
-        });
+        const execution = await runCronJob(jobToRun, "manual");
 
         return NextResponse.json({
-          success: status === "success",
-          message: status === "success"
+          success: execution.success,
+          message: execution.success
             ? `Job "${jobToRun.name}" exécuté avec succès`
             : `Job "${jobToRun.name}" a échoué`,
-          output: output.slice(0, 2000),
+          output: execution.output,
         });
       }
 
