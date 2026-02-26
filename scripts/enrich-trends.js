@@ -49,6 +49,101 @@ function normalizeTitle(title) {
   return title.toLowerCase().trim();
 }
 
+/**
+ * Nettoie un titre en retirant les éléments parasites pour améliorer
+ * les chances de correspondance sur AniList.
+ */
+function sanitizeTitle(title) {
+  let s = title;
+  // Retirer le contenu entre parenthèses et crochets : (TV), [Dub], (2024), etc.
+  s = s.replace(/\s*[\(\[][^\)\]]*[\)\]]/g, "");
+  // Retirer les suffixes de saison courants
+  s = s.replace(
+    /\b((\d+)(st|nd|rd|th)\s+season|season\s+\d+|part\s+\d+|cour\s+\d+)\b/gi,
+    ""
+  );
+  // Retirer les caractères spéciaux qui perturbent la recherche
+  s = s.replace(/[：:!?！？~～★☆♪♡♥®™※→←↑↓•·]/g, " ");
+  // Retirer les emojis et symboles Unicode divers
+  s = s.replace(/[\u{1F000}-\u{1FFFF}]/gu, "");
+  // Retirer les séparateurs orphelins en fin de chaîne
+  s = s.replace(/[\s\-–—:]+$/, "");
+  // Normaliser les espaces multiples
+  s = s.replace(/\s+/g, " ").trim();
+  return s;
+}
+
+/**
+ * Génère des variantes de recherche de plus en plus courtes.
+ * Retourne un tableau de 1 à 4 variantes uniques.
+ */
+function buildSearchVariants(title) {
+  const variants = [];
+  const seen = new Set();
+
+  const add = (v) => {
+    const trimmed = v.trim();
+    if (trimmed.length >= 3 && !seen.has(trimmed)) {
+      seen.add(trimmed);
+      variants.push(trimmed);
+    }
+  };
+
+  // 1. Titre original
+  add(title);
+
+  // 2. Titre sanitizé
+  const sanitized = sanitizeTitle(title);
+  add(sanitized);
+
+  // 3. Couper au premier séparateur fort (: ou -)
+  const separatorMatch = sanitized.match(/^(.{3,}?)\s*[-–—:]\s+/);
+  if (separatorMatch) {
+    add(separatorMatch[1]);
+  } else {
+    // Sinon retirer les 2 derniers mots
+    const words = sanitized.split(" ");
+    if (words.length > 2) {
+      add(words.slice(0, -2).join(" "));
+    }
+  }
+
+  // 4. Encore plus court : premier segment ou premiers mots
+  if (variants.length < 4) {
+    const words = sanitized.split(" ");
+    if (words.length > 3) {
+      add(words.slice(0, Math.ceil(words.length / 2)).join(" "));
+    }
+  }
+
+  return variants.slice(0, 4);
+}
+
+/**
+ * Recherche un média sur AniList avec retry progressif.
+ * Essaie jusqu'à 4 variantes du titre, avec 2s de pause entre chaque retry.
+ * Retourne { result, usedVariant, attempts } ou { result: null, ... }
+ */
+async function searchMediaWithRetry(title, type, logger) {
+  const variants = buildSearchVariants(title);
+
+  for (let i = 0; i < variants.length; i++) {
+    const variant = variants[i];
+
+    const result = await searchMedia(variant, type);
+    if (result) {
+      return { result, usedVariant: variant, attempts: i + 1 };
+    }
+
+    // Pas de sleep après la dernière tentative
+    if (i < variants.length - 1) {
+      await sleep(2000);
+    }
+  }
+
+  return { result: null, usedVariant: null, attempts: variants.length };
+}
+
 function truncateDescription(desc, maxLen = 200) {
   if (!desc) return null;
   if (desc.length <= maxLen) return desc;
@@ -253,13 +348,28 @@ async function enrichTrends() {
     let errors = 0;
     let rateLimited = false;
 
-    for (const item of toFetch) {
+    let retrySuccesses = 0;
+
+    for (let idx = 0; idx < toFetch.length; idx++) {
       if (rateLimited) break;
+      const item = toFetch[idx];
 
       try {
-        const result = await searchMedia(item.title, item.type);
+        const { result, usedVariant, attempts } = await searchMediaWithRetry(
+          item.title,
+          item.type,
+          logger
+        );
 
         if (result) {
+          // Logger quand un retry a été nécessaire
+          if (attempts > 1) {
+            retrySuccesses++;
+            await logger.info(
+              `🔄 "${item.title}" trouvé après ${attempts} tentatives avec: "${usedVariant}"`
+            );
+          }
+
           const enriched = mediaToEnriched(result);
           const key = normalizeTitle(item.title);
 
@@ -289,11 +399,14 @@ async function enrichTrends() {
             errors++;
           }
         } else {
+          await logger.warn(
+            `❌ "${item.title}" introuvable après ${attempts} tentatives`
+          );
           errors++;
         }
 
-        // Rate limit
-        if (toFetch.indexOf(item) < toFetch.length - 1) {
+        // Rate limit entre chaque item
+        if (idx < toFetch.length - 1) {
           await sleep(REQUEST_DELAY_MS);
         }
       } catch (error) {
@@ -333,6 +446,7 @@ async function enrichTrends() {
       "Titres uniques": allTitles.length,
       "Déjà en cache (valide)": alreadyCached.size,
       "Récupérés depuis AniList": fetched,
+      "Trouvés grâce au retry": retrySuccesses,
       Erreurs: errors,
       "Rate limited": rateLimited ? "Oui" : "Non",
       "Entrées expirées nettoyées": cleaned,
@@ -350,12 +464,25 @@ async function enrichTrends() {
   }
 }
 
-enrichTrends()
-  .then(() => {
-    console.log("✅ Script terminé avec succès");
-    process.exit(0);
-  })
-  .catch((error) => {
-    console.error("❌ Erreur fatale:", error);
-    process.exit(1);
-  });
+// Exports pour les tests
+module.exports = {
+  normalizeTitle,
+  sanitizeTitle,
+  buildSearchVariants,
+  searchMedia,
+  searchMediaWithRetry,
+  sleep,
+};
+
+// Exécution directe uniquement si lancé en standalone
+if (require.main === module) {
+  enrichTrends()
+    .then(() => {
+      console.log("✅ Script terminé avec succès");
+      process.exit(0);
+    })
+    .catch((error) => {
+      console.error("❌ Erreur fatale:", error);
+      process.exit(1);
+    });
+}
