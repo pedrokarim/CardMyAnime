@@ -12,6 +12,7 @@
     "reset-views24h": "node scripts/reset-views24h.js",
     "cleanup-view-logs": "node scripts/cleanup-view-logs.js",
     "snapshot-trends": "node scripts/snapshot-trends.js",
+    "populate": "node scripts/populate.js",
     "postinstall": "prisma generate"
   },
   "dependencies": {
