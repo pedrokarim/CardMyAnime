@@ -37,8 +37,8 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=${PORT:-3000}
-      - DATABASE_URL=${DATABASE_URL:-postgresql://cardmyanime:cardmyanime123@postgres:5432/cardmyanime?schema=public}
-      - DIRECT_URL=${DIRECT_URL:-postgresql://cardmyanime:cardmyanime123@postgres:5432/cardmyanime?schema=public}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-cardmyanime}:${POSTGRES_PASSWORD:-cardmyanime123}@postgres:5432/${POSTGRES_DB:-cardmyanime}?schema=public
+      - DIRECT_URL=postgresql://${POSTGRES_USER:-cardmyanime}:${POSTGRES_PASSWORD:-cardmyanime123}@postgres:5432/${POSTGRES_DB:-cardmyanime}?schema=public
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
       - NEXTAUTH_URL=${NEXTAUTH_URL}
       - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID}

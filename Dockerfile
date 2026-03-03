@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y \
     python3 \
     make \
     g++ \
+    openssl \
     libcairo2-dev \
     libjpeg-dev \
     libpango1.0-dev \
@@ -57,6 +58,7 @@ FROM node:22-slim AS runner
 # Installer les dépendances runtime nécessaires pour canvas + outils système
 RUN apt-get update && apt-get install -y \
     adduser \
+    openssl \
     libcairo2 \
     libjpeg62-turbo \
     libpango-1.0-0 \
