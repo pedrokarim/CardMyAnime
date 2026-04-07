@@ -35,15 +35,17 @@
 
 ## 🎯 Types de cartes
 
+> Voir tous les exemples visuels dans la [galerie des types de cartes](docs/CARD_TYPES.md)
+
 | Type | Taille | Description |
 |------|--------|-------------|
 | **Small** | 400×200 | Avatar + pseudo + 3 derniers animes |
 | **Medium** | 600×300 | Avatar + stats + derniers animes/mangas |
 | **Large** | 800×500 | Profil complet avec images |
 | **Summary** | 800×600 | Profil complet avec stats détaillées |
-| **Neon** | — | Style cyberpunk avec effets néon |
-| **Minimal** | — | Design épuré et minimaliste |
-| **Glassmorphism** | — | Effet verre dépoli moderne |
+| **Neon** | 600×350 | Style cyberpunk avec effets néon |
+| **Minimal** | 500×250 | Design épuré et minimaliste |
+| **Glassmorphism** | 700×400 | Effet verre dépoli moderne |
 
 ## 🌐 Plateformes supportées
 

@@ -35,15 +35,17 @@
 
 ## 🎯 Card Types
 
+> See all visual examples in the [card types gallery](docs/CARD_TYPES.en.md)
+
 | Type | Size | Description |
 |------|------|-------------|
 | **Small** | 400×200 | Avatar + username + 3 last anime |
 | **Medium** | 600×300 | Avatar + stats + last anime/manga |
 | **Large** | 800×500 | Full profile with images |
 | **Summary** | 800×600 | Full profile with detailed stats |
-| **Neon** | — | Cyberpunk style with neon effects |
-| **Minimal** | — | Clean, minimalist design |
-| **Glassmorphism** | — | Modern frosted glass effect |
+| **Neon** | 600×350 | Cyberpunk style with neon effects |
+| **Minimal** | 500×250 | Clean, minimalist design |
+| **Glassmorphism** | 700×400 | Modern frosted glass effect |
 
 ## 🌐 Supported Platforms
 
