@@ -1,14 +1,17 @@
 # 🎌 CardMyAnime
 
+> 🇬🇧 [English version](README.en.md)
+
 <div align="center">
   <img src="public/images/cma-logo.png" alt="CardMyAnime Logo" width="120" height="120">
   
   **Générateur de cartes de profil dynamiques pour les passionnés d'anime et de manga**
   
-  [![Next.js](https://img.shields.io/badge/Next.js-15.5.0-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+  [![Next.js](https://img.shields.io/badge/Next.js-15.5.7-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+  [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react)](https://react.dev/)
   [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
   [![Bun](https://img.shields.io/badge/Bun-1.0-orange?style=for-the-badge&logo=bun)](https://bun.sh/)
-  [![Prisma](https://img.shields.io/badge/Prisma-6.14.0-2D3748?style=for-the-badge&logo=prisma)](https://prisma.io/)
+  [![Prisma](https://img.shields.io/badge/Prisma-7.1.0-2D3748?style=for-the-badge&logo=prisma)](https://prisma.io/)
   [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker)](https://docker.com/)
 </div>
 
@@ -18,22 +21,29 @@
 
 ### ✨ Fonctionnalités principales
 
-- 🎨 **4 types de cartes** : Petite, Moyenne, Grande et Résumé
+- 🎨 **7 types de cartes** : Small, Medium, Large, Summary, Neon, Minimal et Glassmorphism
 - 🌐 **3 plateformes supportées** : AniList, MyAnimeList et Nautiljon
 - 🖼️ **Arrière-plans personnalisés** avec le dernier anime regardé
 - 📊 **Statistiques détaillées** : animes vus, mangas lus, notes moyennes
 - 🚀 **Génération rapide** avec cache intelligent
 - 📱 **Interface responsive** et moderne
+- 🔒 **Conformité RGPD** avec gestion des demandes de suppression de données
+- 📈 **Page tendances** avec carrousel et classement des cartes populaires
+- 🛡️ **Panel d'administration** complet avec gestion des cron jobs, logs, statistiques et paramètres
+- 🌓 **Thème light/dark** avec animation de transition circulaire (View Transitions API)
 - 🐳 **Déploiement Docker** prêt à l'emploi
 
 ## 🎯 Types de cartes
 
-| Type | Taille | Description | Icône |
-|------|--------|-------------|-------|
-| **Petite** | 400×200 | Avatar + pseudo + 3 derniers animes | 🎌 |
-| **Moyenne** | 600×300 | Avatar + stats + derniers animes/mangas | 📊 |
-| **Grande** | 800×500 | Profil complet avec images | 🖼️ |
-| **Résumé** | 800×600 | Profil complet avec stats détaillées | 📈 |
+| Type | Taille | Description |
+|------|--------|-------------|
+| **Small** | 400×200 | Avatar + pseudo + 3 derniers animes |
+| **Medium** | 600×300 | Avatar + stats + derniers animes/mangas |
+| **Large** | 800×500 | Profil complet avec images |
+| **Summary** | 800×600 | Profil complet avec stats détaillées |
+| **Neon** | — | Style cyberpunk avec effets néon |
+| **Minimal** | — | Design épuré et minimaliste |
+| **Glassmorphism** | — | Effet verre dépoli moderne |
 
 ## 🌐 Plateformes supportées
 
@@ -60,6 +70,7 @@
 </div>
 
 ## Exemple
+
 ![](https://cma.ascencia.re/card?platform=anilist&username=PedroKarim64&type=small)
 
 ## 🚀 Installation et utilisation
@@ -68,7 +79,7 @@
 
 - [Bun](https://bun.sh/) (recommandé) ou Node.js 18+
 - [Docker](https://docker.com/) (optionnel)
-- Base de données (SQLite, PostgreSQL)
+- Base de données (SQLite ou PostgreSQL)
 
 ### Installation rapide
 
@@ -118,14 +129,27 @@ chmod +x deploy.sh
 DATABASE_URL="file:./dev.db"  # SQLite
 # ou
 DATABASE_URL="postgresql://user:password@localhost:5432/cardmyanime"  # PostgreSQL
+DIRECT_URL="postgresql://user:password@localhost:5432/cardmyanime"    # Pour les migrations Prisma
 
 # NextAuth
 NEXTAUTH_SECRET="your-secret-key"
 NEXTAUTH_URL="http://localhost:3000"
 
-# Discord OAuth (optionnel)
+# Discord OAuth
 DISCORD_CLIENT_ID="your-discord-client-id"
 DISCORD_CLIENT_SECRET="your-discord-client-secret"
+
+# Utilisateurs admin autorisés (IDs Discord séparés par des virgules)
+AUTHORIZED_USERS="123456789012345678"
+
+# reCAPTCHA
+NEXT_PUBLIC_RECAPTCHA_SITE_KEY="your-site-key"
+RECAPTCHA_SECRET_KEY="your-secret-key"
+
+# Cron Scheduler
+CRON_SCHEDULER_ENABLED=false       # true en production
+CRON_POLL_INTERVAL_MS=30000
+CRON_COMMAND_TIMEOUT_MS=120000
 
 # Port
 PORT=3000
@@ -138,79 +162,129 @@ Le projet supporte plusieurs bases de données :
 - **SQLite** : Parfait pour le développement local
 - **PostgreSQL** : Recommandé pour la production
 
-Voir [DATABASE_SETUP.md](DATABASE_SETUP.md) pour la configuration détaillée.
+Voir la [documentation complète](docs/) pour plus de détails :
+- [Architecture](docs/ARCHITECTURE.md) - Services, génération de cartes, providers
+- [API](docs/API.md) - Référence complète des endpoints
+- [Base de données](docs/DATABASE.md) - Schéma Prisma, setup SQLite/PostgreSQL
+- [Déploiement](docs/DEPLOYMENT.md) - Docker, variables d'environnement
+- [Authentification](docs/AUTHENTICATION.md) - Configuration Discord OAuth
 
 ## 🏗️ Architecture
 
 ```
 src/
-├── app/                    # Pages Next.js App Router
-│   ├── api/               # Routes API
-│   │   ├── auth/          # Authentification NextAuth
-│   │   ├── health/        # Health check
-│   │   └── trpc/          # API tRPC
-│   ├── about/             # Page à propos
-│   ├── contact/           # Page contact
-│   └── ranking/           # Page classement
-├── components/            # Composants React
-│   ├── ui/               # Composants UI de base
-│   └── CardPreview.tsx   # Prévisualisation des cartes
-├── lib/                  # Logique métier
-│   ├── cards/            # Générateurs de cartes
-│   ├── providers/        # Intégrations plateformes
-│   ├── services/         # Services (cache, tracking)
-│   └── utils/            # Utilitaires
-└── server/               # Configuration serveur
-    └── trpc.ts          # Routes tRPC
+├── app/                          # Pages Next.js App Router
+│   ├── api/                      # Routes API
+│   │   ├── auth/                 # Authentification NextAuth
+│   │   ├── trpc/                 # API tRPC
+│   │   ├── admin/                # Endpoints admin
+│   │   ├── card/                 # Génération de cartes
+│   │   ├── health/               # Health check
+│   │   ├── og/                   # Images Open Graph
+│   │   └── recaptcha/            # Validation reCAPTCHA
+│   ├── admin/                    # Panel d'administration
+│   │   ├── cron/                 # Gestion des cron jobs
+│   │   ├── logs/                 # Logs de vues
+│   │   ├── stats/                # Statistiques
+│   │   ├── settings/             # Paramètres
+│   │   ├── trends/               # Gestion des tendances
+│   │   ├── data-deletion/        # Demandes de suppression RGPD
+│   │   └── profile/              # Profil utilisateur
+│   ├── ranking/                  # Page classement
+│   ├── tendances/                # Page tendances
+│   ├── about/                    # Page à propos
+│   ├── contact/                  # Page contact
+│   ├── terms/                    # Conditions d'utilisation
+│   ├── data-deletion/            # Demande de suppression (public)
+│   └── auth/                     # Pages d'authentification
+├── components/                   # Composants React
+│   ├── ui/                       # Composants UI (Radix UI)
+│   ├── tendances/                # Composants page tendances
+│   ├── CardPreview.tsx           # Prévisualisation des cartes
+│   ├── Navbar.tsx                # Barre de navigation
+│   ├── ShareOptions.tsx          # Options de partage
+│   └── ThemeToggle.tsx           # Bascule light/dark
+├── lib/                          # Logique métier
+│   ├── cards/                    # Générateurs de cartes (7 types)
+│   ├── providers/                # Intégrations plateformes (3)
+│   ├── services/                 # Services (cache, tracking, cron, settings)
+│   ├── trpc/                     # Configuration tRPC client/serveur
+│   └── utils/                    # Utilitaires (canvas, images, watermark, OG)
+├── server/                       # Configuration serveur
+│   └── trpc.ts                   # Routes tRPC
+└── hooks/                        # React hooks
 ```
 
 ## 🎨 Génération de cartes
 
-Le système utilise deux moteurs de rendu :
+Le système utilise **Canvas** pour le rendu des cartes côté serveur. Chaque type de carte a son propre générateur dédié avec un style distinct.
 
-1. **Canvas natif** : Pour les performances optimales
-2. **NapiRs Canvas** : Alternative haute performance avec Rust
+### 7 types disponibles
 
-### Types de cartes disponibles
-
-- **Small Card** : Format compact avec avatar et stats essentielles
-- **Medium Card** : Format équilibré avec plus de détails
-- **Large Card** : Format étendu avec profil complet
-- **Summary Card** : Format résumé avec statistiques détaillées
+- **Small** : Format compact avec avatar et stats essentielles
+- **Medium** : Format équilibré avec plus de détails
+- **Large** : Format étendu avec profil complet
+- **Summary** : Statistiques détaillées style GitHub Stats
+- **Neon** : Esthétique cyberpunk avec effets lumineux
+- **Minimal** : Design épuré, focus sur l'essentiel
+- **Glassmorphism** : Effet verre dépoli avec transparences
 
 ## 📊 Fonctionnalités avancées
 
 ### Cache intelligent
 - Cache des données utilisateur pour éviter les appels API répétés
+- Cache des données média (anime/manga) avec expiration configurable
 - Nettoyage automatique des données expirées
-- Tracking des vues avec système anti-spam
 
-### Système de vues
-- Compteur de vues 24h pour chaque carte générée
-- Protection contre le spam avec fingerprinting
+### Système de vues et tracking
+- Compteur de vues total et 24h pour chaque carte générée
+- Protection anti-spam avec fingerprinting et suivi IP
 - Logs détaillés pour l'administration
 
-### Administration
-- Interface d'administration pour gérer le cache
-- Statistiques de vues et logs
-- Nettoyage manuel des données
+### Page tendances
+- Carrousel des cartes les plus populaires
+- Bannières hero dynamiques
+- Vérification du contenu adulte
+- Snapshots des tendances pour l'historique
+
+### Conformité RGPD
+- Page publique de demande de suppression de données
+- Workflow complet côté admin (pending → processing → completed/rejected)
+- Suivi avec notes et historique
+
+### Panel d'administration
+
+Le panel admin (`/admin`) offre une gestion complète :
+
+- **Dashboard** : Statistiques en temps réel du cache et des vues
+- **Cron Jobs** : Création, édition, exécution manuelle et planification automatique
+- **Logs** : Historique détaillé des vues avec filtrage
+- **Statistiques** : Métriques d'utilisation de l'application
+- **Paramètres** : Expiration du cache, rétention des logs, mode maintenance, notifications
+- **Tendances** : Gestion et snapshots des tendances
+- **Suppression de données** : Traitement des demandes RGPD
 
 ## 🔧 Scripts disponibles
 
 ```bash
 # Développement
-bun dev              # Serveur de développement
-bun build            # Build de production
+bun dev              # Serveur de développement (Turbopack)
+bun build            # Build de production (Turbopack)
 bun start            # Serveur de production
+bun run lint         # Linting ESLint
+bun run test         # Tests Vitest
+bun run test:watch   # Tests en mode watch
 
 # Base de données
 bunx prisma generate # Générer le client Prisma
-bunx prisma db push  # Appliquer les migrations
-bunx prisma studio   # Interface d'administration
+bunx prisma db push  # Appliquer le schéma
+bunx prisma studio   # Interface d'administration BDD
 
 # Maintenance
 bun run reset-views24h      # Remettre à zéro les vues 24h
 bun run cleanup-view-logs   # Nettoyer les logs de vues
+bun run snapshot-trends     # Capturer un snapshot des tendances
+bun run populate            # Peupler la BDD avec des données de test
 ```
 
 ### 🔄 Jobs planifiés (admin)
@@ -218,14 +292,6 @@ bun run cleanup-view-logs   # Nettoyer les logs de vues
 Les jobs cron sont gérés directement dans l'admin via `/admin/cron` (création, édition, exécution manuelle, activation/désactivation).
 
 En production, un scheduler interne les exécute automatiquement selon leur champ `schedule`.
-
-Variables utiles :
-
-```bash
-CRON_SCHEDULER_ENABLED=true
-CRON_POLL_INTERVAL_MS=30000
-CRON_COMMAND_TIMEOUT_MS=120000
-```
 
 Notes :
 
@@ -247,6 +313,11 @@ docker compose logs -f
 docker compose down
 ```
 
+Le fichier `docker-compose.yml` inclut :
+- **PostgreSQL 17** Alpine avec health checks
+- **App Next.js** avec limites de ressources (512 Mo RAM, 0.5 CPUs)
+- Volumes persistants pour les données et les logs
+
 ### Script de déploiement
 
 Le script `deploy.sh` fournit des commandes pratiques :
@@ -260,6 +331,20 @@ Le script `deploy.sh` fournit des commandes pratiques :
 ./deploy.sh logs      # Voir les logs
 ./deploy.sh clean     # Nettoyage
 ```
+
+## 🛠️ Stack technique
+
+| Catégorie | Technologies |
+|-----------|-------------|
+| **Frontend** | Next.js 15 (App Router), React 19, TypeScript 5, Tailwind CSS 4 |
+| **UI** | Radix UI, Framer Motion, Lucide Icons |
+| **State** | tRPC + React Query, Nuqs (URL state) |
+| **Backend** | Next.js API Routes, tRPC |
+| **BDD** | Prisma 7.1, PostgreSQL 17 / SQLite |
+| **Auth** | NextAuth 5 (Discord OAuth) |
+| **Sécurité** | reCAPTCHA v2, fingerprinting |
+| **Tests** | Vitest |
+| **DevOps** | Docker, Bun, Turbopack, ESLint |
 
 ## 🤝 Contribution
 
@@ -299,5 +384,5 @@ Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de 
 
 <div align="center">
   <p>Fait avec ❤️ par <strong>PedroKarim64</strong></p>
-  <p>© 2024 Ascencia - Tous droits réservés</p>
+  <p>© 2024-2026 Ascencia - Tous droits réservés</p>
 </div>
