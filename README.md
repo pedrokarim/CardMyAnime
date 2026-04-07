@@ -59,6 +59,9 @@
   </table>
 </div>
 
+## Exemple
+![](https://cma.ascencia.re/card?platform=anilist&username=PedroKarim64&type=small)
+
 ## 🚀 Installation et utilisation
 
 ### Prérequis
