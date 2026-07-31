@@ -5,6 +5,7 @@
     "": {
       "name": "cardmyanime",
       "dependencies": {
+        "@ascencia/sarutobi-react": "^0.1.0-rc.4",
         "@auth/core": "^0.40.0",
         "@auth/nextjs": "^0.0.0-380f8d56",
         "@auth/prisma-adapter": "^2.11.1",
@@ -81,6 +82,10 @@
     "@asamuzakjp/dom-selector": ["@asamuzakjp/dom-selector@6.7.6", "", { "dependencies": { "@asamuzakjp/nwsapi": "^2.3.9", "bidi-js": "^1.0.3", "css-tree": "^3.1.0", "is-potential-custom-element-name": "^1.0.1", "lru-cache": "^11.2.4" } }, "sha512-hBaJER6A9MpdG3WgdlOolHmbOYvSk46y7IQN/1+iqiCuUu6iWdQrs9DGKF8ocqsEqWujWf/V7b7vaDgiUmIvUg=="],
 
     "@asamuzakjp/nwsapi": ["@asamuzakjp/nwsapi@2.3.9", "", {}, "sha512-n8GuYSrI9bF7FFZ/SjhwevlHc8xaVlb/7HmHelnc/PZXBD2ZR49NnN9sMMuDdEGPeeRQ5d0hqlSlEpgCX3Wl0Q=="],
+
+    "@ascencia/sarutobi-js": ["@ascencia/sarutobi-js@0.1.0-rc.4", "", {}, "sha512-p4d+QR2VHJ8UA4LJBOwEqMKtp69C5yLXoh61U/tqCRwRwVzvfkLN7wIfwnFlpanxU7HRaFHkR8JXXKlQKZVqHg=="],
+
+    "@ascencia/sarutobi-react": ["@ascencia/sarutobi-react@0.1.0-rc.4", "", { "dependencies": { "@ascencia/sarutobi-js": "0.1.0-rc.4" }, "peerDependencies": { "react": "^18 || ^19" } }, "sha512-nhBEb5Do6mSKYttODPGsR5e+HMlC5OtMLgHP04820CfSZKl3r1aHvjWlKrRK1s7iiC4Mu84IXpyuMfr+0u2pTw=="],
 
     "@auth/core": ["@auth/core@0.40.0", "", { "dependencies": { "@panva/hkdf": "^1.2.1", "jose": "^6.0.6", "oauth4webapi": "^3.3.0", "preact": "10.24.3", "preact-render-to-string": "6.5.11" }, "peerDependencies": { "@simplewebauthn/browser": "^9.0.1", "@simplewebauthn/server": "^9.0.2", "nodemailer": "^6.8.0" }, "optionalPeers": ["@simplewebauthn/browser", "@simplewebauthn/server", "nodemailer"] }, "sha512-n53uJE0RH5SqZ7N1xZoMKekbHfQgjd0sAEyUbE+IYJnmuQkbvuZnXItCU7d+i7Fj8VGOgqvNO7Mw4YfBTlZeQw=="],
 

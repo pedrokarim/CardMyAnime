@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PlatformIcon } from "@/components/ui/platform-icon";
+import { capturePartage } from "@/lib/analytics";
 
 interface ShareOptionsProps {
   shareableUrl: string;
@@ -32,6 +33,15 @@ export default function ShareOptions({
       await navigator.clipboard.writeText(content);
       setCopiedType(type);
       setTimeout(() => setCopiedType(null), 2000);
+      /*
+       * Après l'écriture, pas avant : une copie refusée par le navigateur —
+       * permission, contexte non sécurisé — n'est pas un partage, et c'est le
+       * seul cas où l'utilisateur repart les mains vides.
+       *
+       * Le format copié part, le contenu non : il porte le pseudo et l'URL de
+       * la carte.
+       */
+      capturePartage(type, cardType);
     } catch (error) {
       console.error("Erreur lors de la copie:", error);
     }

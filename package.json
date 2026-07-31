@@ -16,6 +16,7 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@ascencia/sarutobi-react": "^0.1.0-rc.4",
     "@auth/core": "^0.40.0",
     "@auth/nextjs": "^0.0.0-380f8d56",
     "@auth/prisma-adapter": "^2.11.1",

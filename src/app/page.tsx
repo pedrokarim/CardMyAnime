@@ -14,6 +14,7 @@ import { ButtonLoading } from "@/components/ui/loading";
 import { SITE_CONFIG } from "@/lib/constants";
 import Link from "next/link";
 import { CardStyleSvg } from "@/components/CardStyleSvg";
+import { captureCarteEchouee, captureCarteGeneree, captureEtape } from "@/lib/analytics";
 
 type Step = "platform" | "cardType" | "username" | "preview";
 
@@ -162,6 +163,7 @@ export default function HomePage() {
       if (result.success && result.data) {
         setUserData(result.data);
         await setCurrentStep("preview");
+        captureEtape("preview", { platform: platform ?? "", cardType });
         // Générer automatiquement la carte après avoir récupéré les données
         generateCardMutation.mutate({
           platform: platform as Platform,
@@ -171,12 +173,16 @@ export default function HomePage() {
         });
       } else {
         setError(result.error || "Erreur lors de la récupération des données");
+        // Motif catégorisé, jamais le message brut : il peut contenir le pseudo
+        // cherché, qui est l'identité d'une personne sur une plateforme tierce.
+        captureCarteEchouee(platform ?? "", "profil_introuvable");
       }
       setIsLoading(false);
     },
     onError: (error) => {
       console.error("Erreur tRPC:", error);
       setError("Erreur de connexion - Vérifiez le nom d'utilisateur");
+      captureCarteEchouee(platform ?? "", "erreur_reseau");
       setIsLoading(false);
     },
   });
@@ -188,11 +194,15 @@ export default function HomePage() {
           cardUrl: result.cardUrl,
           shareableUrl: result.shareableUrl,
         });
+        // Le pseudo saisi ne part pas : la plateforme et le format disent ce
+        // qui sert, l'identité de la personne n'apprend rien de plus.
+        captureCarteGeneree(platform ?? "", cardType);
         console.log("Carte générée automatiquement:", result.shareableUrl);
       }
     },
     onError: (error) => {
       console.error("Erreur lors de la génération automatique:", error);
+      captureCarteEchouee(platform ?? "", "generation_echouee");
     },
   });
 
@@ -254,9 +264,20 @@ export default function HomePage() {
     setError(null);
   };
 
+  /*
+   * Les quatre étapes partagent une seule URL — l'état vit dans la query
+   * string — donc aucune pageview ne les distingue. Sans ces événements, on
+   * saurait combien de gens ouvrent l'accueil et combien repartent avec une
+   * carte, mais jamais **où** les autres s'arrêtent.
+   */
   const goToNextStep = async () => {
-    if (currentStep === "platform") await setCurrentStep("cardType");
-    else if (currentStep === "cardType") await setCurrentStep("username");
+    if (currentStep === "platform") {
+      await setCurrentStep("cardType");
+      captureEtape("cardType", { platform: platform ?? "" });
+    } else if (currentStep === "cardType") {
+      await setCurrentStep("username");
+      captureEtape("username", { platform: platform ?? "", cardType });
+    }
   };
 
   const goToPreviousStep = async () => {
