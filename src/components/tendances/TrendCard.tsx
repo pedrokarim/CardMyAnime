@@ -87,8 +87,15 @@ export function TrendCard({
             alt={displayTitle}
             width={180}
             height={270}
-            className={`w-full h-full object-cover transition-[transform,filter] duration-500 ${
-              isBlurred ? "blur-xl scale-110" : "group-hover:scale-105"
+            // `scale` et non `transform` : Tailwind v4 compile scale-* vers la
+            // propriété CSS individuelle `scale`, pas vers `transform`. Lister
+            // `transform` ici transitionnait une propriété qui ne bouge jamais,
+            // et le zoom sautait d'un coup.
+            // motion-safe : sous mouvement réduit le zoom ne se déclenche pas
+            // du tout, plutôt que de sauter — la bordure et l'ombre suffisent
+            // comme retour visuel.
+            className={`w-full h-full object-cover transition-[scale,filter] duration-500 ${
+              isBlurred ? "blur-xl scale-110" : "motion-safe:group-hover:scale-105"
             }`}
             loading="lazy"
             onError={onImgError}

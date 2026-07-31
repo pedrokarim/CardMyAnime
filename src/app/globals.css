@@ -154,24 +154,26 @@
 }
 
 /* Mouvement réduit.
-   Couvre les transitions et animations CSS (zooms au survol, révélation du
-   theme toggle, etc.). Les animations pilotées par framer-motion, elles, sont
-   traitées par <MotionConfig reducedMotion="user"> dans providers.tsx : ce
-   sont des styles inline en JS, qu'une règle CSS ne peut pas neutraliser.
-   On ne met pas les durées à zéro : une durée infime laisse les callbacks de
-   fin de transition se déclencher normalement. */
+   Volontairement ciblé, et surtout PAS un `transition-duration: 0.01ms` sur
+   `*` : écraser toutes les durées ne supprime pas le mouvement, ça le rend
+   instantané — donc brutal, ce qui est le contraire du but recherché. Et ça
+   emporte au passage les fondus de couleur ou d'opacité, que la spec ne vise
+   pas et qui restent un retour visuel utile.
+   Le mouvement est donc neutralisé à la source :
+     - zooms au survol      -> variante `motion-safe:` sur les composants
+     - animations framer    -> <MotionConfig reducedMotion="user"> (providers)
+     - défilement carrousel -> useReducedMotion() dans HeroBannerCarousel
+   Ne restent ici que les mouvements purement CSS qu'on ne peut pas court-circuiter
+   ailleurs. */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-
+  /* Balayage circulaire plein écran du changement de thème : c'est le
+     déplacement le plus large de tout le site. Le thème bascule net. */
   ::view-transition-old(root),
   ::view-transition-new(root) {
     animation: none !important;
+  }
+
+  html {
+    scroll-behavior: auto !important;
   }
 }

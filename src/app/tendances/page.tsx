@@ -382,8 +382,10 @@ function CompactCard({
           alt={title}
           width={300}
           height={400}
-          className={`w-full h-full object-cover transition-[transform,filter] duration-500 ${
-            isBlurred ? "blur-xl scale-110" : "group-hover:scale-105"
+          // `scale` : Tailwind v4 compile scale-* vers la propriété CSS
+          // individuelle `scale`, pas vers `transform`.
+          className={`w-full h-full object-cover transition-[scale,filter] duration-500 ${
+            isBlurred ? "blur-xl scale-110" : "motion-safe:group-hover:scale-105"
           }`}
           loading="lazy"
           onError={onImgError}

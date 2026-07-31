@@ -67,7 +67,9 @@ export function ThemeToggle({ className }: { className?: string }) {
       <Sun
         aria-hidden="true"
         className={cn(
-          "h-5 w-5 transition-[transform,opacity] duration-300",
+          // rotate-* et scale-* compilent vers les propriétés CSS `rotate` et
+          // `scale` en Tailwind v4, pas vers `transform`.
+          "h-5 w-5 transition-[rotate,scale,opacity] duration-300",
           isDark ? "rotate-90 scale-0 opacity-0" : "rotate-0 scale-100 opacity-100"
         )}
         style={{ position: isDark ? "absolute" : "relative" }}
@@ -75,7 +77,9 @@ export function ThemeToggle({ className }: { className?: string }) {
       <Moon
         aria-hidden="true"
         className={cn(
-          "h-5 w-5 transition-[transform,opacity] duration-300",
+          // rotate-* et scale-* compilent vers les propriétés CSS `rotate` et
+          // `scale` en Tailwind v4, pas vers `transform`.
+          "h-5 w-5 transition-[rotate,scale,opacity] duration-300",
           isDark ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-0 opacity-0"
         )}
         style={{ position: !isDark ? "absolute" : "relative" }}
