@@ -65,7 +65,10 @@ export function TrendCard({
         onClick={isBlurred ? onAdultClick : undefined}
       >
         {/* Cover left - with title/studio overlay like anichart */}
-        <div className="relative w-[140px] lg:w-[180px] shrink-0 self-stretch">
+        {/* overflow-hidden : le zoom au survol (et le flou du contenu adulte)
+            doivent être recadrés sur la jaquette, sinon l'image déborde du
+            dégradé de lisibilité, qui lui reste calé sur ce conteneur. */}
+        <div className="relative w-[140px] lg:w-[180px] shrink-0 self-stretch overflow-hidden">
           <img
             src={coverSrc}
             alt={displayTitle}
