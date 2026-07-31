@@ -18,10 +18,14 @@ export function AdultContentModal({ open, onConfirm, onCancel }: AdultContentMod
   const previouslyFocused = useRef<HTMLElement | null>(null);
 
   // Gardé dans une ref : les appelants passent souvent une lambda inline, dont
-  // l'identité change à chaque rendu. La mettre en dépendance relancerait
-  // l'effet et restaurerait le focus au mauvais moment.
+  // l'identité change à chaque rendu. La mettre en dépendance de l'effet
+  // ci-dessous le relancerait et restaurerait le focus au mauvais moment.
+  // La mise à jour se fait dans un effet et non pendant le rendu : muter une
+  // ref en cours de rendu casse le rendu concurrent.
   const onCancelRef = useRef(onCancel);
-  onCancelRef.current = onCancel;
+  useEffect(() => {
+    onCancelRef.current = onCancel;
+  }, [onCancel]);
 
   useEffect(() => {
     if (!open) return;
