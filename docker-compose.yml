@@ -46,8 +46,18 @@ services:
     env_file:
       - .env
     # Configuration pour la santé de l'application
+    # Sonde avec node plutôt que wget : l'image standalone n'embarque pas wget,
+    # la sonde échouait donc systématiquement ("executable file not found") et
+    # le conteneur restait marqué unhealthy en permanence, alors que
+    # /api/health répondait bien. node est déjà là, ça n'ajoute aucun poids.
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:${PORT:-3000}/api/health"]
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
