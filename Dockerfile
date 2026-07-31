@@ -122,4 +122,18 @@ ENV CRON_COMMAND_TIMEOUT_MS=120000
 
 # Script de démarrage avec initialisation de la DB
 # Utilise le binaire Prisma directement pour éviter les problèmes npm
-CMD ./node_modules/.bin/prisma db push && node server.js
+#
+# `migrate deploy` et non `db push` : db push compare le schéma à la base et
+# DEVINE les changements. Un renommage lui apparaît comme « supprimer une
+# colonne, en créer une autre », donc il refuse de continuer tant qu'on n'a pas
+# confirmé la perte — au démarrage du conteneur, et comme la commande est
+# enchaînée en `&&`, le serveur ne se lève jamais. Le site tombe en boucle de
+# crash pour un changement pourtant volontaire (vécu lors du passage de
+# MediaCache.expiresAt à refreshAfter).
+#
+# migrate deploy applique des fichiers SQL écrits et relus à l'avance. Il ne
+# devine rien, ne pose aucune question, et n'applique jamais une suppression
+# qu'on n'a pas écrite soi-même dans prisma/migrations/. La sécurité sur les
+# données est donc renforcée, pas contournée : la décision se prend en écrivant
+# la migration, pas à chaud pendant un déploiement.
+CMD ./node_modules/.bin/prisma migrate deploy && node server.js
