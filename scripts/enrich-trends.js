@@ -15,6 +15,7 @@ const {
   isRefreshDue,
   computeBackoffAfterFailure,
 } = require("./utils/mediaCachePolicy");
+const { cleanDescription } = require("./utils/mediaText");
 
 const ANILIST_API_URL = "https://graphql.anilist.co";
 const REQUEST_DELAY_MS = 350; // safe margin for 90 req/min
@@ -150,11 +151,9 @@ async function searchMediaWithRetry(title, type, logger) {
   return { result: null, usedVariant: null, attempts: variants.length };
 }
 
-function truncateDescription(desc, maxLen = 200) {
-  if (!desc) return null;
-  if (desc.length <= maxLen) return desc;
-  return desc.slice(0, maxLen).replace(/\s+\S*$/, "") + "...";
-}
+// Le nettoyage HTML + la troncature vivent dans utils/mediaText.js, partagés
+// avec le service TS pour que les deux chemins d'écriture stockent la même
+// chose.
 
 async function searchMedia(title, type) {
   const response = await fetch(ANILIST_API_URL, {
@@ -186,7 +185,7 @@ function mediaToEnriched(result) {
     title: result.title,
     genres: result.genres,
     studios: result.studios.nodes,
-    description: truncateDescription(result.description),
+    description: cleanDescription(result.description),
     format: result.format,
     episodes: result.episodes,
     chapters: result.chapters,

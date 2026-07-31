@@ -4,6 +4,7 @@ import {
   isRefreshDue,
   computeBackoffAfterFailure,
 } from "../../../scripts/utils/mediaCachePolicy";
+import { cleanDescription } from "../../../scripts/utils/mediaText";
 
 const REQUEST_DELAY_MS = 250; // AniList rate limit: 90 req/min
 
@@ -35,11 +36,6 @@ function normalizeTitle(title: string): string {
   return title.toLowerCase().trim();
 }
 
-function truncateDescription(desc: string | null, maxLen = 200): string | null {
-  if (!desc) return null;
-  if (desc.length <= maxLen) return desc;
-  return desc.slice(0, maxLen).replace(/\s+\S*$/, "") + "...";
-}
 
 function mediaResultToEnriched(result: AniListMediaResult): EnrichedMediaData {
   return {
@@ -49,7 +45,7 @@ function mediaResultToEnriched(result: AniListMediaResult): EnrichedMediaData {
     title: result.title,
     genres: result.genres,
     studios: result.studios.nodes,
-    description: truncateDescription(result.description),
+    description: cleanDescription(result.description),
     format: result.format,
     episodes: result.episodes,
     chapters: result.chapters,
