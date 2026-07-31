@@ -58,12 +58,25 @@ export function TrendCard({
   const isAdult = enriched?.isAdult === true;
   const isBlurred = isAdult && !isAdultUnlocked;
 
+  // Les libellés arrivent au pluriel ("viewers", "lecteurs") : on retire le
+  // « s » au singulier, sinon on affiche « 1 viewers ».
+  const countLabelDisplay =
+    count > 1 ? countLabel : countLabel.replace(/s$/, "");
+
   return (
     <motion.div variants={cardItemVariants} className="group">
-      <div
-        className={`flex bg-card/60 rounded-xl overflow-hidden border border-border/40 hover:border-primary/30 hover:shadow-xl transition-all duration-300 h-full ${isBlurred ? "cursor-pointer" : ""}`}
-        onClick={isBlurred ? onAdultClick : undefined}
-      >
+      <div className="relative flex bg-card/60 rounded-xl overflow-hidden border border-border/40 hover:border-primary/30 hover:shadow-xl transition-[border-color,box-shadow] duration-300 h-full">
+        {/* Déverrouillage 18+ : un vrai <button> en superposition plutôt qu'un
+            onClick sur le conteneur. Focusable, activable au clavier, et
+            annoncé comme une action — un <div> cliquable ne l'est pas. */}
+        {isBlurred && (
+          <button
+            type="button"
+            onClick={onAdultClick}
+            aria-label={`Afficher le contenu adulte : ${displayTitle}`}
+            className="absolute inset-0 z-10 cursor-pointer rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset"
+          />
+        )}
         {/* Cover left - with title/studio overlay like anichart */}
         {/* overflow-hidden : le zoom au survol (et le flou du contenu adulte)
             doivent être recadrés sur la jaquette, sinon l'image déborde du
@@ -72,7 +85,9 @@ export function TrendCard({
           <img
             src={coverSrc}
             alt={displayTitle}
-            className={`w-full h-full object-cover transition-all duration-500 ${
+            width={180}
+            height={270}
+            className={`w-full h-full object-cover transition-[transform,filter] duration-500 ${
               isBlurred ? "blur-xl scale-110" : "group-hover:scale-105"
             }`}
             loading="lazy"
@@ -83,7 +98,10 @@ export function TrendCard({
           {isBlurred && (
             <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
               <div className="text-center">
-                <ShieldAlert className="w-8 h-8 text-red-400 mx-auto mb-1" />
+                <ShieldAlert
+                  aria-hidden="true"
+                  className="w-8 h-8 text-red-400 mx-auto mb-1"
+                />
                 <span className="text-[10px] font-medium text-white/80">18+</span>
               </div>
             </div>
@@ -124,12 +142,12 @@ export function TrendCard({
                   <div className="text-xs text-muted-foreground">
                     <div className="flex items-center gap-1.5 mb-0.5">
                       {countLabel === "viewers" ? (
-                        <Users className="w-3.5 h-3.5" />
+                        <Users aria-hidden="true" className="w-3.5 h-3.5" />
                       ) : (
-                        <BookOpen className="w-3.5 h-3.5" />
+                        <BookOpen aria-hidden="true" className="w-3.5 h-3.5" />
                       )}
-                      <span className="font-medium text-foreground">
-                        {count} {countLabel}
+                      <span className="font-medium text-foreground tabular-nums">
+                        {count} {countLabelDisplay}
                       </span>
                     </div>
                     {format && (
@@ -144,17 +162,22 @@ export function TrendCard({
 
                   {/* Right: score + rank */}
                   <div className="flex items-center gap-3 shrink-0">
-                    {scorePercent && (
+                    {/* != null et non pas la valeur brute : un score de 0
+                        est falsy et disparaîtrait de l'affichage. */}
+                    {scorePercent != null && (
                       <div className="flex items-center gap-1">
-                        <Star className="w-3.5 h-3.5 text-green-400 fill-green-400" />
-                        <span className="text-xs font-semibold text-green-400">
+                        <Star
+                          aria-hidden="true"
+                          className="w-3.5 h-3.5 text-green-400 fill-green-400"
+                        />
+                        <span className="text-xs font-semibold text-green-400 tabular-nums">
                           {scorePercent}%
                         </span>
                       </div>
                     )}
                     <div className="flex items-center gap-1">
-                      <Heart className="w-3.5 h-3.5 text-red-400" />
-                      <span className="text-xs font-semibold text-muted-foreground">
+                      <Heart aria-hidden="true" className="w-3.5 h-3.5 text-red-400" />
+                      <span className="text-xs font-semibold text-muted-foreground tabular-nums">
                         #{rank}
                       </span>
                     </div>

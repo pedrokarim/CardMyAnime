@@ -75,8 +75,8 @@ export function EmptyState() {
           {BACKDROP_IMAGES.map((_, i) => (
             <div
               key={i}
-              className={`w-1.5 h-1.5 rounded-full transition-all duration-500 ${
-                i === current ? "bg-orange-500 w-4" : "bg-white/20"
+              className={`h-1.5 rounded-full transition-[width,background-color] duration-500 ${
+                i === current ? "bg-orange-500 w-4" : "bg-white/20 w-1.5"
               }`}
             />
           ))}

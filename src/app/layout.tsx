@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
@@ -56,6 +56,18 @@ export const metadata: Metadata = {
   verification: {
     google: "i_GLyVEAubN9keZoMX6Kk8-T8XyldPJ8zXc1atDYv-k",
   },
+};
+
+/**
+ * Teinte de la barre d'adresse mobile. Les valeurs correspondent aux
+ * --background de globals.css (oklch(1 0 0) et oklch(0.16 0.005 260))
+ * converties en sRGB, pour que la barre se fonde dans la page.
+ */
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0c0d0f" },
+  ],
 };
 
 export default function RootLayout({

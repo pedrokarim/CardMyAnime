@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Users, Star } from "lucide-react";
 import { getGenreColor } from "@/lib/utils/genreColors";
 import type { EnrichedMediaData } from "@/lib/services/mediaEnrichment";
@@ -38,6 +38,8 @@ export function HeroBannerCarousel({ animes }: HeroBannerCarouselProps) {
 
   const [current, setCurrent] = useState(0);
   const [direction, setDirection] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const shouldReduceMotion = useReducedMotion();
 
   const goTo = useCallback(
     (index: number) => {
@@ -49,12 +51,18 @@ export function HeroBannerCarousel({ animes }: HeroBannerCarouselProps) {
 
   useEffect(() => {
     if (slides.length < 2) return;
+    // Le défilement automatique s'arrête au survol et au focus clavier, et ne
+    // démarre pas du tout si l'utilisateur demande un mouvement réduit : un
+    // carrousel qui tourne seul toutes les 8 s est précisément ce qu'il veut
+    // éviter.
+    if (isPaused || shouldReduceMotion) return;
+
     const timer = setInterval(() => {
       setDirection(1);
       setCurrent((prev) => (prev + 1) % slides.length);
     }, 8000);
     return () => clearInterval(timer);
-  }, [slides.length]);
+  }, [slides.length, isPaused, shouldReduceMotion]);
 
   if (slides.length === 0) return null;
 
@@ -66,6 +74,9 @@ export function HeroBannerCarousel({ animes }: HeroBannerCarouselProps) {
         <img
           src={slide.bannerImage}
           alt={slide.title}
+          width={1900}
+          height={600}
+          fetchPriority="high"
           className="w-full h-full object-cover"
         />
         {/* Netflix-style gradient: strong dark bottom fading to transparent */}
@@ -93,7 +104,16 @@ export function HeroBannerCarousel({ animes }: HeroBannerCarouselProps) {
   };
 
   return (
-    <div className="relative h-[400px] sm:h-[500px] lg:h-[600px] overflow-hidden">
+    <div
+      className="relative h-[400px] sm:h-[500px] lg:h-[600px] overflow-hidden"
+      role="region"
+      aria-roledescription="carrousel"
+      aria-label="Animes en tendance"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      onFocusCapture={() => setIsPaused(true)}
+      onBlurCapture={() => setIsPaused(false)}
+    >
       <AnimatePresence initial={false} custom={direction} mode="popLayout">
         <motion.div
           key={current}
@@ -108,6 +128,9 @@ export function HeroBannerCarousel({ animes }: HeroBannerCarouselProps) {
           <motion.img
             src={slides[current].bannerImage}
             alt={slides[current].title}
+            width={1900}
+            height={600}
+            fetchPriority="high"
             className="w-full h-full object-cover"
             initial={{ scale: 1 }}
             animate={{ scale: 1.1, x: -10, y: -5 }}
@@ -127,13 +150,13 @@ export function HeroBannerCarousel({ animes }: HeroBannerCarouselProps) {
         {slides.map((_, i) => (
           <button
             key={i}
+            type="button"
             onClick={() => goTo(i)}
-            className={`w-2 h-2 rounded-full transition-all duration-300 ${
-              i === current
-                ? "bg-white w-6"
-                : "bg-white/40 hover:bg-white/60"
+            className={`h-2 rounded-full transition-[width,background-color] duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black/40 ${
+              i === current ? "bg-white w-6" : "bg-white/40 hover:bg-white/60 w-2"
             }`}
-            aria-label={`Slide ${i + 1}`}
+            aria-label={`Aller à la diapositive ${i + 1} sur ${slides.length}`}
+            aria-current={i === current}
           />
         ))}
       </div>
@@ -184,13 +207,16 @@ function SlideOverlay({ slide }: { slide: HeroSlide }) {
 
         {/* Stats row */}
         <div className="flex items-center justify-center gap-4 text-sm text-white/80">
-          <span className="flex items-center gap-1.5">
-            <Users className="w-4 h-4" />
+          <span className="flex items-center gap-1.5 tabular-nums">
+            <Users aria-hidden="true" className="w-4 h-4" />
             {slide.viewers} viewer{slide.viewers > 1 ? "s" : ""}
           </span>
-          {score && (
-            <span className="flex items-center gap-1.5">
-              <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+          {score != null && (
+            <span className="flex items-center gap-1.5 tabular-nums">
+              <Star
+                aria-hidden="true"
+                className="w-4 h-4 text-amber-400 fill-amber-400"
+              />
               {score}
             </span>
           )}

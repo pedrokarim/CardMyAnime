@@ -5,13 +5,14 @@ import { trpc } from "@/lib/trpc/client";
 import { PageLoading } from "@/components/ui/loading";
 import { motion } from "framer-motion";
 import { useState, useCallback } from "react";
+import { useQueryState, parseAsStringLiteral } from "nuqs";
 import { HeroBannerCarousel } from "@/components/tendances/HeroBannerCarousel";
 import { TrendCard } from "@/components/tendances/TrendCard";
 import { EmptyState } from "@/components/tendances/EmptyState";
 import { AdultContentModal } from "@/components/tendances/AdultContentModal";
 import { cardContainerVariants } from "@/components/tendances/animations";
 
-type ViewMode = "grid" | "compact";
+const VIEW_MODES = ["grid", "compact"] as const;
 
 const ADULT_STORAGE_KEY = "cardmyanime_adult_verified";
 
@@ -34,7 +35,15 @@ function setAdultVerified() {
 export default function TendancesPage() {
   const { data, isLoading, error } = trpc.getTrends.useQuery();
   const [imgErrors, setImgErrors] = useState<Set<string>>(new Set());
-  const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  // Dans l'URL plutôt qu'en état local : la vue choisie survit au rechargement
+  // et se partage par lien. `history: "replace"` évite de polluer le bouton
+  // Retour avec chaque bascule.
+  const [viewMode, setViewMode] = useQueryState(
+    "vue",
+    parseAsStringLiteral(VIEW_MODES).withDefault("grid").withOptions({
+      history: "replace",
+    })
+  );
   const [adultUnlocked, setAdultUnlocked] = useState(() => getAdultVerified());
   const [showAdultModal, setShowAdultModal] = useState(false);
 
@@ -125,25 +134,31 @@ export default function TendancesPage() {
           {/* View toggle */}
           <div className="flex items-center gap-1 p-1 rounded-lg bg-muted/50 border border-border/50">
             <button
+              type="button"
               onClick={() => setViewMode("grid")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+              aria-pressed={viewMode === "grid"}
+              aria-label="Vue grille"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-[background-color,color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                 viewMode === "grid"
                   ? "bg-background text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              <LayoutGrid className="w-4 h-4" />
+              <LayoutGrid aria-hidden="true" className="w-4 h-4" />
               <span className="hidden sm:inline">Grille</span>
             </button>
             <button
+              type="button"
               onClick={() => setViewMode("compact")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+              aria-pressed={viewMode === "compact"}
+              aria-label="Vue compacte"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-[background-color,color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                 viewMode === "compact"
                   ? "bg-background text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              <Rows3 className="w-4 h-4" />
+              <Rows3 aria-hidden="true" className="w-4 h-4" />
               <span className="hidden sm:inline">Compact</span>
             </button>
           </div>
@@ -350,14 +365,24 @@ function CompactCard({
       transition={{ delay }}
       className="group"
     >
-      <div
-        className={`relative aspect-[3/4] rounded-xl overflow-hidden bg-muted border border-border/50 shadow-sm group-hover:shadow-lg group-hover:border-primary/30 transition-all duration-300 ${isBlurred ? "cursor-pointer" : ""}`}
-        onClick={isBlurred ? onAdultClick : undefined}
-      >
+      <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-muted border border-border/50 shadow-sm group-hover:shadow-lg group-hover:border-primary/30 transition-[border-color,box-shadow] duration-300">
+        {/* Déverrouillage 18+ : bouton en superposition, focusable et activable
+            au clavier — contrairement à un onClick posé sur le conteneur. */}
+        {isBlurred && (
+          <button
+            type="button"
+            onClick={onAdultClick}
+            aria-label={`Afficher le contenu adulte : ${title}`}
+            className="absolute inset-0 z-10 cursor-pointer rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset"
+          />
+        )}
+
         <img
           src={coverUrl}
           alt={title}
-          className={`w-full h-full object-cover transition-all duration-500 ${
+          width={300}
+          height={400}
+          className={`w-full h-full object-cover transition-[transform,filter] duration-500 ${
             isBlurred ? "blur-xl scale-110" : "group-hover:scale-105"
           }`}
           loading="lazy"
@@ -368,7 +393,10 @@ function CompactCard({
           /* Adult overlay for compact card */
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
             <div className="text-center">
-              <ShieldAlert className="w-8 h-8 text-red-400 mx-auto mb-1.5" />
+              <ShieldAlert
+                aria-hidden="true"
+                className="w-8 h-8 text-red-400 mx-auto mb-1.5"
+              />
               <span className="text-xs font-medium text-white/80">18+</span>
             </div>
           </div>
@@ -392,10 +420,13 @@ function CompactCard({
               </div>
             )}
 
-            {score && (
+            {score != null && (
               <div className="absolute top-2 right-2 flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-black/60 backdrop-blur-sm">
-                <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
-                <span className="text-[11px] font-medium text-white">
+                <Star
+                  aria-hidden="true"
+                  className="w-3 h-3 text-amber-400 fill-amber-400"
+                />
+                <span className="text-[11px] font-medium text-white tabular-nums">
                   {score}%
                 </span>
               </div>
@@ -407,12 +438,12 @@ function CompactCard({
               </h3>
               <div className="flex items-center gap-1 text-white/70">
                 {countLabel === "viewers" ? (
-                  <Users className="w-3 h-3" />
+                  <Users aria-hidden="true" className="w-3 h-3" />
                 ) : (
-                  <BookOpen className="w-3 h-3" />
+                  <BookOpen aria-hidden="true" className="w-3 h-3" />
                 )}
-                <span className="text-[11px]">
-                  {count} {countLabel}
+                <span className="text-[11px] tabular-nums">
+                  {count} {count > 1 ? countLabel : countLabel.replace(/s$/, "")}
                 </span>
               </div>
             </div>

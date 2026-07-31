@@ -44,6 +44,10 @@
 }
 
 :root {
+  /* Indique au navigateur la teinte des UI natives (ascenseurs, <select>,
+     champs de formulaire). Sans ça, le thème sombre garde des ascenseurs
+     et des contrôles clairs. */
+  color-scheme: light;
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -79,6 +83,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --background: oklch(0.16 0.005 260);
   --foreground: oklch(0.93 0 0);
   --card: oklch(0.19 0.005 260);
@@ -145,5 +150,28 @@
   to {
     clip-path: circle(150% at var(--x, 50%) var(--y, 50%));
     opacity: 1;
+  }
+}
+
+/* Mouvement réduit.
+   Couvre les transitions et animations CSS (zooms au survol, révélation du
+   theme toggle, etc.). Les animations pilotées par framer-motion, elles, sont
+   traitées par <MotionConfig reducedMotion="user"> dans providers.tsx : ce
+   sont des styles inline en JS, qu'une règle CSS ne peut pas neutraliser.
+   On ne met pas les durées à zéro : une durée infime laisse les callbacks de
+   fin de transition se déclencher normalement. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
   }
 }
