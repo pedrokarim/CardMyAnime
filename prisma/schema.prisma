@@ -176,15 +176,25 @@ model CronJob {
   @@index([enabled])
 }
 
+/// Base de connaissance des œuvres, alimentée au fil des tendances.
+/// Une fiche récupérée n'est jamais supprimée ni ignorée : elle est servie
+/// indéfiniment. Seule sa fraîcheur est rafraîchie, et uniquement quand ça
+/// vaut le coup (cf. scripts/utils/mediaCachePolicy.js).
 model MediaCache {
-  id          String   @id @default(cuid())
-  title       String   @unique
-  anilistId   Int?
-  type        String
-  data        String
-  lastFetched DateTime @default(now())
-  expiresAt   DateTime
+  id           String    @id @default(cuid())
+  title        String    @unique
+  anilistId    Int?
+  type         String
+  data         String
+  /// Statut AniList (RELEASING, FINISHED, ...) : pilote la cadence de rafraîchissement.
+  status       String?
+  lastFetched  DateTime  @default(now())
+  /// Date à partir de laquelle il vaut le coup de redemander la fiche à AniList.
+  /// Ce n'est PAS une expiration : une fiche dont la date est passée reste
+  /// affichée, elle est juste candidate au rafraîchissement. null = jamais planifié.
+  refreshAfter DateTime?
 
-  @@index([expiresAt])
+  @@index([refreshAfter])
   @@index([type])
+  @@index([status])
 }

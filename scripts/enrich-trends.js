@@ -1,16 +1,22 @@
 #!/usr/bin/env node
 
 // Script pour pré-enrichir les données de tendances via l'API AniList
-// Remplit la table MediaCache pour que la page /tendances charge instantanément
+// Alimente la table MediaCache pour que la page /tendances charge instantanément.
+// Le cache n'expire jamais : une fiche déjà connue est conservée et seulement
+// rafraîchie quand ça vaut le coup (cf. utils/mediaCachePolicy.js).
 // Commande cron : node scripts/enrich-trends.js
 
 const { PrismaClient } = require("@prisma/client");
 const { PrismaPg } = require("@prisma/adapter-pg");
 const { Pool } = require("pg");
 const MonthlyLogger = require("./utils/logger");
+const {
+  computeRefreshAfter,
+  isRefreshDue,
+  computeBackoffAfterFailure,
+} = require("./utils/mediaCachePolicy");
 
 const ANILIST_API_URL = "https://graphql.anilist.co";
-const CACHE_TTL_MS = 48 * 60 * 60 * 1000; // 48h
 const REQUEST_DELAY_MS = 350; // safe margin for 90 req/min
 
 const MEDIA_SEARCH_QUERY = `
@@ -319,28 +325,33 @@ async function enrichTrends() {
       `🎯 ${allTitles.length} titres uniques à enrichir (${animeMap.size} animes, ${mangaMap.size} mangas)`
     );
 
-    // 4. Vérifier le cache existant
+    // 4. Confronter les titres à ce qu'on connaît déjà.
+    //    Une fiche déjà connue n'est jamais re-téléchargée « pour rien » : on
+    //    ne rappelle AniList que si sa date de rafraîchissement est atteinte.
     const now = new Date();
     let cachedEntries = [];
     try {
       cachedEntries = await prisma.mediaCache.findMany({
-        where: {
-          title: { in: allTitles.map((t) => normalizeTitle(t.title)) },
-          expiresAt: { gt: now },
-        },
-        select: { title: true },
+        where: { title: { in: allTitles.map((t) => normalizeTitle(t.title)) } },
+        select: { title: true, refreshAfter: true },
       });
     } catch {
       await logger.warn("⚠️ Table MediaCache non disponible, on continue...");
     }
 
-    const alreadyCached = new Set(cachedEntries.map((e) => e.title));
-    const toFetch = allTitles.filter(
-      (t) => !alreadyCached.has(normalizeTitle(t.title))
+    const cacheParTitre = new Map(cachedEntries.map((e) => [e.title, e]));
+    const toFetch = allTitles.filter((t) =>
+      isRefreshDue(cacheParTitre.get(normalizeTitle(t.title)), now.getTime())
     );
 
+    const inconnus = toFetch.filter(
+      (t) => !cacheParTitre.has(normalizeTitle(t.title))
+    ).length;
+    const aJour = allTitles.length - toFetch.length;
+
     await logger.info(
-      `✅ ${alreadyCached.size} déjà en cache, ${toFetch.length} à récupérer`
+      `✅ ${aJour} servis depuis la base sans appel réseau, ${toFetch.length} à interroger ` +
+        `(${inconnus} inconnus, ${toFetch.length - inconnus} à rafraîchir)`
     );
 
     // 5. Enrichir depuis AniList avec rate limiting
@@ -372,6 +383,7 @@ async function enrichTrends() {
 
           const enriched = mediaToEnriched(result);
           const key = normalizeTitle(item.title);
+          const refreshAfter = computeRefreshAfter(enriched);
 
           try {
             await prisma.mediaCache.upsert({
@@ -380,15 +392,17 @@ async function enrichTrends() {
                 anilistId: result.id,
                 type: item.type,
                 data: JSON.stringify(enriched),
+                status: enriched.status,
                 lastFetched: now,
-                expiresAt: new Date(Date.now() + CACHE_TTL_MS),
+                refreshAfter,
               },
               create: {
                 title: key,
                 anilistId: result.id,
                 type: item.type,
                 data: JSON.stringify(enriched),
-                expiresAt: new Date(Date.now() + CACHE_TTL_MS),
+                status: enriched.status,
+                refreshAfter,
               },
             });
             fetched++;
@@ -399,6 +413,26 @@ async function enrichTrends() {
             errors++;
           }
         } else {
+          // Introuvable : on ne touche pas à une fiche déjà stockée, on se
+          // contente de repousser la prochaine tentative. Pour un titre encore
+          // inconnu, on pose un marqueur négatif qui évite de le redemander à
+          // chaque passage (il est lu comme « pas d'enrichissement »).
+          const key = normalizeTitle(item.title);
+          try {
+            await prisma.mediaCache.upsert({
+              where: { title: key },
+              update: { refreshAfter: computeBackoffAfterFailure() },
+              create: {
+                title: key,
+                type: item.type,
+                data: "null",
+                refreshAfter: computeBackoffAfterFailure(),
+              },
+            });
+          } catch {
+            // Le backoff est un confort, pas une obligation.
+          }
+
           await logger.warn(
             `❌ "${item.title}" introuvable après ${attempts} tentatives`
           );
@@ -431,25 +465,24 @@ async function enrichTrends() {
       }
     }
 
-    // 6. Nettoyage des entrées expirées
-    let cleaned = 0;
+    // 6. Aucune purge : la base de connaissance ne perd jamais une fiche.
+    //    Ce qui n'est plus en tendance reste stocké et sera resservi
+    //    instantanément, sans appel réseau, le jour où il y revient.
+    let totalConnu = 0;
     try {
-      const deleted = await prisma.mediaCache.deleteMany({
-        where: { expiresAt: { lt: now } },
-      });
-      cleaned = deleted.count;
+      totalConnu = await prisma.mediaCache.count();
     } catch {
       // Table might not exist
     }
 
     const statsData = {
       "Titres uniques": allTitles.length,
-      "Déjà en cache (valide)": alreadyCached.size,
+      "Servis sans appel réseau": aJour,
       "Récupérés depuis AniList": fetched,
       "Trouvés grâce au retry": retrySuccesses,
       Erreurs: errors,
       "Rate limited": rateLimited ? "Oui" : "Non",
-      "Entrées expirées nettoyées": cleaned,
+      "Fiches connues au total": totalConnu,
     };
 
     await logger.stats(statsData);

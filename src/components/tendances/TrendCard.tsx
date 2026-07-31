@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Star, Users, BookOpen, Heart, ShieldAlert } from "lucide-react";
 import { getGenreColor } from "@/lib/utils/genreColors";
 import {
-  formatTimeUntilAiring,
+  formatAiringCountdown,
   formatSeason,
   formatMediaFormat,
 } from "@/lib/utils/timeFormat";
@@ -47,6 +47,13 @@ export function TrendCard({
   );
   const coverSrc = enriched?.coverImage?.large ?? coverUrl;
   const scorePercent = enriched?.averageScore ?? (avgScore ? avgScore * 10 : null);
+
+  // Recalculé à l'affichage depuis la date absolue de diffusion : la fiche
+  // peut avoir été récupérée il y a longtemps, son `timeUntilAiring` figé
+  // serait faux. null = épisode déjà diffusé, on n'affiche rien.
+  const airingCountdown = enriched?.nextAiringEpisode
+    ? formatAiringCountdown(enriched.nextAiringEpisode.airingAt)
+    : null;
 
   const isAdult = enriched?.isAdult === true;
   const isBlurred = isAdult && !isAdultUnlocked;
@@ -152,10 +159,10 @@ export function TrendCard({
                 </div>
 
                 {/* Airing info */}
-                {enriched?.nextAiringEpisode && (
+                {enriched?.nextAiringEpisode && airingCountdown && (
                   <div className="text-xs text-green-400 mb-2">
                     Ep {enriched.nextAiringEpisode.episode} dans{" "}
-                    {formatTimeUntilAiring(enriched.nextAiringEpisode.timeUntilAiring)}
+                    {airingCountdown}
                   </div>
                 )}
 

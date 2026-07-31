@@ -478,7 +478,10 @@ export const appRouter = createTRPCRouter({
               : null,
         }));
 
-      // Lire l'enrichissement depuis le cache MediaCache (pré-calculé par le script enrich-trends.js)
+      // Lire l'enrichissement depuis MediaCache (pré-calculé par enrich-trends.js).
+      // Aucun filtre de fraîcheur : une fiche connue est toujours servie, même
+      // si elle attend un rafraîchissement. Une donnée un peu datée vaut
+      // largement mieux qu'une carte vide.
       const enrichedMap = new Map<string, any>();
       try {
         const allKeys = [
@@ -486,10 +489,7 @@ export const appRouter = createTRPCRouter({
           ...trendingMangas.map((m) => m.title.toLowerCase().trim()),
         ];
         const cachedMedia = await prisma.mediaCache.findMany({
-          where: {
-            title: { in: allKeys },
-            expiresAt: { gt: new Date() },
-          },
+          where: { title: { in: allKeys } },
         });
         for (const entry of cachedMedia) {
           try {

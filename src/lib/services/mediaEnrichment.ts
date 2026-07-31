@@ -1,7 +1,10 @@
 import { searchMedia, AniListMediaResult } from "../providers/anilist";
+import {
+  computeRefreshAfter,
+  isRefreshDue,
+  computeBackoffAfterFailure,
+} from "../../../scripts/utils/mediaCachePolicy";
 
-const CACHE_TTL_HOURS = 48;
-const CACHE_TTL_MS = CACHE_TTL_HOURS * 60 * 60 * 1000;
 const REQUEST_DELAY_MS = 250; // AniList rate limit: 90 req/min
 
 export interface EnrichedMediaData {
@@ -108,13 +111,21 @@ export class MediaEnrichmentService {
       const key = normalizeTitle(item.title);
       const cached = cacheMap.get(key);
 
-      if (cached && new Date(cached.expiresAt) > now) {
+      // Ce qu'on connaît déjà est posé tout de suite : si l'appel réseau
+      // échoue ou n'a pas lieu, c'est cette valeur qui sera servie.
+      let stored: EnrichedMediaData | null = null;
+      if (cached) {
         try {
-          results.set(key, JSON.parse(cached.data));
+          stored = JSON.parse(cached.data);
         } catch {
-          toFetch.push({ title: item.title, type: item.type, key });
+          stored = null;
         }
-      } else {
+      }
+      results.set(key, stored);
+
+      // On ne rappelle AniList que si la fiche est due au rafraîchissement
+      // (ou si on ne l'a jamais récupérée).
+      if (!stored || isRefreshDue(cached, now.getTime())) {
         toFetch.push({ title: item.title, type: item.type, key });
       }
     }
@@ -136,22 +147,39 @@ export class MediaEnrichmentService {
                 anilistId: result.id,
                 type: item.type,
                 data: JSON.stringify(enriched),
+                status: enriched.status,
                 lastFetched: now,
-                expiresAt: new Date(Date.now() + CACHE_TTL_MS),
+                refreshAfter: computeRefreshAfter(enriched),
               },
               create: {
                 title: item.key,
                 anilistId: result.id,
                 type: item.type,
                 data: JSON.stringify(enriched),
-                expiresAt: new Date(Date.now() + CACHE_TTL_MS),
+                status: enriched.status,
+                refreshAfter: computeRefreshAfter(enriched),
               },
             });
           } catch {
             // Cache write failure is non-critical
           }
         } else {
-          results.set(item.key, null);
+          // Introuvable : on garde ce qui était déjà stocké (déjà posé dans
+          // `results`) et on repousse simplement la prochaine tentative.
+          try {
+            await prisma.mediaCache.upsert({
+              where: { title: item.key },
+              update: { refreshAfter: computeBackoffAfterFailure() },
+              create: {
+                title: item.key,
+                type: item.type,
+                data: "null",
+                refreshAfter: computeBackoffAfterFailure(),
+              },
+            });
+          } catch {
+            // Cache write failure is non-critical
+          }
         }
 
         // Rate limit delay between requests
@@ -160,11 +188,12 @@ export class MediaEnrichmentService {
         }
       } catch (error: any) {
         if (error.message === "RATE_LIMITED") {
-          // Stop fetching on rate limit, remaining items get null
+          // On s'arrête là : les items restants gardent la valeur déjà
+          // stockée, on ne dégrade rien.
           console.warn("AniList rate limited, stopping enrichment");
           break;
         }
-        results.set(item.key, null);
+        // Échec réseau : on conserve ce qu'on avait déjà pour ce titre.
       }
     }
 

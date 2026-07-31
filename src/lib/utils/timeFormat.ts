@@ -9,6 +9,25 @@ export function formatTimeUntilAiring(seconds: number): string {
   return `${hours}h ${minutes}m`;
 }
 
+/**
+ * Compte à rebours calculé depuis `airingAt` (timestamp Unix absolu) plutôt
+ * que depuis le `timeUntilAiring` renvoyé par AniList.
+ *
+ * `timeUntilAiring` est figé au moment où la fiche a été récupérée : comme les
+ * fiches sont désormais conservées durablement, l'afficher tel quel donnerait
+ * un décompte faux, et même toujours positif après la diffusion. On recalcule
+ * donc à l'affichage. Retourne null quand l'épisode est déjà passé — la fiche
+ * n'a alors pas encore été rafraîchie et il n'y a rien d'utile à annoncer.
+ */
+export function formatAiringCountdown(
+  airingAt: number,
+  now: number = Date.now()
+): string | null {
+  const secondsLeft = Math.floor((airingAt * 1000 - now) / 1000);
+  if (secondsLeft <= 0) return null;
+  return formatTimeUntilAiring(secondsLeft);
+}
+
 const seasonLabels: Record<string, string> = {
   WINTER: "Hiver",
   SPRING: "Printemps",
