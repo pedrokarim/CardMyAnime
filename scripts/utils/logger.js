@@ -8,12 +8,27 @@
 const fs = require('fs').promises;
 const path = require('path');
 
+// Erreurs qu'un nouvel essai ne corrigera pas : droits, montage en lecture
+// seule, disque plein. Inutile de retenter à chaque ligne.
+const ERREURS_ECRITURE_DEFINITIVES = new Set([
+    'EACCES',
+    'EPERM',
+    'EROFS',
+    'ENOSPC',
+    'ENOTDIR',
+]);
+
 class MonthlyLogger {
     constructor(options = {}) {
         this.logsDir = options.logsDir || path.join(__dirname, '../../logs');
         this.maxMonthsToKeep = options.maxMonthsToKeep || 20;
         this.currentLogFile = null;
         this.currentMonth = null;
+        // Le log fichier est un confort, pas une dépendance : si le dossier
+        // n'est pas inscriptible on bascule sur la console, une bonne fois,
+        // au lieu de répéter la même erreur à chaque message.
+        this.fileLoggingDisabled = false;
+        this.writeErrorReported = false;
     }
 
     /**
@@ -25,7 +40,9 @@ class MonthlyLogger {
             await fs.mkdir(this.logsDir, { recursive: true });
         } catch (error) {
             if (error.code !== 'EEXIST') {
-                throw error;
+                // Un problème de logs ne doit jamais faire échouer le script
+                // appelant : on continue sans écriture fichier.
+                this.disableFileLogging(error);
             }
         }
 
@@ -37,7 +54,26 @@ class MonthlyLogger {
         this.currentLogFile = path.join(this.logsDir, `${this.currentMonth}.log`);
 
         // Nettoyer les anciens logs
-        await this.cleanupOldLogs();
+        if (!this.fileLoggingDisabled) {
+            await this.cleanupOldLogs();
+        }
+    }
+
+    /**
+     * Coupe l'écriture fichier après un échec, en ne le signalant qu'une fois.
+     * Sans ça une simple erreur de droits produit une ligne d'erreur par
+     * message loggé et noie la sortie réelle du script.
+     */
+    disableFileLogging(error) {
+        if (this.fileLoggingDisabled) return;
+
+        this.fileLoggingDisabled = true;
+        const code = error && error.code ? error.code : 'erreur';
+        const detail = error && error.message ? error.message : String(error);
+        console.warn(
+            `⚠️  Log fichier désactivé (${code}: ${detail}). La sortie console reste complète. ` +
+            `Vérifier les droits d'écriture sur ${this.logsDir}.`
+        );
     }
 
     /**
@@ -85,8 +121,11 @@ class MonthlyLogger {
      * Écrit un message dans le fichier de log du mois actuel
      */
     async writeLog(level, message) {
+        if (this.fileLoggingDisabled) return;
+
         if (!this.currentLogFile) {
             await this.initialize();
+            if (this.fileLoggingDisabled) return;
         }
 
         const logMessage = this.formatMessage(level, message);
@@ -94,7 +133,14 @@ class MonthlyLogger {
         try {
             await fs.appendFile(this.currentLogFile, logMessage, 'utf8');
         } catch (error) {
-            console.error(`❌ Erreur lors de l'écriture dans le log:`, error.message);
+            if (ERREURS_ECRITURE_DEFINITIVES.has(error.code)) {
+                this.disableFileLogging(error);
+            } else if (!this.writeErrorReported) {
+                // Incident ponctuel : on continue d'essayer, mais on ne le
+                // signale qu'une fois.
+                this.writeErrorReported = true;
+                console.error(`❌ Erreur lors de l'écriture dans le log:`, error.message);
+            }
         }
     }
 
