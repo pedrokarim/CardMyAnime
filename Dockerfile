@@ -96,12 +96,13 @@ COPY --from=builder --chown=nextjs:nodegrp /app/scripts ./scripts
 COPY --from=builder --chown=nextjs:nodegrp /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodegrp /app/.next/static ./.next/static
 
-# NOTE : ne PAS copier seulement .next/server/instrumentation.js ici.
-# Le fichier compile par Turbopack ne se suffit pas a lui-meme : il require
-# des chunks (server/chunks/*.js et [turbopack]_runtime.js) absents de la
-# sortie standalone. Next echoue alors au demarrage sur
-# "Failed to load chunk ... for chunk server/instrumentation.js" et TOUTE
-# l'application repond 500. Voir le correctif retenu plus bas.
+# NOTE : rien a copier de plus pour l'instrumentation.
+# Le hook vit dans src/instrumentation.ts (et non a la racine) : ce projet a un
+# repertoire src/, ou Next attend le fichier. A la racine il etait ignore du
+# build standalone, le planificateur cron ne demarrait donc jamais en
+# production. Ne pas tenter de copier .next/server/instrumentation.js a la
+# main : le fichier require des chunks absents du standalone, Next echoue au
+# demarrage et toute l'application repond 500.
 
 # Copie les node_modules depuis le builder (toutes les dépendances déjà résolues)
 RUN mkdir -p /app/node_modules /app/.npm
