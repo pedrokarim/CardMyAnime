@@ -615,8 +615,13 @@ export default function HomePage() {
 
       {/* Cible de l'ancre « Voir des exemples ». Elle vit hors de la scène :
           le mur est confiné à la hauteur d'écran, la page continue en dessous
-          sur un fond net. */}
-      <Samples />
+          sur un fond net.
+
+          Réservée à l'accueil : sous la carte qu'on vient de générer, six
+          exemples d'autres profils ne sont plus un argument, juste du bruit —
+          et la bande des formats fait déjà le travail de « et dans un autre
+          style ? ». */}
+      {isHero && <Samples />}
 
       {/* Footer */}
       <footer className="mx-auto w-[min(1120px,92vw)] pb-12 text-center text-muted-foreground">

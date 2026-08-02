@@ -135,6 +135,22 @@ export function CardPreview({
     typeof window !== "undefined" ? window.location.origin : "";
   const absoluteCardUrl = shareableUrl ? `${siteUrl}${shareableUrl}` : "";
 
+  /*
+   * Une date d'inscription absente ou nulle revient du côté serveur en `0`,
+   * que `new Date` traduit fidèlement par le 1er janvier 1970. Affiché tel
+   * quel, ça se lit comme une donnée et non comme un trou : la ligne est
+   * simplement omise sous un plancher de plausibilité — aucune des deux
+   * plateformes n'existait avant 2004.
+   */
+  const joinedOn = (() => {
+    const raw = userData?.profile?.joinDate;
+    if (!raw) return null;
+    const date = new Date(raw);
+    if (isNaN(date.getTime())) return null;
+    if (date.getFullYear() < 2000) return null;
+    return date.toLocaleDateString("fr-FR");
+  })();
+
   const stats = [
     { value: userData?.stats.animesSeen, label: "animes" },
     { value: userData?.stats.mangasRead, label: "mangas" },
@@ -168,15 +184,9 @@ export function CardPreview({
             </span>
             <PlatformIcon platform={platform as Platform} size={16} />
           </div>
-          {userData?.profile?.joinDate && (
+          {joinedOn && (
             <p className="mt-0.5 text-xs text-muted-foreground">
-              Membre depuis{" "}
-              {(() => {
-                const date = new Date(userData.profile!.joinDate!);
-                return isNaN(date.getTime())
-                  ? userData.profile!.joinDate
-                  : date.toLocaleDateString("fr-FR");
-              })()}
+              Membre depuis {joinedOn}
             </p>
           )}
         </div>
