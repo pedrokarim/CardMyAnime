@@ -172,6 +172,22 @@ export class ServerCanvasHelper {
     this.ctx.restore();
   }
 
+  /**
+   * Largeur d'un texte pour une police donnee, sans le dessiner.
+   * Utile pour aligner plusieurs elements les uns apres les autres.
+   */
+  measureText(
+    text: string,
+    fontSize: number,
+    fontFamily: string = "Arial, sans-serif"
+  ): number {
+    this.ctx.save();
+    this.ctx.font = `${fontSize}px ${fontFamily}`;
+    const width = this.ctx.measureText(text).width;
+    this.ctx.restore();
+    return width;
+  }
+
   // Tronquer le texte avec ellipses
   truncateText(text: string, maxWidth: number): string {
     // D'abord vérifier si le texte original dépasse

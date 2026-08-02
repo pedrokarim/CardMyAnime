@@ -10,7 +10,7 @@ CardMyAnime offers **7 card types**, each with a distinct visual style. All exam
 
 Compact format. Avatar, username and 3 latest anime.
 
-**Dimensions:** 400×200px
+**Dimensions:** 400×150px
 
 ![Small Card](https://cma.ascencia.re/card?platform=anilist&username=PedroKarim64&type=small)
 

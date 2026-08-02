@@ -142,7 +142,7 @@ async function generate[Type]Card(
 
 | Type | Dimensions | Style |
 |------|-----------|-------|
-| `small` | 400x200 | Compact: 60px avatar, 3 animes |
+| `small` | 400x150 | Compact: 60px avatar, 3 animes |
 | `medium` | 600x300 | Balanced: 100px avatar, 4 animes + 4 mangas |
 | `large` | 800x500 | Full: 120px avatar, 60x80px covers |
 | `summary` | 800x600 | Detailed stats: stat cards, genres, achievements |

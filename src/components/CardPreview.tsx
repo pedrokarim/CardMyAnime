@@ -10,6 +10,7 @@ import { generateSummaryCard } from "@/lib/cards/summaryCard";
 import { generateNeonCard } from "@/lib/cards/neonCard";
 import { generateMinimalCard } from "@/lib/cards/minimalCard";
 import { generateGlassmorphismCard } from "@/lib/cards/glassmorphismCard";
+import { CARD_DIMENSIONS } from "@/lib/cards/cardTypes";
 import ShareOptions from "./ShareOptions";
 import { trpc } from "@/lib/trpc/client";
 import { PlatformIcon } from "@/components/ui/platform-icon";
@@ -40,22 +41,16 @@ const cardGenerators = {
   glassmorphism: generateGlassmorphismCard,
 };
 
-const cardDimensions = {
-  small: { width: 400, height: 200 },
-  medium: { width: 600, height: 300 },
-  large: { width: 800, height: 500 },
-  summary: { width: 800, height: 600 },
-  neon: { width: 600, height: 350 },
-  minimal: { width: 500, height: 250 },
-  glassmorphism: { width: 700, height: 400 },
-};
+// Source unique : CARD_DIMENSIONS, partagé avec les routes de génération.
+// La copie locale avait déjà divergé du générateur.
+const cardDimensions = CARD_DIMENSIONS;
 
 const cardTypes = [
   {
     value: "small",
     label: "Petite",
     description: "Avatar + pseudo + 3 derniers animes",
-    size: "400×200",
+    size: "400×150",
     icon: "🎌",
   },
   {

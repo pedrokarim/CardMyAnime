@@ -39,7 +39,7 @@
 
 | Type | Taille | Description |
 |------|--------|-------------|
-| **Small** | 400×200 | Avatar + pseudo + 3 derniers animes |
+| **Small** | 400×150 | Avatar + pseudo + 3 derniers animes |
 | **Medium** | 600×300 | Avatar + stats + derniers animes/mangas |
 | **Large** | 800×500 | Profil complet avec images |
 | **Summary** | 800×600 | Profil complet avec stats détaillées |

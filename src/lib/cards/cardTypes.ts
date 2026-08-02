@@ -30,7 +30,7 @@ export const CARD_DIMENSIONS: Record<
   CardType,
   { width: number; height: number }
 > = {
-  small: { width: 400, height: 200 },
+  small: { width: 400, height: 150 },
   medium: { width: 600, height: 300 },
   large: { width: 800, height: 500 },
   summary: { width: 800, height: 600 },

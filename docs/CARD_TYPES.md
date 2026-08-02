@@ -10,7 +10,7 @@ CardMyAnime propose **7 types de cartes** avec chacun un style visuel distinct. 
 
 Format compact. Avatar, pseudo et 3 derniers animes.
 
-**Dimensions :** 400×200px
+**Dimensions :** 400×150px
 
 ![Small Card](https://cma.ascencia.re/card?platform=anilist&username=PedroKarim64&type=small)
 

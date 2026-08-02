@@ -107,6 +107,13 @@ export async function addWatermark(
 export interface PlatformLogoOptions {
   position?: "bottom-right" | "bottom-left" | "top-right" | "top-left";
   size?: number;
+  /**
+   * Position libre, prioritaire sur `position`. Les quatre coins ne suffisent
+   * plus sur les cartes basses : sous ~160px de haut, le coin bas-gauche
+   * chevauche la derniere ligne de la liste d'animes.
+   */
+  x?: number;
+  y?: number;
 }
 
 export async function addPlatformLogo(
@@ -114,7 +121,12 @@ export async function addPlatformLogo(
   platform: string,
   options: PlatformLogoOptions = {}
 ): Promise<void> {
-  const { position = "bottom-left", size = 30 } = options;
+  const {
+    position = "bottom-left",
+    size = 30,
+    x: explicitX,
+    y: explicitY,
+  } = options;
 
   // Accéder au canvas et au contexte via les propriétés privées
   const canvas = (helper as any).canvas;
@@ -177,6 +189,9 @@ export async function addPlatformLogo(
         x = padding;
         y = height - size - padding;
     }
+
+    if (explicitX !== undefined) x = explicitX;
+    if (explicitY !== undefined) y = explicitY;
 
     // Dessiner le logo sans opacité
     ctx.globalAlpha = 1.0;

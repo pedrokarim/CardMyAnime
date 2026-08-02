@@ -111,7 +111,7 @@ export default function HomePage() {
       value: "small",
       label: "Petite",
       description: "Avatar + pseudo + 3 derniers animes",
-      size: "400×200",
+      size: "400×150",
       icon: "🎌",
     },
     {
