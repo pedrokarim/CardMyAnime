@@ -299,6 +299,60 @@ export class ServerCanvasHelper {
     return result;
   }
 
+  /**
+   * Découpe un texte en au plus `maxLines` lignes tenant dans `maxWidth`.
+   *
+   * Le reste non placé est versé dans la dernière ligne, qui est ellipsée :
+   * on ne perd donc jamais silencieusement la fin d'un titre, et le bloc ne
+   * déborde jamais de la hauteur qu'on lui a réservée.
+   */
+  wrapTextToLines(
+    text: string,
+    maxWidth: number,
+    fontSize: number,
+    maxLines: number,
+    fontFamily: string = "Arial, sans-serif"
+  ): string[] {
+    const words = text.split(" ");
+    const lines: string[] = [];
+    let current = "";
+    let lineStart = 0;
+
+    for (let i = 0; i < words.length; i++) {
+      const candidate = current ? `${current} ${words[i]}` : words[i];
+
+      if (
+        this.measureText(candidate, fontSize, fontFamily) > maxWidth &&
+        current
+      ) {
+        if (lines.length === maxLines - 1) {
+          lines.push(
+            this.truncateTextToWidth(
+              words.slice(lineStart).join(" "),
+              maxWidth,
+              fontSize,
+              fontFamily
+            )
+          );
+          return lines;
+        }
+        lines.push(current);
+        lineStart = i;
+        current = words[i];
+      } else {
+        current = candidate;
+      }
+    }
+
+    if (current) {
+      lines.push(
+        this.truncateTextToWidth(current, maxWidth, fontSize, fontFamily)
+      );
+    }
+
+    return lines;
+  }
+
   // Tronquer le texte avec ellipses
   truncateText(text: string, maxWidth: number): string {
     // D'abord vérifier si le texte original dépasse

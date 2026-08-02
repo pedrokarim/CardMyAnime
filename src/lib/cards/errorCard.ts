@@ -77,30 +77,12 @@ export async function generateErrorCard({
     const bottomLimit = height - Math.round(padding / 2) - brandSize - 6;
     const maxLines = Math.max(1, Math.floor((bottomLimit - cursorY) / lineHeight) + 1);
 
-    const words = detail.split(" ");
-    const lines: string[] = [];
-    let lineStart = 0;
-    let current = "";
-
-    for (let i = 0; i < words.length; i++) {
-      const candidate = current ? `${current} ${words[i]}` : words[i];
-
-      if (helper.measureText(candidate, detailSize) > contentWidth && current) {
-        // Dernière ligne disponible : on y verse tout le reste depuis le début
-        // de la ligne courante, et drawTruncatedText pose l'ellipse.
-        if (lines.length === maxLines - 1) {
-          lines.push(words.slice(lineStart).join(" "));
-          current = "";
-          break;
-        }
-        lines.push(current);
-        lineStart = i;
-        current = words[i];
-      } else {
-        current = candidate;
-      }
-    }
-    if (current) lines.push(current);
+    const lines = helper.wrapTextToLines(
+      detail,
+      contentWidth,
+      detailSize,
+      maxLines
+    );
 
     lines.forEach((line, index) => {
       helper.drawTruncatedText(
