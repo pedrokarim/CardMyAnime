@@ -9,6 +9,7 @@ import { generateNeonCard } from "@/lib/cards/neonCard";
 import { generateMinimalCard } from "@/lib/cards/minimalCard";
 import { generateGlassmorphismCard } from "@/lib/cards/glassmorphismCard";
 import { Platform, CardType } from "@/lib/types";
+import { buildCardPath } from "@/lib/cards/cardUrl";
 import { prisma, ensurePrismaConnection } from "@/lib/prisma";
 
 const platformSchema = z.enum(["anilist", "mal", "nautiljon"]);
@@ -141,11 +142,14 @@ export const appRouter = createTRPCRouter({
           },
         });
 
-        const shareableUrl = `/card?platform=${
-          input.platform
-        }&username=${encodeURIComponent(input.username)}&type=${
-          input.cardType
-        }&background=${input.useLastAnimeBackground ? "1" : "0"}`;
+        // URL sans query string : les forums qui échappent le HTML (MyAnimeList
+        // notamment) transforment les `&` en `&amp;` et cassent l'intégration.
+        const shareableUrl = buildCardPath(
+          input.platform,
+          input.username,
+          input.cardType,
+          input.useLastAnimeBackground
+        );
 
         return {
           success: true,

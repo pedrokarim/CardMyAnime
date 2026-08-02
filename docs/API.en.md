@@ -8,9 +8,39 @@ Base URL: `https://cma.ascencia.re` (production) or `http://localhost:3000` (dev
 
 ## Public Routes
 
+### `GET /card/{platform}/{username}/{type}.png`
+
+Recommended embed route. Same as `GET /card` but **without a query string**.
+
+**Why:** forums that escape HTML (MyAnimeList in particular) turn the `&` of URLs pasted as BBCode into `&amp;`. Parameters then arrive named `amp;username` instead of `username`, and the image proxy returns a broken image. This form has no `?` and no `&`, and ends in `.png` - which some image proxies require.
+
+**Segments:**
+
+| Segment | Values | Description |
+|---------|--------|-------------|
+| `platform` | `anilist` \| `mal` \| `nautiljon` | Source platform |
+| `username` | `string` | Username (URL-encoded) |
+| `type` | `small` \| `medium` \| `large` \| `summary` \| `neon` \| `minimal` \| `glassmorphism` | Card type |
+
+The `-nobg` suffix disables the anime background. The `.png` extension is optional.
+
+**Examples:**
+
+```
+GET /card/anilist/PedroKarim64/small.png
+GET /card/mal/MyUsername/neon-nobg.png
+GET /card/mal/MyUsername/large            (extension optional)
+```
+
+**Response:** `image/png` with `Cache-Control: public, max-age=3600`.
+
+**Errors:** this route **always returns an image**. On failure it renders a readable PNG error card (sized to the requested card type) with a `200` status - most `[img]` / `<img>` embeds render nothing on an error status, so the message would be lost. The real status is exposed via the `X-Card-Error` header, and the response is not cached.
+
+---
+
 ### `GET /card`
 
-Generates and returns a profile card as a PNG image.
+Generates and returns a profile card as a PNG image. Legacy route, kept for every URL already shared.
 
 **Query Parameters:**
 
@@ -34,6 +64,8 @@ GET /card?platform=anilist&username=PedroKarim64&type=small
 GET /card?platform=mal&username=MyUsername&type=neon&background=0
 ```
 
+**Escaped keys:** keys prefixed with `amp;`, `#38;` or `#x26;` (produced by forums that escape HTML) are normalized automatically. `?platform=mal&amp;username=x&amp;type=small` therefore behaves like `?platform=mal&username=x&type=small`.
+
 **Errors:**
 
 | Code | Description |
@@ -41,6 +73,8 @@ GET /card?platform=mal&username=MyUsername&type=neon&background=0
 | 400 | Invalid parameters (Zod validation) |
 | 404 | Card not found - must be generated first |
 | 500 | Server error |
+
+The body is JSON, unless the request advertises that it accepts an image (`Accept` header containing `image/`, as sent by `<img>` tags and forum proxies): a PNG error card is returned instead, like on the query-string-free route.
 
 ---
 
@@ -241,7 +275,7 @@ Generates a PNG card, saves to database and returns base64 image.
 {
   success: true;
   cardUrl: string;       // data:image/png;base64,...
-  shareableUrl: string;  // /card?platform=...&username=...&type=...&background=0|1
+  shareableUrl: string;  // /card/{platform}/{username}/{type}[-nobg].png
 }
 ```
 

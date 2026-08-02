@@ -8,9 +8,39 @@ URL de base : `https://cma.ascencia.re` (production) ou `http://localhost:3000` 
 
 ## Routes publiques
 
+### `GET /card/{platform}/{username}/{type}.png`
+
+Route d'integration recommandee. Identique a `GET /card` mais **sans query string**.
+
+**Pourquoi :** les forums qui echappent le HTML (MyAnimeList en tete) transforment les `&` des URLs collees en BBCode en `&amp;`. Les parametres arrivent alors nommes `amp;username` au lieu de `username`, et le proxy d'images renvoie une image cassee. Cette forme n'a ni `?` ni `&`, et se termine par `.png` - ce que certains proxys d'images exigent.
+
+**Segments :**
+
+| Segment | Valeurs | Description |
+|---------|---------|-------------|
+| `platform` | `anilist` \| `mal` \| `nautiljon` | Plateforme source |
+| `username` | `string` | Pseudo (encode en URL) |
+| `type` | `small` \| `medium` \| `large` \| `summary` \| `neon` \| `minimal` \| `glassmorphism` | Type de carte |
+
+Le suffixe `-nobg` desactive l'arriere-plan anime. L'extension `.png` est optionnelle.
+
+**Exemples :**
+
+```
+GET /card/anilist/PedroKarim64/small.png
+GET /card/mal/MonPseudo/neon-nobg.png
+GET /card/mal/MonPseudo/large            (extension optionnelle)
+```
+
+**Reponse :** Image `image/png` avec `Cache-Control: public, max-age=3600`.
+
+**Erreurs :** cette route renvoie **toujours une image**. En cas d'echec, elle produit une carte d'erreur PNG lisible (aux dimensions du type demande) avec un statut `200` - la plupart des integrations `[img]` / `<img>` n'affichent rien sur un statut d'erreur, le message serait donc perdu. Le vrai statut est expose dans l'en-tete `X-Card-Error` et la reponse n'est pas mise en cache.
+
+---
+
 ### `GET /card`
 
-Genere et retourne une carte de profil au format PNG.
+Genere et retourne une carte de profil au format PNG. Route historique, conservee pour toutes les URLs deja partagees.
 
 **Parametres de requete :**
 
@@ -34,6 +64,8 @@ GET /card?platform=anilist&username=PedroKarim64&type=small
 GET /card?platform=mal&username=MonPseudo&type=neon&background=0
 ```
 
+**Cles echappees :** les cles prefixees par `amp;`, `#38;` ou `#x26;` (produites par les forums qui echappent le HTML) sont automatiquement renormalisees. `?platform=mal&amp;username=x&amp;type=small` fonctionne donc comme `?platform=mal&username=x&type=small`.
+
 **Erreurs :**
 
 | Code | Description |
@@ -41,6 +73,8 @@ GET /card?platform=mal&username=MonPseudo&type=neon&background=0
 | 400 | Parametres invalides (validation Zod) |
 | 404 | Carte non trouvee - doit etre generee d'abord |
 | 500 | Erreur serveur |
+
+Le corps est un JSON, sauf si la requete annonce accepter une image (en-tete `Accept` contenant `image/`, cas des balises `<img>` et des proxys de forums) : une carte d'erreur PNG est alors renvoyee, comme sur la route sans query string.
 
 ---
 
@@ -259,7 +293,7 @@ Genere une carte PNG, la sauvegarde en base et retourne l'image en base64.
 {
   success: true;
   cardUrl: string;       // data:image/png;base64,...
-  shareableUrl: string;  // /card?platform=...&username=...&type=...&background=0|1
+  shareableUrl: string;  // /card/{platform}/{username}/{type}[-nobg].png
 }
 ```
 
