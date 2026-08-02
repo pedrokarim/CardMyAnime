@@ -69,13 +69,48 @@ export async function generateErrorCard({
 
   if (detail) {
     cursorY += Math.round(titleSize * 0.6) + detailSize;
-    helper.drawText({
-      x: padding,
-      y: cursorY,
-      text: detail,
-      fontSize: detailSize,
-      color: "#cbb8c4",
-      maxWidth: contentWidth,
+
+    // Le retour à la ligne du helper n'est pas borné : un motif un peu long
+    // débordait sous le pied de page et se faisait couper. On calcule combien
+    // de lignes tiennent réellement et on tronque la dernière.
+    const lineHeight = Math.round(detailSize * 1.35);
+    const bottomLimit = height - Math.round(padding / 2) - brandSize - 6;
+    const maxLines = Math.max(1, Math.floor((bottomLimit - cursorY) / lineHeight) + 1);
+
+    const words = detail.split(" ");
+    const lines: string[] = [];
+    let lineStart = 0;
+    let current = "";
+
+    for (let i = 0; i < words.length; i++) {
+      const candidate = current ? `${current} ${words[i]}` : words[i];
+
+      if (helper.measureText(candidate, detailSize) > contentWidth && current) {
+        // Dernière ligne disponible : on y verse tout le reste depuis le début
+        // de la ligne courante, et drawTruncatedText pose l'ellipse.
+        if (lines.length === maxLines - 1) {
+          lines.push(words.slice(lineStart).join(" "));
+          current = "";
+          break;
+        }
+        lines.push(current);
+        lineStart = i;
+        current = words[i];
+      } else {
+        current = candidate;
+      }
+    }
+    if (current) lines.push(current);
+
+    lines.forEach((line, index) => {
+      helper.drawTruncatedText(
+        line,
+        padding,
+        cursorY + index * lineHeight,
+        contentWidth,
+        detailSize,
+        "#cbb8c4"
+      );
     });
   }
 
