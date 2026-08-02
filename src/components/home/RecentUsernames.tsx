@@ -41,8 +41,11 @@ export function RecentUsernames({
           onMouseDown={(event) => event.preventDefault()}
           /* Sept entrées dépassent le bas de l'écran sur un portable, et
              l'étape est centrée dans la hauteur de fenêtre — la page ne peut
-             pas défiler pour les révéler. Le panneau défile donc lui-même. */
-          className="absolute left-0 right-0 top-[calc(100%+8px)] z-30 max-h-[min(300px,42vh)] origin-top overflow-y-auto overscroll-contain rounded-xl border border-border/70 bg-popover/95 p-1.5 text-left shadow-[0_16px_40px_rgba(0,0,0,.35)] backdrop-blur-xl"
+             pas défiler pour les révéler. Le panneau défile donc lui-même.
+             Le plafond en `vh` est calé sur ce qui reste réellement sous le
+             champ, à peu près un tiers de la fenêtre : au-delà, le bas du
+             panneau se faisait couper par le bord de l'écran. */
+          className="absolute left-0 right-0 top-[calc(100%+8px)] z-30 max-h-[min(300px,28vh)] origin-top overflow-y-auto overscroll-contain rounded-xl border border-border/70 bg-popover/95 p-1.5 text-left shadow-[0_16px_40px_rgba(0,0,0,.35)] backdrop-blur-xl"
         >
           <p className="flex items-center gap-2 px-2.5 pb-1.5 pt-1 text-[11.5px] font-medium uppercase tracking-wide text-muted-foreground">
             <History className="h-3.5 w-3.5" />

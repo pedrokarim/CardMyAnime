@@ -450,7 +450,9 @@ export default function HomePage() {
                 </div>
 
                 <div className="mx-auto max-w-2xl space-y-6">
-                  <div className="flex gap-4">
+                  {/* Empilés sur mobile : côte à côte, il restait moins de
+                      200 px au champ et le libellé y était tronqué. */}
+                  <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
                     {/* `relative` : c'est l'ancrage du panneau des recherches
                         récentes, qui se pose sous le champ. */}
                     <div className="relative flex-1">
@@ -480,7 +482,7 @@ export default function HomePage() {
                     <Button
                       onClick={() => fetchUserData()}
                       disabled={isLoading || !username?.trim()}
-                      className="px-8 py-4 text-lg font-semibold"
+                      className="w-full px-8 py-4 text-lg font-semibold sm:w-auto"
                     >
                       {isLoading ? (
                         <div className="flex items-center gap-2">
