@@ -87,6 +87,70 @@ export function truncateToWidth(
   return truncated + ellipsis;
 }
 
+/**
+ * Charge une image distante en gérant le WebP.
+ *
+ * node-canvas ne sait pas décoder le WebP : `loadImage` échoue et la jaquette
+ * apparaît en trou gris. MyAnimeList sert une partie de ses jaquettes dans ce
+ * format (`.../158846l.webp`), d'où des cases vides au milieu de cases
+ * remplies sur une même carte.
+ *
+ * La conversion existait déjà mais n'était appliquée qu'aux URL Nautiljon.
+ * Elle vaut ici pour toutes les sources, et sert aussi de filet quand
+ * `loadImage` échoue sur un format inattendu.
+ */
+export async function loadRemoteImage(imageUrl: string): Promise<Image> {
+  const isNautiljon = imageUrl.includes("nautiljon.com");
+  const looksWebp = imageUrl.toLowerCase().includes(".webp");
+
+  // Chemin direct : le plus rapide, et suffisant pour la majorité des cas.
+  if (!isNautiljon && !looksWebp) {
+    try {
+      return await loadImage(imageUrl);
+    } catch {
+      // On retente en récupérant les octets nous-mêmes : certaines images
+      // sont servies en WebP sans que l'URL ne le laisse deviner.
+    }
+  }
+
+  const headers: Record<string, string> = {
+    "User-Agent":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
+    Accept: "image/webp,image/apng,image/*,*/*;q=0.8",
+  };
+  if (isNautiljon) {
+    headers.Referer = "https://www.nautiljon.com/";
+    headers["Accept-Language"] = "fr-FR,fr;q=0.9,en;q=0.8";
+  }
+
+  const response = await fetch(imageUrl, {
+    headers,
+    signal: AbortSignal.timeout(10000),
+  });
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status} sur ${imageUrl}`);
+  }
+
+  let buffer = Buffer.from(new Uint8Array(await response.arrayBuffer()));
+
+  // Signature RIFF....WEBP, plus fiable que l'extension de l'URL.
+  const isWebpPayload =
+    buffer.length > 12 &&
+    buffer.toString("ascii", 0, 4) === "RIFF" &&
+    buffer.toString("ascii", 8, 12) === "WEBP";
+
+  if ((looksWebp || isWebpPayload) && typeof window === "undefined") {
+    try {
+      const { convertWebPToPNG } = await import("./imageConverter");
+      buffer = Buffer.from(await convertWebPToPNG(buffer));
+    } catch (error) {
+      console.error("Conversion WebP impossible:", error);
+    }
+  }
+
+  return await loadImage(buffer);
+}
+
 export interface CanvasConfig {
   width: number;
   height: number;
@@ -320,31 +384,7 @@ export class ServerCanvasHelper {
     try {
       if (!imageUrl || imageUrl.trim() === "") return null;
 
-      if (imageUrl.includes("nautiljon.com")) {
-        const response = await fetch(imageUrl, {
-          headers: {
-            "User-Agent":
-              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-            Referer: "https://www.nautiljon.com/",
-            Accept: "image/webp,image/apng,image/*,*/*;q=0.8",
-            "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8",
-          },
-        });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const buffer = await response.arrayBuffer();
-        let processedBuffer = Buffer.from(new Uint8Array(buffer));
-        if (imageUrl.includes(".webp") && typeof window === "undefined") {
-          try {
-            const { convertWebPToPNG } = await import("./imageConverter");
-            processedBuffer = Buffer.from(await convertWebPToPNG(processedBuffer));
-          } catch {
-            // Utiliser le buffer original
-          }
-        }
-        return await loadImage(processedBuffer);
-      }
-
-      return await loadImage(imageUrl);
+      return await loadRemoteImage(imageUrl);
     } catch (error) {
       console.error("Erreur preload image:", error);
       return null;
@@ -385,57 +425,8 @@ export class ServerCanvasHelper {
         throw new Error("URL d'image vide");
       }
 
-      // Pour les images de Nautiljon, on va essayer avec des headers spécifiques
-      let img;
-      if (imageUrl.includes("nautiljon.com")) {
-        try {
-          // Essayer de charger l'image avec des headers pour contourner les protections
-          const response = await fetch(imageUrl, {
-            headers: {
-              "User-Agent":
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-              Referer: "https://www.nautiljon.com/",
-              Accept: "image/webp,image/apng,image/*,*/*;q=0.8",
-              "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8",
-            },
-          });
-
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-          }
-
-          const buffer = await response.arrayBuffer();
-          const imageBuffer = Buffer.from(new Uint8Array(buffer));
-
-          // Convertir WebP en PNG si nécessaire (côté serveur uniquement)
-          let processedBuffer: Buffer = imageBuffer;
-          if (imageUrl.includes(".webp") && typeof window === "undefined") {
-            try {
-              const { convertWebPToPNG } = await import("./imageConverter");
-              console.log(`Conversion WebP vers PNG pour: ${imageUrl}`);
-              processedBuffer = await convertWebPToPNG(imageBuffer);
-            } catch (conversionError) {
-              console.error(
-                "Erreur lors de la conversion WebP:",
-                conversionError
-              );
-              // Si la conversion échoue, essayer avec le buffer original
-              processedBuffer = imageBuffer;
-            }
-          }
-
-          img = await loadImage(processedBuffer);
-        } catch (fetchError) {
-          console.error(
-            "Erreur lors du fetch de l'image Nautiljon:",
-            fetchError
-          );
-          throw fetchError;
-        }
-      } else {
-        // Pour les autres plateformes, utiliser la méthode normale
-        img = await loadImage(imageUrl);
-      }
+      // Le chargement (headers Nautiljon, conversion WebP) est factorisé.
+      const img = await loadRemoteImage(imageUrl);
 
       this.ctx.save();
 
@@ -550,7 +541,10 @@ export class ServerCanvasHelper {
   async createLastAnimeBackground(coverUrl: string): Promise<void> {
     try {
       // Charger l'image
-      const image = await loadImage(coverUrl);
+      // Passe par loadRemoteImage : la jaquette de fond est souvent celle du
+      // dernier anime, que MyAnimeList sert parfois en WebP. Un loadImage
+      // direct échouait et la carte retombait sur le fond simple.
+      const image = await loadRemoteImage(coverUrl);
 
       // Zone carrée à droite (même taille que la hauteur du canvas)
       const squareSize = this.height;
