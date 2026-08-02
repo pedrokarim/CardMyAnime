@@ -27,6 +27,14 @@ import { cn } from "@/lib/utils";
  * - **Manifeste lu au runtime**, et non un module importé à la compilation :
  *   la sélection est régénérée chaque mois par un cron en production. Un
  *   import figerait le mur sur la sélection du jour du build.
+ *
+ * **Le cadrage n'est pas décoratif, il est calculé.** Le bloc est débordé de
+ * 15 % de chaque côté puis agrandi de 8 %, et les 8 colonnes de 150 px
+ * espacées de 18 px occupent alors très exactement la largeur de l'écran sur
+ * un 1440. Rétrécir les jaquettes casse ce calage : à 120 px les 8 colonnes ne
+ * mesurent plus que 1072 px, le mur cesse d'atteindre les bords et laisse à
+ * droite une bande de fond nu qui se lit comme un bloc opaque. D'où des
+ * valeurs figées plutôt que responsives.
  */
 export function CoverWall({ dimmed = false }: { dimmed?: boolean }) {
   const [columns, setColumns] = useState<string[][]>([]);
@@ -52,7 +60,7 @@ export function CoverWall({ dimmed = false }: { dimmed?: boolean }) {
     <div
       aria-hidden
       className={cn(
-        "pointer-events-none absolute -inset-x-[15%] -inset-y-[22%] flex justify-center gap-3 sm:gap-4",
+        "pointer-events-none absolute -inset-x-[15%] -inset-y-[30%] flex justify-center gap-[18px]",
         "origin-center [transform:rotate(-8deg)_scale(1.08)]",
         "transition-[opacity,transform,filter] duration-[900ms] ease-[cubic-bezier(.22,.9,.24,1)]",
         dimmed
@@ -64,7 +72,7 @@ export function CoverWall({ dimmed = false }: { dimmed?: boolean }) {
         <div
           key={index}
           className={cn(
-            "flex h-max shrink-0 flex-col gap-3 will-change-transform sm:gap-4",
+            "flex h-max shrink-0 flex-col gap-[18px] will-change-transform",
             // Au-dela de 4 colonnes, un telephone n'en voit rien : on evite de
             // telecharger les jaquettes correspondantes.
             index >= 4 && "hidden lg:flex",
@@ -83,11 +91,11 @@ export function CoverWall({ dimmed = false }: { dimmed?: boolean }) {
               key={`${file}-${i}`}
               src={`/api/covers/${file}`}
               alt=""
-              width={120}
-              height={172}
+              width={150}
+              height={214}
               loading="lazy"
               decoding="async"
-              className="h-[128px] w-[90px] shrink-0 rounded-lg bg-muted object-cover shadow-[0_8px_24px_rgba(0,0,0,.45)] sm:h-[172px] sm:w-[120px]"
+              className="h-[214px] w-[150px] shrink-0 rounded-xl bg-muted object-cover shadow-[0_10px_30px_rgba(0,0,0,.5)]"
             />
           ))}
         </div>
@@ -96,11 +104,29 @@ export function CoverWall({ dimmed = false }: { dimmed?: boolean }) {
   );
 }
 
-/**
+/*
  * Voiles de lisibilité posés au-dessus du mur.
  *
  * Tout part de `--background`, qui change avec le thème : le dégradé suit donc
- * le mode clair comme le mode sombre sans avoir à être redéfini.
+ * le mode clair comme le mode sombre sans avoir à être redéfini. Le mélange
+ * est fait `in srgb` et non `in oklab` — on cherche l'équivalent exact d'un
+ * `rgba(fond, .66)`, pas une interpolation perceptuelle qui décale la teinte
+ * dans les zones intermédiaires.
+ */
+const veil = (stops: string) => ({ background: `linear-gradient(${stops})` });
+
+const bg = (percent: number) =>
+  `color-mix(in srgb, var(--background) ${percent}%, transparent)`;
+
+/**
+ * Voile latéral. Il remonte volontairement à 58 % au bord droit au lieu de
+ * finir à zéro : sans cette remontée le mur vient buter en pleine lumière
+ * contre le bord de l'écran, et la hero se termine sur une arête au lieu d'un
+ * fond diffus.
+ *
+ * La version mobile est plus couvrante et plus verticale : le texte y occupe
+ * toute la largeur, il n'a plus la colonne de gauche protégée dont il dispose
+ * sur grand écran.
  */
 export function CoverWallVeils({ dimmed = false }: { dimmed?: boolean }) {
   return (
@@ -108,21 +134,29 @@ export function CoverWallVeils({ dimmed = false }: { dimmed?: boolean }) {
       <div
         aria-hidden
         className={cn(
-          "pointer-events-none absolute inset-0 transition-opacity duration-[900ms]",
+          "pointer-events-none absolute inset-0 transition-opacity duration-[900ms] sm:hidden",
           dimmed ? "opacity-35" : "opacity-100"
         )}
-        style={{
-          background:
-            "linear-gradient(100deg, var(--background) 0%, color-mix(in oklab, var(--background) 96%, transparent) 30%, color-mix(in oklab, var(--background) 66%, transparent) 52%, color-mix(in oklab, var(--background) 34%, transparent) 76%, color-mix(in oklab, var(--background) 58%, transparent) 100%)",
-        }}
+        style={veil(
+          `118deg, ${bg(98)} 0%, ${bg(90)} 32%, ${bg(70)} 62%, ${bg(62)} 100%`
+        )}
+      />
+      <div
+        aria-hidden
+        className={cn(
+          "pointer-events-none absolute inset-0 hidden transition-opacity duration-[900ms] sm:block",
+          dimmed ? "opacity-35" : "opacity-100"
+        )}
+        style={veil(
+          `100deg, ${bg(99)} 0%, ${bg(96)} 30%, ${bg(66)} 52%, ${bg(34)} 76%, ${bg(58)} 100%`
+        )}
       />
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            "linear-gradient(180deg, var(--background) 0%, transparent 20%, transparent 74%, var(--background) 100%)",
-        }}
+        style={veil(
+          `180deg, var(--background) 0%, transparent 20%, transparent 74%, var(--background) 100%`
+        )}
       />
     </>
   );

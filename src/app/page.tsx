@@ -1,16 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { flushSync } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CardPreview } from "@/components/CardPreview";
 import { Platform, CardType, UserData } from "@/lib/types";
-import {
-  PLATFORM_STATUS,
-  isPlatformDisabled,
-  platformDisabledReason,
-} from "@/lib/platformStatus";
+import { isPlatformDisabled } from "@/lib/platformStatus";
 import { CoverWall, CoverWallVeils } from "@/components/home/CoverWall";
+import { PlatformRail } from "@/components/home/PlatformRail";
+import { StepIndicator } from "@/components/home/StepIndicator";
+import { Samples } from "@/components/home/Samples";
 import { cn } from "@/lib/utils";
 import { trpc } from "@/lib/trpc/client";
 import { useQueryState } from "nuqs";
@@ -23,6 +23,37 @@ import { captureCarteEchouee, captureCarteGeneree, captureEtape } from "@/lib/an
 import { ArrowRight, ChevronDown } from "lucide-react";
 
 type Step = "platform" | "cardType" | "username" | "preview";
+
+/**
+ * Bascule accueil ↔ assistant confiée à l'API View Transition.
+ *
+ * La bande de plateformes est le seul élément présent des deux côtés — elle
+ * porte un `view-transition-name`, le navigateur peut donc interpoler sa
+ * position et sa taille au lieu de la faire sauter d'un endroit à l'autre.
+ *
+ * `flushSync` n'est pas une précaution : le navigateur photographie le DOM au
+ * retour du callback. Un `setState` asynchrone n'aurait encore rien changé à
+ * cet instant, les deux photos seraient identiques et il n'y aurait rien à
+ * animer.
+ *
+ * Là où l'API manque — ou quand le mouvement est refusé — la bascule reste
+ * correcte, simplement sans morphing.
+ */
+function withRailTransition(update: () => void) {
+  const doc = document as Document & {
+    startViewTransition?: (callback: () => void) => unknown;
+  };
+
+  if (
+    typeof doc.startViewTransition !== "function" ||
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  ) {
+    update();
+    return;
+  }
+
+  doc.startViewTransition(() => flushSync(update));
+}
 
 export default function HomePage() {
   const [currentStep, setCurrentStep] = useQueryState<Step>("step", {
@@ -95,29 +126,6 @@ export default function HomePage() {
       });
     }
   }, [currentStep, platform, username, userData, isLoading, cardType]);
-
-  const platforms = [
-    {
-      value: "anilist",
-      label: "AniList",
-      description: "API GraphQL officielle",
-    },
-    {
-      value: "mal",
-      label: "MyAnimeList",
-      description: "API Jikan non-officielle",
-    },
-    {
-      value: "nautiljon",
-      label: "Nautiljon",
-      description: "Scraping de profils publics",
-    },
-  ].map((platformOption) => ({
-    ...platformOption,
-    disabled: isPlatformDisabled(platformOption.value),
-    disabledReason: platformDisabledReason(platformOption.value),
-    shortLabel: PLATFORM_STATUS[platformOption.value as Platform].shortLabel,
-  }));
 
   const cardTypes = [
     {
@@ -285,8 +293,11 @@ export default function HomePage() {
    */
   const goToNextStep = async () => {
     if (currentStep === "platform") {
-      await setCurrentStep("cardType");
-      captureEtape("cardType", { platform: platform ?? "" });
+      // Seule bascule où la bande de plateformes change de place.
+      withRailTransition(() => {
+        setCurrentStep("cardType");
+        captureEtape("cardType", { platform: platform ?? "" });
+      });
     } else if (currentStep === "cardType") {
       await setCurrentStep("username");
       captureEtape("username", { platform: platform ?? "", cardType });
@@ -294,7 +305,8 @@ export default function HomePage() {
   };
 
   const goToPreviousStep = async () => {
-    if (currentStep === "cardType") await setCurrentStep("platform");
+    if (currentStep === "cardType")
+      withRailTransition(() => setCurrentStep("platform"));
     else if (currentStep === "username") await setCurrentStep("cardType");
     else if (currentStep === "preview") await setCurrentStep("username");
   };
@@ -305,219 +317,256 @@ export default function HomePage() {
   const isHero = currentStep === "platform";
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-background">
-      <CoverWall dimmed={!isHero} />
-      <CoverWallVeils dimmed={!isHero} />
+    <>
+      {/*
+       * La scène tient l'écran entier et le mur y est confiné. Aucun
+       * `container` ici : le prototype pose `width:min(1120px,92vw)` sur la
+       * seule colonne de contenu et laisse le fond courir jusqu'aux bords. Un
+       * `container mx-auto` bridait le contenu au centre pendant que le mur,
+       * lui, prenait toute la largeur — les deux ne parlaient plus de la même
+       * page.
+       *
+       * `min-h-svh` et non `min-h-screen` : sur mobile, `100vh` compte la
+       * barre d'adresse qui n'est pas là, et le bas de la hero passait sous
+       * le pli.
+       */}
+      <section className="relative flex min-h-svh flex-col overflow-hidden bg-background">
+        <CoverWall dimmed={!isHero} />
+        <CoverWallVeils dimmed={!isHero} />
 
-      <div className="relative z-10 container mx-auto px-4 pb-12 pt-24 sm:pb-8 sm:pt-28">
-        {/* Accroche : disparaît dès qu'on entre dans le wizard */}
-        {isHero && (
-          <div className="mx-auto mb-8 max-w-3xl sm:mb-10">
-            <h1 className="text-4xl font-bold leading-[1.05] tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-              Votre profil anime,
-              <br />
-              <span className="bg-gradient-to-r from-primary to-cyan-400 bg-clip-text text-transparent">
-                en une image
-              </span>
-            </h1>
-            <p className="mt-4 max-w-[52ch] text-[15px] leading-relaxed text-muted-foreground sm:mt-5 sm:text-lg">
-              Un pseudo, un style. On génère une carte PNG de vos dernières
-              séries, avec un lien direct à coller où vous voulez.
-            </p>
-          </div>
-        )}
-
-        {/* Indicateur d'étapes */}
-        <div className={cn("justify-center mb-12", isHero ? "hidden" : "flex")}>
-          <div className="flex items-center space-x-2 md:space-x-6">
-            {["platform", "cardType", "username", "preview"].map(
-              (step, index) => (
-                <div key={step} className="flex items-center">
-                  <div
-                    className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300 border-2 ${
-                      currentStep === step
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : index <
-                          [
-                            "platform",
-                            "cardType",
-                            "username",
-                            "preview",
-                          ].indexOf(currentStep)
-                        ? "bg-green-600 text-white border-green-600"
-                        : "bg-card text-muted-foreground border-border"
-                    }`}
-                  >
-                    {index + 1}
-                  </div>
-                  {index < 3 && (
-                    <div
-                      className={`w-8 md:w-20 h-0.5 mx-2 md:mx-4 transition-all duration-300 ${
-                        index <
-                        ["platform", "cardType", "username", "preview"].indexOf(
-                          currentStep
-                        )
-                          ? "bg-green-600"
-                          : "bg-border"
-                      }`}
-                    ></div>
-                  )}
-                </div>
-              )
-            )}
-          </div>
-        </div>
-
-        <div className="max-w-4xl mx-auto">
-          {/* Étape 1: Sélection de plateforme */}
-          {currentStep === "platform" && (
-            <div className="space-y-8">
-              {/* Bande horizontale. Elle ne disparaîtra pas au passage à
-                  l'étape suivante : elle se compacte et remonte au-dessus du
-                  stepper. */}
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-5">
-                {platforms.map((platformOption) => (
-                  <div
-                    key={platformOption.value}
-                    onClick={() =>
-                      !platformOption.disabled &&
-                      setPlatform(platformOption.value as Platform)
-                    }
-                    aria-disabled={platformOption.disabled}
-                    title={platformOption.disabledReason}
-                    className={`relative p-6 sm:p-8 rounded-2xl transition-all duration-300 border border-border/50 backdrop-blur-sm ${
-                      platformOption.disabled
-                        ? "bg-muted/30 opacity-60 cursor-not-allowed"
-                        : platform === platformOption.value
-                        ? "bg-primary/5 border-primary/60 shadow-[0_4px_16px_rgba(0,0,0,0.12)] scale-[1.02] cursor-pointer"
-                        : "bg-card/50 hover:border-primary/30 hover:bg-card/70 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] hover:scale-[1.01] cursor-pointer"
-                    }`}
-                  >
-                    <div className="text-center space-y-3 sm:space-y-4">
-                      <div className="flex justify-center mb-3 sm:mb-4">
-                        <PlatformIcon
-                          platform={platformOption.value as Platform}
-                          size={48}
-                          className="rounded-lg sm:w-16 sm:h-16"
-                        />
-                      </div>
-                      <h3 className="text-xl sm:text-2xl font-bold text-foreground">
-                        {platformOption.label}
-                      </h3>
-                      <p className="text-sm sm:text-base text-muted-foreground px-2">
-                        {platformOption.description}
-                      </p>
-                      {platformOption.disabled && (
-                        <p className="text-xs sm:text-sm font-medium text-amber-600 dark:text-amber-500 px-2">
-                          {platformOption.shortLabel}
-                        </p>
-                      )}
-                    </div>
-                    {!platformOption.disabled &&
-                      platform === platformOption.value && (
-                        <div className="absolute top-3 right-3 sm:top-4 sm:right-4 w-3 h-3 bg-primary rounded-full shadow-[0_0_8px_rgba(var(--primary),0.5)]"></div>
-                      )}
-                  </div>
-                ))}
+        {/*
+         * Le contenu est centré dans ce qui reste sous la navbar flottante,
+         * pas dans l'écran : d'où un rembourrage haut plus épais que le bas.
+         * L'écart des deux (80 px) vaut deux fois le décalage recherché, la
+         * navbar faisant environ 80 px de haut.
+         */}
+        <div className="relative z-10 mx-auto flex w-[min(1120px,92vw)] flex-1 flex-col justify-center pb-16 pt-[132px] sm:pb-20 sm:pt-40">
+          {/* Accroche. Elle disparaît entièrement dès qu'on entre dans
+              l'assistant : la place qu'elle libère est exactement celle dont
+              le stepper et le panneau ont besoin. */}
+          {isHero && (
+            <>
+              <div className="hero-rise">
+                <span className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/60 px-3.5 py-1.5 text-[12.5px] font-medium text-muted-foreground backdrop-blur-md">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="absolute inline-flex h-full w-full rounded-full bg-primary opacity-75 motion-safe:animate-ping" />
+                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary" />
+                  </span>
+                  {/* Un seul enfant de flex, sinon le `gap` du conteneur
+                      s'insère aussi entre les fragments de la phrase. */}
+                  <span>
+                    Sans compte · 7 styles
+                    <span className="hidden sm:inline">
+                      {" · mise à jour automatique"}
+                    </span>
+                  </span>
+                </span>
               </div>
 
-              <div className="flex flex-wrap items-center gap-3">
-                <Button
-                  onClick={goToNextStep}
-                  disabled={!platform}
-                  className="gap-2 px-7 py-3 text-base font-semibold"
-                >
-                  Continuer
-                  <ArrowRight className="h-[17px] w-[17px]" />
-                </Button>
-                <a
-                  href="#exemples"
-                  className="inline-flex items-center gap-2 rounded-xl border border-border px-6 py-3 text-base font-semibold text-foreground transition-colors hover:bg-accent"
-                >
-                  Voir des exemples
-                  <ChevronDown className="h-[17px] w-[17px]" />
-                </a>
-              </div>
-            </div>
-          )}
-
-          {/* Étape 2: Sélection du type de carte */}
-          {currentStep === "cardType" && (
-            <div className="text-center space-y-8">
-              <div>
-                <h2 className="text-4xl font-bold text-foreground mb-4">
-                  Choisissez le type de carte
-                </h2>
-                <p className="text-xl text-muted-foreground">
-                  Sélectionnez le format qui vous convient le mieux
+              <div className="hero-rise mt-6 [--rise-delay:80ms] sm:mt-7">
+                <h1 className="text-[clamp(36px,5vw,58px)] font-bold leading-[1.04] tracking-[-0.025em] text-foreground">
+                  Votre profil anime,
+                  <br />
+                  <span className="bg-gradient-to-r from-primary to-cyan-400 bg-clip-text text-transparent">
+                    en une image
+                  </span>
+                </h1>
+                <p className="mt-[18px] max-w-[52ch] text-[16.5px] leading-[1.55] text-muted-foreground">
+                  Un pseudo, un style. On génère une carte PNG de vos dernières
+                  séries, avec un lien direct à coller où vous voulez.
                 </p>
               </div>
+            </>
+          )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                {cardTypes.map((cardTypeOption) => (
-                  <div
-                    key={cardTypeOption.value}
+          {/* Pivot de la page : la bande existe dans les deux états. Elle ne
+              disparaît pas au passage à l'assistant, elle se compacte et vient
+              se recentrer au-dessus du stepper. */}
+          <div
+            className={cn(
+              isHero ? "hero-rise mt-8 [--rise-delay:160ms]" : "mb-[26px]"
+            )}
+          >
+            <PlatformRail
+              selected={platform as Platform}
+              onSelect={(value) => setPlatform(value)}
+              compact={!isHero}
+            />
+          </div>
+
+          {isHero ? (
+            <div className="hero-rise mt-[30px] flex items-center gap-3 [--rise-delay:240ms]">
+              <button
+                type="button"
+                onClick={goToNextStep}
+                disabled={!platform}
+                className="group inline-flex items-center justify-center gap-2.5 rounded-xl px-6 py-3.5 text-[15px] font-semibold text-primary-foreground transition-transform duration-200 disabled:pointer-events-none disabled:opacity-50 motion-safe:hover:-translate-y-0.5 sm:px-[26px]"
+                style={{
+                  background:
+                    "linear-gradient(92deg, var(--primary), color-mix(in srgb, var(--primary) 62%, white))",
+                  boxShadow:
+                    "0 10px 28px color-mix(in srgb, var(--primary) 32%, transparent)",
+                }}
+              >
+                Continuer
+                <ArrowRight className="h-[17px] w-[17px] transition-transform duration-200 group-hover:translate-x-[3px]" />
+              </button>
+              <a
+                href="#exemples"
+                className="group inline-flex items-center justify-center gap-2.5 rounded-xl border border-border/70 px-5 py-3.5 text-[15px] font-semibold text-foreground transition-colors hover:bg-accent/60 sm:px-6"
+              >
+                <span className="sm:hidden">Exemples</span>
+                <span className="hidden sm:inline">Voir des exemples</span>
+                <ChevronDown className="h-[17px] w-[17px] transition-transform duration-200 group-hover:translate-y-[2px]" />
+              </a>
+            </div>
+          ) : (
+            <StepIndicator current={currentStep as Step} />
+          )}
+
+          <div className="mx-auto w-full max-w-4xl">
+            {/* Étape 2: Sélection du type de carte */}
+            {currentStep === "cardType" && (
+              <div className="text-center space-y-8">
+                <div>
+                  <h2 className="text-4xl font-bold text-foreground mb-4">
+                    Choisissez le type de carte
+                  </h2>
+                  <p className="text-xl text-muted-foreground">
+                    Sélectionnez le format qui vous convient le mieux
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                  {cardTypes.map((cardTypeOption) => (
+                    <div
+                      key={cardTypeOption.value}
+                      onClick={() =>
+                        setCardType(cardTypeOption.value as CardType)
+                      }
+                      className={`relative p-6 sm:p-8 rounded-2xl cursor-pointer transition-all duration-300 border border-border/50 backdrop-blur-sm ${
+                        cardType === cardTypeOption.value
+                          ? "bg-primary/5 border-primary/60 shadow-[0_4px_16px_rgba(0,0,0,0.12)] scale-[1.02]"
+                          : "bg-card/50 hover:border-primary/30 hover:bg-card/70 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] hover:scale-[1.01]"
+                      }`}
+                    >
+                      <div className="text-center space-y-3 sm:space-y-4">
+                        <div className="flex justify-center mb-3 sm:mb-4">
+                          <CardStyleSvg type={cardTypeOption.value as CardType} size={100} />
+                        </div>
+                        <h3 className="text-xl sm:text-2xl font-bold text-foreground">
+                          {cardTypeOption.label}
+                        </h3>
+                        <p className="text-sm sm:text-base text-muted-foreground px-2">
+                          {cardTypeOption.description}
+                        </p>
+                        <div className="text-xs sm:text-sm text-muted-foreground bg-muted px-2 sm:px-3 py-1 rounded-full inline-block">
+                          {cardTypeOption.size}
+                        </div>
+                      </div>
+                      {cardType === cardTypeOption.value && (
+                        <div className="absolute top-3 right-3 sm:top-4 sm:right-4 w-3 h-3 bg-primary rounded-full shadow-[0_0_8px_rgba(var(--primary),0.5)]"></div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Toggle pour l'arrière-plan du dernier anime */}
+                <div className="flex items-center justify-center space-x-3 p-4 bg-card/50 rounded-2xl border border-border/50 backdrop-blur-sm shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+                  <span className="text-white text-sm">
+                    Arrière-plan avec le dernier anime
+                  </span>
+                  <button
                     onClick={() =>
-                      setCardType(cardTypeOption.value as CardType)
+                      setUseLastAnimeBackground(
+                        useLastAnimeBackground === "1" ? "0" : "1"
+                      )
                     }
-                    className={`relative p-6 sm:p-8 rounded-2xl cursor-pointer transition-all duration-300 border border-border/50 backdrop-blur-sm ${
-                      cardType === cardTypeOption.value
-                        ? "bg-primary/5 border-primary/60 shadow-[0_4px_16px_rgba(0,0,0,0.12)] scale-[1.02]"
-                        : "bg-card/50 hover:border-primary/30 hover:bg-card/70 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] hover:scale-[1.01]"
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      useLastAnimeBackground === "1"
+                        ? "bg-primary"
+                        : "bg-gray-600"
                     }`}
                   >
-                    <div className="text-center space-y-3 sm:space-y-4">
-                      <div className="flex justify-center mb-3 sm:mb-4">
-                        <CardStyleSvg type={cardTypeOption.value as CardType} size={100} />
-                      </div>
-                      <h3 className="text-xl sm:text-2xl font-bold text-foreground">
-                        {cardTypeOption.label}
-                      </h3>
-                      <p className="text-sm sm:text-base text-muted-foreground px-2">
-                        {cardTypeOption.description}
-                      </p>
-                      <div className="text-xs sm:text-sm text-muted-foreground bg-muted px-2 sm:px-3 py-1 rounded-full inline-block">
-                        {cardTypeOption.size}
-                      </div>
-                    </div>
-                    {cardType === cardTypeOption.value && (
-                      <div className="absolute top-3 right-3 sm:top-4 sm:right-4 w-3 h-3 bg-primary rounded-full shadow-[0_0_8px_rgba(var(--primary),0.5)]"></div>
-                    )}
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        useLastAnimeBackground === "1"
+                          ? "translate-x-6"
+                          : "translate-x-1"
+                      }`}
+                    />
+                  </button>
+                  <span className="text-white/60 text-xs">
+                    {useLastAnimeBackground === "1" ? "Activé" : "Désactivé"}
+                  </span>
+                </div>
+
+                <div className="flex gap-4 justify-center">
+                  <Button
+                    onClick={goToPreviousStep}
+                    variant="outline"
+                    className="px-8 py-3"
+                  >
+                    ← Retour
+                  </Button>
+                  <Button
+                    onClick={goToNextStep}
+                    disabled={!cardType}
+                    className="px-8 py-3 text-lg font-semibold"
+                  >
+                    Continuer →
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Étape 3: Saisie du nom d'utilisateur */}
+            {currentStep === "username" && (
+              <div className="text-center space-y-8">
+                <div>
+                  <h2 className="text-4xl font-bold text-foreground mb-4">
+                    Entrez votre nom d'utilisateur
+                  </h2>
+                  <div className="flex items-center justify-center gap-3 mb-4">
+                    <PlatformIcon platform={platform} size={32} />
+                    <p className="text-xl text-muted-foreground">
+                      Récupérez vos données depuis {platform}
+                    </p>
                   </div>
-                ))}
-              </div>
+                </div>
 
-              {/* Toggle pour l'arrière-plan du dernier anime */}
-              <div className="flex items-center justify-center space-x-3 p-4 bg-card/50 rounded-2xl border border-border/50 backdrop-blur-sm shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
-                <span className="text-white text-sm">
-                  Arrière-plan avec le dernier anime
-                </span>
-                <button
-                  onClick={() =>
-                    setUseLastAnimeBackground(
-                      useLastAnimeBackground === "1" ? "0" : "1"
-                    )
-                  }
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    useLastAnimeBackground === "1"
-                      ? "bg-primary"
-                      : "bg-gray-600"
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      useLastAnimeBackground === "1"
-                        ? "translate-x-6"
-                        : "translate-x-1"
-                    }`}
-                  />
-                </button>
-                <span className="text-white/60 text-xs">
-                  {useLastAnimeBackground === "1" ? "Activé" : "Désactivé"}
-                </span>
-              </div>
+                <div className="max-w-2xl mx-auto space-y-6">
+                  <div className="flex gap-4">
+                    <Input
+                      placeholder="Entrez votre nom d'utilisateur..."
+                      value={username || ""}
+                      onChange={(e) => setUsername(e.target.value)}
+                      onKeyPress={(e) => e.key === "Enter" && fetchUserData()}
+                      className="text-lg py-4"
+                    />
+                    <Button
+                      onClick={fetchUserData}
+                      disabled={isLoading || !username?.trim()}
+                      className="px-8 py-4 text-lg font-semibold"
+                    >
+                      {isLoading ? (
+                        <div className="flex items-center gap-2">
+                          <ButtonLoading size="sm" />
+                          Récupération...
+                        </div>
+                      ) : (
+                        "Récupérer"
+                      )}
+                    </Button>
+                  </div>
 
-              <div className="flex gap-4 justify-center">
+                  {error && (
+                    <div className="p-4 bg-destructive/20 border border-destructive/30 rounded-xl">
+                      <p className="text-destructive">{error}</p>
+                    </div>
+                  )}
+                </div>
+
                 <Button
                   onClick={goToPreviousStep}
                   variant="outline"
@@ -525,144 +574,86 @@ export default function HomePage() {
                 >
                   ← Retour
                 </Button>
-                <Button
-                  onClick={goToNextStep}
-                  disabled={!cardType}
-                  className="px-8 py-3 text-lg font-semibold"
-                >
-                  Continuer →
-                </Button>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Étape 3: Saisie du nom d'utilisateur */}
-          {currentStep === "username" && (
-            <div className="text-center space-y-8">
-              <div>
-                <h2 className="text-4xl font-bold text-foreground mb-4">
-                  Entrez votre nom d'utilisateur
-                </h2>
-                <div className="flex items-center justify-center gap-3 mb-4">
-                  <PlatformIcon platform={platform} size={32} />
+            {/* Étape 4: Prévisualisation */}
+            {currentStep === "preview" && (
+              <div className="space-y-8">
+                <div className="text-center">
+                  <h2 className="text-4xl font-bold text-foreground mb-4">
+                    Votre carte personnalisée
+                  </h2>
                   <p className="text-xl text-muted-foreground">
-                    Récupérez vos données depuis {platform}
+                    Visualisez et téléchargez votre carte générée
                   </p>
                 </div>
-              </div>
 
-              <div className="max-w-2xl mx-auto space-y-6">
-                <div className="flex gap-4">
-                  <Input
-                    placeholder="Entrez votre nom d'utilisateur..."
-                    value={username || ""}
-                    onChange={(e) => setUsername(e.target.value)}
-                    onKeyPress={(e) => e.key === "Enter" && fetchUserData()}
-                    className="text-lg py-4"
+                {userData && (
+                  <CardPreview
+                    userData={userData}
+                    platform={platform as Platform}
+                    cardType={cardType as CardType}
+                    useLastAnimeBackground={useLastAnimeBackground === "1"}
+                    onCardGenerated={(cardUrl, shareableUrl) => {
+                      setGeneratedCardData({ cardUrl, shareableUrl });
+                    }}
+                    onCardTypeChange={(newCardType) => {
+                      setCardType(newCardType);
+                      // Régénérer la carte avec le nouveau type
+                      generateCardMutation.mutate({
+                        platform: platform as Platform,
+                        username: userData.username,
+                        cardType: newCardType,
+                        useLastAnimeBackground: useLastAnimeBackground === "1",
+                      });
+                    }}
+                    onBackgroundToggle={(useBackground) => {
+                      setUseLastAnimeBackground(useBackground ? "1" : "0");
+                      // Régénérer la carte avec le nouveau background
+                      generateCardMutation.mutate({
+                        platform: platform as Platform,
+                        username: userData.username,
+                        cardType: cardType as CardType,
+                        useLastAnimeBackground: useBackground,
+                      });
+                    }}
+                    preGeneratedCard={generatedCardData}
                   />
+                )}
+
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
                   <Button
-                    onClick={fetchUserData}
-                    disabled={isLoading || !username?.trim()}
-                    className="px-8 py-4 text-lg font-semibold"
+                    onClick={goToPreviousStep}
+                    variant="outline"
+                    className="px-6 sm:px-8 py-3 w-full sm:w-auto"
                   >
-                    {isLoading ? (
-                      <div className="flex items-center gap-2">
-                        <ButtonLoading size="sm" />
-                        Récupération...
-                      </div>
-                    ) : (
-                      "Récupérer"
-                    )}
+                    <span className="hidden sm:inline">← Modifier les paramètres</span>
+                    <span className="sm:hidden">← Modifier</span>
+                  </Button>
+                  <Button
+                    onClick={resetToStart}
+                    variant="outline"
+                    className="px-6 sm:px-8 py-3 w-full sm:w-auto"
+                  >
+                    <span className="hidden sm:inline">🔄 Recommencer</span>
+                    <span className="sm:hidden">🔄 Recommencer</span>
                   </Button>
                 </div>
-
-                {error && (
-                  <div className="p-4 bg-destructive/20 border border-destructive/30 rounded-xl">
-                    <p className="text-destructive">{error}</p>
-                  </div>
-                )}
               </div>
-
-              <Button
-                onClick={goToPreviousStep}
-                variant="outline"
-                className="px-8 py-3"
-              >
-                ← Retour
-              </Button>
-            </div>
-          )}
-
-          {/* Étape 4: Prévisualisation */}
-          {currentStep === "preview" && (
-            <div className="space-y-8">
-              <div className="text-center">
-                <h2 className="text-4xl font-bold text-foreground mb-4">
-                  Votre carte personnalisée
-                </h2>
-                <p className="text-xl text-muted-foreground">
-                  Visualisez et téléchargez votre carte générée
-                </p>
-              </div>
-
-              {userData && (
-                <CardPreview
-                  userData={userData}
-                  platform={platform as Platform}
-                  cardType={cardType as CardType}
-                  useLastAnimeBackground={useLastAnimeBackground === "1"}
-                  onCardGenerated={(cardUrl, shareableUrl) => {
-                    setGeneratedCardData({ cardUrl, shareableUrl });
-                  }}
-                  onCardTypeChange={(newCardType) => {
-                    setCardType(newCardType);
-                    // Régénérer la carte avec le nouveau type
-                    generateCardMutation.mutate({
-                      platform: platform as Platform,
-                      username: userData.username,
-                      cardType: newCardType,
-                      useLastAnimeBackground: useLastAnimeBackground === "1",
-                    });
-                  }}
-                  onBackgroundToggle={(useBackground) => {
-                    setUseLastAnimeBackground(useBackground ? "1" : "0");
-                    // Régénérer la carte avec le nouveau background
-                    generateCardMutation.mutate({
-                      platform: platform as Platform,
-                      username: userData.username,
-                      cardType: cardType as CardType,
-                      useLastAnimeBackground: useBackground,
-                    });
-                  }}
-                  preGeneratedCard={generatedCardData}
-                />
-              )}
-
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-                <Button
-                  onClick={goToPreviousStep}
-                  variant="outline"
-                  className="px-6 sm:px-8 py-3 w-full sm:w-auto"
-                >
-                  <span className="hidden sm:inline">← Modifier les paramètres</span>
-                  <span className="sm:hidden">← Modifier</span>
-                </Button>
-                <Button
-                  onClick={resetToStart}
-                  variant="outline"
-                  className="px-6 sm:px-8 py-3 w-full sm:w-auto"
-                >
-                  <span className="hidden sm:inline">🔄 Recommencer</span>
-                  <span className="sm:hidden">🔄 Recommencer</span>
-                </Button>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
+      </section>
 
-        {/* Footer */}
-        <div className="mt-16 text-center text-muted-foreground">
-          <div className="flex flex-col gap-4 text-sm">
+      {/* Cible de l'ancre « Voir des exemples ». Elle vit hors de la scène :
+          le mur est confiné à la hauteur d'écran, la page continue en dessous
+          sur un fond net. */}
+      <Samples />
+
+      {/* Footer */}
+      <footer className="mx-auto w-[min(1120px,92vw)] pb-12 text-center text-muted-foreground">
+        <div className="flex flex-col gap-4 text-sm">
             <div className="flex flex-col gap-2">
               <p>
                 {SITE_CONFIG.site.name} utilise les APIs publiques d'AniList et
@@ -700,9 +691,8 @@ export default function HomePage() {
                 </Link>
               </div>
             </div>
-          </div>
         </div>
-      </div>
-    </div>
+      </footer>
+    </>
   );
 }

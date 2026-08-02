@@ -180,6 +180,38 @@
 .animate-wall-up   { animation: wall-up 60s linear infinite; }
 .animate-wall-down { animation: wall-down 60s linear infinite; }
 
+/* --- Arrivee de la hero ---------------------------------------------------
+   Les blocs de l'accroche montent en cascade au chargement. Le decalage est
+   porte par une variable pour que chaque bloc n'ait qu'a poser son rang, et
+   `both` garde l'element invisible pendant son propre delai — sans quoi tout
+   apparait d'un coup puis rejoue. */
+@keyframes hero-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+.hero-rise {
+  animation: hero-rise .7s cubic-bezier(.22,.9,.24,1) both;
+  animation-delay: var(--rise-delay, 0ms);
+}
+
+/* --- Morphing de la bande de plateformes ----------------------------------
+   Seule la bande porte un `view-transition-name` : c'est le seul element
+   present avant et apres le passage a l'assistant, donc le seul que le
+   navigateur puisse interpoler plutot que remplacer. */
+::view-transition-old(rail),
+::view-transition-new(rail) {
+  animation-duration: .55s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-rise { animation: none; }
+
+  ::view-transition-old(rail),
+  ::view-transition-new(rail) {
+    animation: none !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   /* Balayage circulaire plein écran du changement de thème : c'est le
      déplacement le plus large de tout le site. Le thème bascule net. */
