@@ -133,13 +133,18 @@ export const appRouter = createTRPCRouter({
         // Convertir le buffer en data URL pour l'affichage côté client
         const cardDataUrl = `data:image/png;base64,${cardBuffer.toString("base64")}`;
 
+        // On enregistre la casse canonique renvoyée par la plateforme, pas
+        // celle saisie : les pseudos y sont insensibles à la casse, et deux
+        // graphies créaient jusqu'ici deux cartes distinctes.
+        const canonicalUsername = userData.username || input.username;
+
         // Sauvegarder en base de données
         await ensurePrismaConnection();
         await prisma.cardGeneration.upsert({
           where: {
             platform_username_cardType: {
               platform: input.platform,
-              username: input.username,
+              username: canonicalUsername,
               cardType: input.cardType,
             },
           },
@@ -148,7 +153,7 @@ export const appRouter = createTRPCRouter({
           },
           create: {
             platform: input.platform,
-            username: input.username,
+            username: canonicalUsername,
             cardType: input.cardType,
           },
         });
@@ -157,7 +162,7 @@ export const appRouter = createTRPCRouter({
         // notamment) transforment les `&` en `&amp;` et cassent l'intégration.
         const shareableUrl = buildCardPath(
           input.platform,
-          input.username,
+          canonicalUsername,
           input.cardType,
           input.useLastAnimeBackground
         );

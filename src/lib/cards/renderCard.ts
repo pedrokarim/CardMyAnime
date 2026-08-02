@@ -99,11 +99,14 @@ export async function resolveCard(
     const useLastAnimeBackground =
       validBackground === undefined || validBackground !== "0";
 
-    // Vérifier si la carte existe déjà en base
+    // Recherche insensible à la casse : les pseudos le sont sur les trois
+    // plateformes, et la base contient encore des lignes créées avec
+    // différentes graphies. Une URL en minuscules doit retrouver une carte
+    // enregistrée en CamelCase.
     const existingCard = await prisma.cardGeneration.findFirst({
       where: {
         platform: validPlatform,
-        username: validUsername,
+        username: { equals: validUsername, mode: "insensitive" },
         cardType: validType,
       },
     });

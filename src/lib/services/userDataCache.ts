@@ -1,5 +1,6 @@
 import { UserData } from "../types";
 import { Platform } from "../types";
+import { normalizeUsername } from "../username";
 
 const CACHE_DURATION_HOURS = 24; // Les données expirent après 24h
 const CACHE_DURATION_MS = CACHE_DURATION_HOURS * 60 * 60 * 1000;
@@ -19,8 +20,16 @@ export class UserDataCacheService {
   /**
    * Récupère les données utilisateur depuis le cache ou les APIs
    */
-  async getUserData(platform: Platform, username: string): Promise<UserData> {
+  async getUserData(
+    platform: Platform,
+    rawUsername: string
+  ): Promise<UserData> {
     const { prisma, executeWithRetry } = await import("../prisma");
+
+    // Les trois plateformes ignorent la casse : sans cette normalisation,
+    // "PedroKarim64" et "pedrokarim64" créaient deux lignes de cache et
+    // refaisaient chacune leurs requêtes.
+    const username = normalizeUsername(rawUsername);
 
     try {
       // Vérifier si on a des données en cache avec retry automatique
