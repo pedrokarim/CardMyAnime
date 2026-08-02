@@ -96,6 +96,13 @@ COPY --from=builder --chown=nextjs:nodegrp /app/scripts ./scripts
 COPY --from=builder --chown=nextjs:nodegrp /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodegrp /app/.next/static ./.next/static
 
+# `next build` compile bien instrumentation.ts vers .next/server/instrumentation.js,
+# mais ne le recopie pas dans la sortie standalone. Sans ce fichier, Next ne
+# trouve pas le hook `register()` : le planificateur cron n'a donc jamais
+# demarre en production, et les taches restaient a l'etat ou un declenchement
+# manuel les avait laissees.
+COPY --from=builder --chown=nextjs:nodegrp /app/.next/server/instrumentation.js ./.next/server/instrumentation.js
+
 # Copie les node_modules depuis le builder (toutes les dépendances déjà résolues)
 RUN mkdir -p /app/node_modules /app/.npm
 COPY --from=builder --chown=nextjs:nodegrp /app/node_modules ./node_modules

@@ -625,6 +625,13 @@ export function startCronScheduler(): void {
     5000
   );
 
+  // Le demarrage etait silencieux : rien ne distinguait un planificateur actif
+  // d'un planificateur jamais lance. C'est ce qui a permis a l'absence
+  // d'instrumentation.js dans l'image de passer inapercue.
+  console.info(
+    `[CronScheduler] Demarre (intervalle ${pollIntervalMs} ms)`
+  );
+
   globalThis.__cardmyanimeCronSchedulerStartedAt = new Date().toISOString();
   globalThis.__cardmyanimeCronSchedulerPollMs = pollIntervalMs;
   globalThis.__cardmyanimeCronSchedulerTickCount = 0;
