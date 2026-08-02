@@ -12,6 +12,7 @@ import { generateGlassmorphismCard } from "@/lib/cards/glassmorphismCard";
 import { generateErrorCard } from "@/lib/cards/errorCard";
 import { prisma, ensurePrismaConnection } from "@/lib/prisma";
 import type { CardType } from "@/lib/types";
+import { platformDisabledReason } from "@/lib/platformStatus";
 import { CARD_TYPES, PLATFORMS } from "./cardTypes";
 
 export const cardRequestSchema = z.object({
@@ -79,6 +80,20 @@ export async function resolveCard(
       type: validType,
       background: validBackground,
     } = parsed.data;
+
+    // Plateforme suspendue : on refuse explicitement plutôt que de laisser le
+    // cache resservir des données périmées sans le dire.
+    const disabledReason = platformDisabledReason(validPlatform);
+    if (disabledReason) {
+      return {
+        ok: false,
+        status: 503,
+        error: disabledReason,
+        title: "Plateforme indisponible",
+        detail: disabledReason,
+        cardType: validType,
+      };
+    }
 
     // Arrière-plan activé par défaut, désactivé uniquement avec "0"
     const useLastAnimeBackground =

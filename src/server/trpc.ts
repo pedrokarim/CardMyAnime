@@ -10,6 +10,7 @@ import { generateMinimalCard } from "@/lib/cards/minimalCard";
 import { generateGlassmorphismCard } from "@/lib/cards/glassmorphismCard";
 import { Platform, CardType } from "@/lib/types";
 import { buildCardPath } from "@/lib/cards/cardUrl";
+import { PLATFORM_STATUS, platformDisabledReason } from "@/lib/platformStatus";
 import { prisma, ensurePrismaConnection } from "@/lib/prisma";
 
 const platformSchema = z.enum(["anilist", "mal", "nautiljon"]);
@@ -25,6 +26,11 @@ export const appRouter = createTRPCRouter({
     )
     .mutation(async ({ input }) => {
       try {
+        const disabledReason = platformDisabledReason(input.platform);
+        if (disabledReason) {
+          return { success: false, error: disabledReason };
+        }
+
         let userData;
 
         // Utiliser le service de cache pour récupérer les données
@@ -56,6 +62,11 @@ export const appRouter = createTRPCRouter({
     )
     .mutation(async ({ input }) => {
       try {
+        const disabledReason = platformDisabledReason(input.platform);
+        if (disabledReason) {
+          return { success: false, error: disabledReason };
+        }
+
         // Utiliser le service de cache pour récupérer les données
         const userData = await userDataCache.getUserData(
           input.platform as Platform,
@@ -170,7 +181,11 @@ export const appRouter = createTRPCRouter({
       { value: "anilist", label: "AniList" },
       { value: "mal", label: "MyAnimeList" },
       { value: "nautiljon", label: "Nautiljon" },
-    ];
+    ].map((platform) => ({
+      ...platform,
+      disabled: PLATFORM_STATUS[platform.value as Platform].disabled,
+      disabledReason: PLATFORM_STATUS[platform.value as Platform].reason,
+    }));
   }),
 
   getCardTypes: publicProcedure.query(() => {

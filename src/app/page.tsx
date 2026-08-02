@@ -5,6 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CardPreview } from "@/components/CardPreview";
 import { Platform, CardType, UserData } from "@/lib/types";
+import {
+  PLATFORM_STATUS,
+  isPlatformDisabled,
+  platformDisabledReason,
+} from "@/lib/platformStatus";
 import { trpc } from "@/lib/trpc/client";
 import { useQueryState } from "nuqs";
 import Image from "next/image";
@@ -32,7 +37,9 @@ export default function HomePage() {
   const [platform, setPlatform] = useQueryState<Platform>("platform", {
     defaultValue: "anilist",
     parse: (value): Platform => {
-      if (["anilist", "mal", "nautiljon"].includes(value)) {
+      // Une plateforme suspendue est ignorée : arriver par une vieille URL
+      // ?platform=… ne doit pas lancer un parcours qui échouera plus loin.
+      if (["anilist", "mal", "nautiljon"].includes(value) && !isPlatformDisabled(value)) {
         return value as Platform;
       }
       return "anilist";
@@ -104,7 +111,12 @@ export default function HomePage() {
       label: "Nautiljon",
       description: "Scraping de profils publics",
     },
-  ];
+  ].map((platformOption) => ({
+    ...platformOption,
+    disabled: isPlatformDisabled(platformOption.value),
+    disabledReason: platformDisabledReason(platformOption.value),
+    shortLabel: PLATFORM_STATUS[platformOption.value as Platform].shortLabel,
+  }));
 
   const cardTypes = [
     {
@@ -385,12 +397,17 @@ export default function HomePage() {
                   <div
                     key={platformOption.value}
                     onClick={() =>
+                      !platformOption.disabled &&
                       setPlatform(platformOption.value as Platform)
                     }
-                    className={`relative p-6 sm:p-8 rounded-2xl cursor-pointer transition-all duration-300 border border-border/50 backdrop-blur-sm ${
-                      platform === platformOption.value
-                        ? "bg-primary/5 border-primary/60 shadow-[0_4px_16px_rgba(0,0,0,0.12)] scale-[1.02]"
-                        : "bg-card/50 hover:border-primary/30 hover:bg-card/70 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] hover:scale-[1.01]"
+                    aria-disabled={platformOption.disabled}
+                    title={platformOption.disabledReason}
+                    className={`relative p-6 sm:p-8 rounded-2xl transition-all duration-300 border border-border/50 backdrop-blur-sm ${
+                      platformOption.disabled
+                        ? "bg-muted/30 opacity-60 cursor-not-allowed"
+                        : platform === platformOption.value
+                        ? "bg-primary/5 border-primary/60 shadow-[0_4px_16px_rgba(0,0,0,0.12)] scale-[1.02] cursor-pointer"
+                        : "bg-card/50 hover:border-primary/30 hover:bg-card/70 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] hover:scale-[1.01] cursor-pointer"
                     }`}
                   >
                     <div className="text-center space-y-3 sm:space-y-4">
@@ -407,10 +424,16 @@ export default function HomePage() {
                       <p className="text-sm sm:text-base text-muted-foreground px-2">
                         {platformOption.description}
                       </p>
+                      {platformOption.disabled && (
+                        <p className="text-xs sm:text-sm font-medium text-amber-600 dark:text-amber-500 px-2">
+                          {platformOption.shortLabel}
+                        </p>
+                      )}
                     </div>
-                    {platform === platformOption.value && (
-                      <div className="absolute top-3 right-3 sm:top-4 sm:right-4 w-3 h-3 bg-primary rounded-full shadow-[0_0_8px_rgba(var(--primary),0.5)]"></div>
-                    )}
+                    {!platformOption.disabled &&
+                      platform === platformOption.value && (
+                        <div className="absolute top-3 right-3 sm:top-4 sm:right-4 w-3 h-3 bg-primary rounded-full shadow-[0_0_8px_rgba(var(--primary),0.5)]"></div>
+                      )}
                   </div>
                 ))}
               </div>
