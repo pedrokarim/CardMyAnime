@@ -2,6 +2,7 @@ import { UserData } from "../types";
 import {
   ServerCanvasHelper,
   truncateToWidth,
+  CARD_FONT,
 } from "../utils/serverCanvasHelpers";
 import { addWatermark, addPlatformLogo } from "../utils/watermarkHelper";
 
@@ -119,7 +120,7 @@ export async function generateNeonCard(
   let scoreReserve = 0;
   if (userData.stats.avgScore > 0) {
     ctx.save();
-    ctx.font = "bold 18px Arial, sans-serif";
+    ctx.font = `bold 18px ${CARD_FONT}`;
     scoreReserve =
       ctx.measureText(`★ ${userData.stats.avgScore}`).width + 30 + 15;
     ctx.restore();
@@ -127,7 +128,7 @@ export async function generateNeonCard(
 
   // Nom d'utilisateur avec glow néon cyan
   ctx.save();
-  ctx.font = "bold 28px Arial, sans-serif";
+  ctx.font = `bold 28px ${CARD_FONT}`;
   ctx.fillStyle = "#00ffff";
   ctx.shadowColor = "#00ffff";
   ctx.shadowBlur = 12;
@@ -142,7 +143,7 @@ export async function generateNeonCard(
 
   // Sous-titre stats avec glow magenta
   ctx.save();
-  ctx.font = "16px Arial, sans-serif";
+  ctx.font = `16px ${CARD_FONT}`;
   ctx.fillStyle = "#ff00ff";
   ctx.shadowColor = "#ff00ff";
   ctx.shadowBlur = 8;
@@ -157,7 +158,7 @@ export async function generateNeonCard(
   // Note moyenne avec glow doré
   if (userData.stats.avgScore > 0) {
     ctx.save();
-    ctx.font = "bold 18px Arial, sans-serif";
+    ctx.font = `bold 18px ${CARD_FONT}`;
     ctx.fillStyle = "#ffdd00";
     ctx.shadowColor = "#ffdd00";
     ctx.shadowBlur = 10;
@@ -197,7 +198,7 @@ export async function generateNeonCard(
     const y = 130;
 
     ctx.save();
-    ctx.font = "bold 22px Arial, sans-serif";
+    ctx.font = `bold 22px ${CARD_FONT}`;
     ctx.fillStyle = stat.color;
     ctx.shadowColor = stat.color;
     ctx.shadowBlur = 8;
@@ -206,7 +207,7 @@ export async function generateNeonCard(
     ctx.restore();
 
     ctx.save();
-    ctx.font = "11px Arial, sans-serif";
+    ctx.font = `11px ${CARD_FONT}`;
     ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
     ctx.textAlign = "center";
     ctx.fillText(stat.label, x + statBoxWidth / 2, y + 38);
@@ -215,7 +216,7 @@ export async function generateNeonCard(
 
   // Section derniers animes
   ctx.save();
-  ctx.font = "bold 14px Arial, sans-serif";
+  ctx.font = `bold 14px ${CARD_FONT}`;
   ctx.fillStyle = "#00ffff";
   ctx.shadowColor = "#00ffff";
   ctx.shadowBlur = 6;
@@ -227,14 +228,14 @@ export async function generateNeonCard(
   if (recentAnimes.length === 0) {
     helper.drawText({
       x: 30, y: 220, text: "Aucune donnée trouvée",
-      fontSize: 12, fontFamily: "Arial, sans-serif", color: "#555555", textAlign: "left",
+      fontSize: 12, fontFamily: CARD_FONT, color: "#555555", textAlign: "left",
     });
   } else {
     recentAnimes.forEach((anime, index) => {
       const y = 220 + index * 20;
       // Index en néon
       ctx.save();
-      ctx.font = "bold 12px Arial, sans-serif";
+      ctx.font = `bold 12px ${CARD_FONT}`;
       ctx.fillStyle = "#00ffff";
       ctx.shadowColor = "#00ffff";
       ctx.shadowBlur = 4;
@@ -247,7 +248,7 @@ export async function generateNeonCard(
 
       if (anime.score && anime.score > 0) {
         ctx.save();
-        ctx.font = "11px Arial, sans-serif";
+        ctx.font = `11px ${CARD_FONT}`;
         ctx.fillStyle = "#ffdd00";
         ctx.shadowColor = "#ffdd00";
         ctx.shadowBlur = 4;
@@ -260,7 +261,7 @@ export async function generateNeonCard(
 
   // Section derniers mangas
   ctx.save();
-  ctx.font = "bold 14px Arial, sans-serif";
+  ctx.font = `bold 14px ${CARD_FONT}`;
   ctx.fillStyle = "#ff00ff";
   ctx.shadowColor = "#ff00ff";
   ctx.shadowBlur = 6;
@@ -272,13 +273,13 @@ export async function generateNeonCard(
   if (recentMangas.length === 0) {
     helper.drawText({
       x: 310, y: 220, text: "Aucune donnée trouvée",
-      fontSize: 12, fontFamily: "Arial, sans-serif", color: "#555555", textAlign: "left",
+      fontSize: 12, fontFamily: CARD_FONT, color: "#555555", textAlign: "left",
     });
   } else {
     recentMangas.forEach((manga, index) => {
       const y = 220 + index * 20;
       ctx.save();
-      ctx.font = "bold 12px Arial, sans-serif";
+      ctx.font = `bold 12px ${CARD_FONT}`;
       ctx.fillStyle = "#ff00ff";
       ctx.shadowColor = "#ff00ff";
       ctx.shadowBlur = 4;
@@ -291,7 +292,7 @@ export async function generateNeonCard(
 
       if (manga.score && manga.score > 0) {
         ctx.save();
-        ctx.font = "11px Arial, sans-serif";
+        ctx.font = `11px ${CARD_FONT}`;
         ctx.fillStyle = "#ffdd00";
         ctx.shadowColor = "#ffdd00";
         ctx.shadowBlur = 4;
@@ -322,7 +323,7 @@ export async function generateNeonCard(
       ctx.restore();
 
       ctx.save();
-      ctx.font = "10px Arial, sans-serif";
+      ctx.font = `10px ${CARD_FONT}`;
       ctx.fillStyle = "#00ffff";
       ctx.textAlign = "left";
       ctx.fillText(genre, genreX + 8, genreY + 3);

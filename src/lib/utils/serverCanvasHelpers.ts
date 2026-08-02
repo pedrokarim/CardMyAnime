@@ -1,11 +1,60 @@
 import {
   createCanvas,
   loadImage,
+  registerFont,
   Image,
   Canvas,
   CanvasRenderingContext2D,
 } from "canvas";
 import path from "path";
+
+/**
+ * Police de toutes les cartes.
+ *
+ * `sans-serif` reste en repli : les glyphes absents de Poppins — japonais des
+ * titres, symboles — sont alors pris dans les polices système du conteneur
+ * (Noto CJK), et non remplacés par des carrés vides.
+ */
+export const CARD_FONT = "Poppins, sans-serif";
+
+/**
+ * Enregistrement des polices embarquées.
+ *
+ * Appelé au chargement du module, et c'est essentiel : `registerFont` de
+ * node-canvas n'a aucun effet sur un canvas déjà créé. L'ancienne
+ * implémentation appelait l'enregistrement depuis le constructeur de
+ * ServerCanvasHelper, donc APRÈS le `createCanvas` de la ligne précédente —
+ * les polices de `public/fonts/` n'ont ainsi jamais été utilisées, et tout
+ * était rendu avec la police système.
+ */
+function registerBundledFonts(): void {
+  const dir = path.join(process.cwd(), "public", "fonts");
+
+  const fonts: Array<{
+    file: string;
+    family: string;
+    weight?: string;
+  }> = [
+    { file: "Poppins-Regular.ttf", family: "Poppins", weight: "normal" },
+    { file: "Poppins-SemiBold.ttf", family: "Poppins", weight: "bold" },
+    { file: "NotoSans-Regular.ttf", family: "Noto Sans", weight: "normal" },
+  ];
+
+  for (const font of fonts) {
+    try {
+      registerFont(path.join(dir, font.file), {
+        family: font.family,
+        weight: font.weight,
+      });
+    } catch (error) {
+      // Une police manquante ne doit pas empêcher de rendre une carte : on
+      // retombera sur la police système.
+      console.error(`Police non enregistrée (${font.file}):`, error);
+    }
+  }
+}
+
+registerBundledFonts();
 
 // --- Cache statique pour les assets locaux ---
 const staticAssetCache = new Map<string, Image>();
@@ -189,17 +238,8 @@ export class ServerCanvasHelper {
     this.ctx = this.canvas.getContext("2d");
     this.width = width;
     this.height = height;
-
-    // Enregistrer les polices une seule fois
-    if (!ServerCanvasHelper.fontsRegistered) {
-      this.registerFonts();
-      ServerCanvasHelper.fontsRegistered = true;
-    }
-  }
-
-  private registerFonts() {
-    // Plus de gestion spéciale des polices - on utilise les polices système
-    console.log("🔤 Utilisation des polices système par défaut");
+    // Les polices sont enregistrées au chargement du module : les inscrire
+    // ici, après le createCanvas ci-dessus, n'aurait aucun effet.
   }
 
   // Configuration initiale du canvas
@@ -244,7 +284,7 @@ export class ServerCanvasHelper {
     this.ctx.save();
 
     // Utiliser la police par défaut
-    let fontFamily = config.fontFamily || "Arial, sans-serif";
+    let fontFamily = config.fontFamily || CARD_FONT;
 
     this.ctx.font = `${config.fontSize}px ${fontFamily}`;
     this.ctx.fillStyle = config.color || "#000000";
@@ -272,7 +312,7 @@ export class ServerCanvasHelper {
   measureText(
     text: string,
     fontSize: number,
-    fontFamily: string = "Arial, sans-serif"
+    fontFamily: string = CARD_FONT
   ): number {
     this.ctx.save();
     this.ctx.font = `${fontSize}px ${fontFamily}`;
@@ -290,7 +330,7 @@ export class ServerCanvasHelper {
     text: string,
     maxWidth: number,
     fontSize: number,
-    fontFamily: string = "Arial, sans-serif"
+    fontFamily: string = CARD_FONT
   ): string {
     this.ctx.save();
     this.ctx.font = `${fontSize}px ${fontFamily}`;
@@ -311,7 +351,7 @@ export class ServerCanvasHelper {
     maxWidth: number,
     fontSize: number,
     maxLines: number,
-    fontFamily: string = "Arial, sans-serif"
+    fontFamily: string = CARD_FONT
   ): string[] {
     const words = text.split(" ");
     const lines: string[] = [];
@@ -385,7 +425,7 @@ export class ServerCanvasHelper {
     maxWidth: number,
     fontSize: number,
     color: string = "#ffffff",
-    fontFamily: string = "Arial, sans-serif"
+    fontFamily: string = CARD_FONT
   ) {
     this.ctx.save();
 

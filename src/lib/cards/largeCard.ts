@@ -1,6 +1,6 @@
 import path from "path";
 import { UserData } from "../types";
-import { ServerCanvasHelper } from "../utils/serverCanvasHelpers";
+import { ServerCanvasHelper, CARD_FONT } from "../utils/serverCanvasHelpers";
 import { addWatermark, addPlatformLogo } from "../utils/watermarkHelper";
 
 /**
@@ -97,7 +97,7 @@ function drawStatTiles(helper: ServerCanvasHelper, userData: UserData) {
       y: 68,
       text: formatNumber(tile.value),
       fontSize: 20,
-      fontFamily: "Arial, sans-serif",
+      fontFamily: CARD_FONT,
       color: tile.color,
       textAlign: "center",
     });
@@ -107,7 +107,7 @@ function drawStatTiles(helper: ServerCanvasHelper, userData: UserData) {
       y: 88,
       text: helper.truncateTextToWidth(tile.label, tileW - 6, 11),
       fontSize: 11,
-      fontFamily: "Arial, sans-serif",
+      fontFamily: CARD_FONT,
       color: "rgba(255,255,255,0.55)",
       textAlign: "center",
     });
@@ -126,7 +126,7 @@ async function drawSection(
     y: topY,
     text: sectionTitle.toUpperCase(),
     fontSize: 13,
-    fontFamily: "Arial, sans-serif",
+    fontFamily: CARD_FONT,
     color: accent,
     textAlign: "left",
   });
@@ -145,7 +145,7 @@ async function drawSection(
       y: rowY + 28,
       text: "Aucune donnée trouvée",
       fontSize: 14,
-      fontFamily: "Arial, sans-serif",
+      fontFamily: CARD_FONT,
       color: "#8b949e",
       textAlign: "left",
     });
@@ -194,7 +194,7 @@ async function drawSection(
         y: rowY + 16 + lineIndex * 19,
         text: line,
         fontSize: 14,
-        fontFamily: "Arial, sans-serif",
+        fontFamily: CARD_FONT,
         color: "#ffffff",
         textAlign: "left",
       });
@@ -206,7 +206,7 @@ async function drawSection(
         y: rowY + 16 + lines.length * 19 + 8,
         text: `★ ${item.score}`,
         fontSize: 12,
-        fontFamily: "Arial, sans-serif",
+        fontFamily: CARD_FONT,
         color: "#ffd700",
         textAlign: "left",
       });
@@ -314,7 +314,7 @@ export async function generateLargeCard(
       y: H - 26,
       text: `Membre depuis ${userData.profile.joinDate}`,
       fontSize: 12,
-      fontFamily: "Arial, sans-serif",
+      fontFamily: CARD_FONT,
       color: "rgba(255,255,255,0.45)",
       textAlign: "left",
     });

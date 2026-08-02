@@ -1,4 +1,4 @@
-import { ServerCanvasHelper, getStaticAsset } from "./serverCanvasHelpers";
+import { ServerCanvasHelper, getStaticAsset, CARD_FONT } from "./serverCanvasHelpers";
 import { loadImage as canvasLoadImage } from "canvas";
 
 export interface WatermarkOptions {
@@ -79,7 +79,7 @@ export async function addWatermark(
 
     // Ajouter le texte si demandé
     if (showText) {
-      ctx.font = "12px Arial, sans-serif";
+      ctx.font = `12px ${CARD_FONT}`;
       ctx.fillStyle = "#888888";
       ctx.textAlign = "right";
       // Centrer le texte verticalement par rapport à l'image
@@ -94,7 +94,7 @@ export async function addWatermark(
 
     // Fallback : dessiner un watermark simple avec du texte
     ctx.globalAlpha = opacity;
-    ctx.font = "12px Arial, sans-serif";
+    ctx.font = `12px ${CARD_FONT}`;
     ctx.fillStyle = "#888888";
     ctx.textAlign = "right";
     ctx.fillText("CardMyAnime", width - 15, height - 15);

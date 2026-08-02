@@ -1,6 +1,7 @@
 import { UserData } from "../types";
 import {
   ServerCanvasHelper,
+  CARD_FONT,
   truncateToWidth,
 } from "../utils/serverCanvasHelpers";
 import { addWatermark, addPlatformLogo } from "../utils/watermarkHelper";
@@ -130,7 +131,7 @@ export async function generateGlassmorphismCard(
 
   // Nom d'utilisateur
   ctx.save();
-  ctx.font = "bold 28px Arial, sans-serif";
+  ctx.font = `bold 28px ${CARD_FONT}`;
   ctx.fillStyle = "#ffffff";
   ctx.textAlign = "left";
   // Tronqué : un pseudo long passait sous le badge de note, qui commence à
@@ -148,7 +149,7 @@ export async function generateGlassmorphismCard(
 
   // Sous-titre
   ctx.save();
-  ctx.font = "14px Arial, sans-serif";
+  ctx.font = `14px ${CARD_FONT}`;
   ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
   ctx.textAlign = "left";
   const subText = `${userData.stats.animesSeen} animes  ·  ${userData.stats.mangasRead} mangas`;
@@ -172,7 +173,7 @@ export async function generateGlassmorphismCard(
     ctx.roundRect(scoreX, scoreY, 70, 36, 18);
     ctx.stroke();
 
-    ctx.font = "bold 16px Arial, sans-serif";
+    ctx.font = `bold 16px ${CARD_FONT}`;
     ctx.fillStyle = "#fbbf24";
     ctx.textAlign = "center";
     ctx.fillText(`★ ${userData.stats.avgScore}`, scoreX + 35, scoreY + 24);
@@ -224,7 +225,7 @@ export async function generateGlassmorphismCard(
 
     // Valeur
     ctx.save();
-    ctx.font = "bold 20px Arial, sans-serif";
+    ctx.font = `bold 20px ${CARD_FONT}`;
     ctx.fillStyle = stat.color;
     ctx.textAlign = "center";
     ctx.fillText(stat.value.toString(), x + cardW / 2, y + 24);
@@ -232,7 +233,7 @@ export async function generateGlassmorphismCard(
 
     // Label
     ctx.save();
-    ctx.font = "10px Arial, sans-serif";
+    ctx.font = `10px ${CARD_FONT}`;
     ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
     ctx.textAlign = "center";
     ctx.fillText(stat.label, x + cardW / 2, y + 42);
@@ -243,7 +244,7 @@ export async function generateGlassmorphismCard(
   const listY = statsY + 68;
 
   ctx.save();
-  ctx.font = "bold 13px Arial, sans-serif";
+  ctx.font = `bold 13px ${CARD_FONT}`;
   ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
   ctx.textAlign = "left";
   ctx.fillText("Derniers animes", panelX + 30, listY);
@@ -252,7 +253,7 @@ export async function generateGlassmorphismCard(
   const recentAnimes = userData.lastAnimes.slice(0, 4);
   if (recentAnimes.length === 0) {
     ctx.save();
-    ctx.font = "12px Arial, sans-serif";
+    ctx.font = `12px ${CARD_FONT}`;
     ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
     ctx.textAlign = "left";
     ctx.fillText("Aucune donnée trouvée", panelX + 30, listY + 18);
@@ -274,7 +275,7 @@ export async function generateGlassmorphismCard(
 
       if (anime.score && anime.score > 0) {
         ctx.save();
-        ctx.font = "10px Arial, sans-serif";
+        ctx.font = `10px ${CARD_FONT}`;
         ctx.fillStyle = "#fbbf24";
         ctx.textAlign = "right";
         ctx.fillText(`★ ${anime.score}`, panelX + panelW / 2 - 15, y);
@@ -285,7 +286,7 @@ export async function generateGlassmorphismCard(
 
   // --- Derniers mangas (colonne droite) ---
   ctx.save();
-  ctx.font = "bold 13px Arial, sans-serif";
+  ctx.font = `bold 13px ${CARD_FONT}`;
   ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
   ctx.textAlign = "left";
   ctx.fillText("Derniers mangas", panelX + panelW / 2 + 10, listY);
@@ -294,7 +295,7 @@ export async function generateGlassmorphismCard(
   const recentMangas = userData.lastMangas.slice(0, 4);
   if (recentMangas.length === 0) {
     ctx.save();
-    ctx.font = "12px Arial, sans-serif";
+    ctx.font = `12px ${CARD_FONT}`;
     ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
     ctx.textAlign = "left";
     ctx.fillText("Aucune donnée trouvée", panelX + panelW / 2 + 10, listY + 18);
@@ -313,7 +314,7 @@ export async function generateGlassmorphismCard(
 
       if (manga.score && manga.score > 0) {
         ctx.save();
-        ctx.font = "10px Arial, sans-serif";
+        ctx.font = `10px ${CARD_FONT}`;
         ctx.fillStyle = "#fbbf24";
         ctx.textAlign = "right";
         ctx.fillText(`★ ${manga.score}`, panelX + panelW - 30, y);
@@ -330,7 +331,7 @@ export async function generateGlassmorphismCard(
 
     genres.forEach((genre) => {
       ctx.save();
-      ctx.font = "10px Arial, sans-serif";
+      ctx.font = `10px ${CARD_FONT}`;
       const textW = ctx.measureText(genre).width + 14;
 
       // Tag glass

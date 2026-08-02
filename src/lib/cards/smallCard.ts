@@ -1,6 +1,6 @@
 import path from "path";
 import { UserData } from "../types";
-import { ServerCanvasHelper } from "../utils/serverCanvasHelpers";
+import { ServerCanvasHelper, CARD_FONT } from "../utils/serverCanvasHelpers";
 import { addWatermark, addPlatformLogo } from "../utils/watermarkHelper";
 
 /**
@@ -60,7 +60,7 @@ async function drawAvatar(helper: ServerCanvasHelper, userData: UserData) {
         y: AVATAR.y + AVATAR.size / 2,
         text: "USER",
         fontSize: 11,
-        fontFamily: "Arial, sans-serif",
+        fontFamily: CARD_FONT,
         color: "#ffffff",
         textAlign: "center",
       });
@@ -104,7 +104,7 @@ export async function generateSmallCard(
     y: STATS.y,
     text: `${userData.stats.animesSeen} animes • ${userData.stats.mangasRead} mangas`,
     fontSize: STATS.fontSize,
-    fontFamily: "Arial, sans-serif",
+    fontFamily: CARD_FONT,
     color: "#e0e0e0",
     textAlign: "left",
   });
@@ -119,7 +119,7 @@ export async function generateSmallCard(
       y: META.y,
       text: scoreText,
       fontSize: META.fontSize,
-      fontFamily: "Arial, sans-serif",
+      fontFamily: CARD_FONT,
       color: "#ffd700",
       textAlign: "right",
     });
@@ -141,7 +141,7 @@ export async function generateSmallCard(
       y: ANIMES.firstY,
       text: "Aucune donnée trouvée",
       fontSize: ANIMES.fontSize,
-      fontFamily: "Arial, sans-serif",
+      fontFamily: CARD_FONT,
       color: "#8b949e",
       textAlign: "left",
     });

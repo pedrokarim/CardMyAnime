@@ -1,5 +1,5 @@
 import { UserData } from "../types";
-import { ServerCanvasHelper } from "../utils/serverCanvasHelpers";
+import { ServerCanvasHelper, CARD_FONT } from "../utils/serverCanvasHelpers";
 import { addWatermark, addPlatformLogo } from "../utils/watermarkHelper";
 
 export async function generateSummaryCard(
@@ -75,7 +75,7 @@ export async function generateSummaryCard(
           y: 75,
           text: "USER",
           fontSize: 16,
-          fontFamily: "Arial, sans-serif",
+          fontFamily: CARD_FONT,
           color: "#ffffff",
           textAlign: "center",
         });
@@ -118,7 +118,7 @@ export async function generateSummaryCard(
         y: 75,
         text: "USER",
         fontSize: 16,
-        fontFamily: "Arial, sans-serif",
+        fontFamily: CARD_FONT,
         color: "#ffffff",
         textAlign: "center",
       });
@@ -145,7 +145,7 @@ export async function generateSummaryCard(
         y: 90,
         text: `Membre depuis ${joinDate.getFullYear()}`,
         fontSize: 14,
-        fontFamily: "Arial, sans-serif",
+        fontFamily: CARD_FONT,
         color: "#8b949e",
         textAlign: "left",
       });
@@ -197,7 +197,7 @@ export async function generateSummaryCard(
       y: 180,
       text: valueText,
       fontSize: 36,
-      fontFamily: "Arial, sans-serif",
+      fontFamily: CARD_FONT,
       color: "#ffffff",
       textAlign: "center",
     });
@@ -208,7 +208,7 @@ export async function generateSummaryCard(
       y: 205,
       text: stat.label,
       fontSize: 16,
-      fontFamily: "Arial, sans-serif",
+      fontFamily: CARD_FONT,
       color: "#ffffff",
       textAlign: "center",
     });
@@ -220,7 +220,7 @@ export async function generateSummaryCard(
         y: 225,
         text: stat.subtitle,
         fontSize: 12,
-        fontFamily: "Arial, sans-serif",
+        fontFamily: CARD_FONT,
         color: "#cccccc",
         textAlign: "center",
       });
@@ -272,7 +272,7 @@ export async function generateSummaryCard(
       y: 280,
       text: stat.icon,
       fontSize: 18,
-      fontFamily: "Arial, sans-serif",
+      fontFamily: CARD_FONT,
       color: stat.color,
       textAlign: "center",
     });
@@ -283,7 +283,7 @@ export async function generateSummaryCard(
       y: 310,
       text: valueText,
       fontSize: 22,
-      fontFamily: "Arial, sans-serif",
+      fontFamily: CARD_FONT,
       color: stat.color,
       textAlign: "center",
     });
@@ -294,7 +294,7 @@ export async function generateSummaryCard(
       y: 330,
       text: stat.label,
       fontSize: 11,
-      fontFamily: "Arial, sans-serif",
+      fontFamily: CARD_FONT,
       color: "#8b949e",
       textAlign: "center",
     });
@@ -310,7 +310,7 @@ export async function generateSummaryCard(
       y: 370,
       text: "Genres favoris",
       fontSize: 16,
-      fontFamily: "Arial, sans-serif",
+      fontFamily: CARD_FONT,
       color: "#f0f6fc",
       textAlign: "left",
     });
@@ -340,7 +340,7 @@ export async function generateSummaryCard(
         y: 408,
         text: label,
         fontSize: genreFontSize,
-        fontFamily: "Arial, sans-serif",
+        fontFamily: CARD_FONT,
         color: "#58a6ff", // Couleur bleue pour les genres
         textAlign: "left",
       });
@@ -361,7 +361,7 @@ export async function generateSummaryCard(
     y: listsStartY,
     text: "Derniers animes",
     fontSize: 16,
-    fontFamily: "Arial, sans-serif",
+    fontFamily: CARD_FONT,
     color: "#f0f6fc",
     textAlign: "left",
   });
@@ -375,7 +375,7 @@ export async function generateSummaryCard(
       y: listsStartY + 25,
       text: "Aucune donnée trouvée",
       fontSize: 14,
-      fontFamily: "Arial, sans-serif",
+      fontFamily: CARD_FONT,
       color: "#8b949e",
       textAlign: "left",
     });
@@ -413,7 +413,7 @@ export async function generateSummaryCard(
           y: y,
           text: `★ ${anime.score}`,
           fontSize: 11,
-          fontFamily: "Arial, sans-serif",
+          fontFamily: CARD_FONT,
           color: "#ffd700",
           textAlign: "right",
         });
@@ -427,7 +427,7 @@ export async function generateSummaryCard(
     y: listsStartY,
     text: "Derniers mangas",
     fontSize: 16,
-    fontFamily: "Arial, sans-serif",
+    fontFamily: CARD_FONT,
     color: "#f0f6fc",
     textAlign: "left",
   });
@@ -441,7 +441,7 @@ export async function generateSummaryCard(
       y: listsStartY + 25,
       text: "Aucune donnée trouvée",
       fontSize: 14,
-      fontFamily: "Arial, sans-serif",
+      fontFamily: CARD_FONT,
       color: "#8b949e",
       textAlign: "left",
     });
@@ -478,7 +478,7 @@ export async function generateSummaryCard(
           y: y,
           text: `★ ${manga.score}`,
           fontSize: 11,
-          fontFamily: "Arial, sans-serif",
+          fontFamily: CARD_FONT,
           color: "#ffd700",
           textAlign: "right",
         });
@@ -498,7 +498,7 @@ export async function generateSummaryCard(
         y: achievementsY,
         text: "🏆 Succès débloqués",
         fontSize: 14,
-        fontFamily: "Arial, sans-serif",
+        fontFamily: CARD_FONT,
         color: "#f0f6fc",
         textAlign: "left",
       });
@@ -512,7 +512,7 @@ export async function generateSummaryCard(
           y: achievementsY + 20,
           text: `🏅 ${achievement.name}`,
           fontSize: 11,
-          fontFamily: "Arial, sans-serif",
+          fontFamily: CARD_FONT,
           color: "#ffd700",
           textAlign: "left",
         });

@@ -1,6 +1,7 @@
 import { UserData } from "../types";
 import {
   ServerCanvasHelper,
+  CARD_FONT,
   truncateToWidth,
 } from "../utils/serverCanvasHelpers";
 import { addWatermark, addPlatformLogo } from "../utils/watermarkHelper";
@@ -85,7 +86,7 @@ export async function generateMinimalCard(
   let scoreReserve = 0;
   if (userData.stats.avgScore > 0) {
     ctx.save();
-    ctx.font = "bold 14px Arial, sans-serif";
+    ctx.font = `bold 14px ${CARD_FONT}`;
     scoreReserve =
       ctx.measureText(`${userData.stats.avgScore}`).width + 24 + 24 + 12;
     ctx.restore();
@@ -93,7 +94,7 @@ export async function generateMinimalCard(
 
   // Nom d'utilisateur - typographie clean
   ctx.save();
-  ctx.font = "bold 22px Arial, sans-serif";
+  ctx.font = `bold 22px ${CARD_FONT}`;
   ctx.fillStyle = "#1c1917";
   ctx.textAlign = "left";
   // Tronqué : un pseudo long passait sous le badge de note
@@ -106,7 +107,7 @@ export async function generateMinimalCard(
 
   // Sous-titre stats
   ctx.save();
-  ctx.font = "13px Arial, sans-serif";
+  ctx.font = `13px ${CARD_FONT}`;
   ctx.fillStyle = "#78716c";
   ctx.textAlign = "left";
   ctx.fillText(
@@ -121,7 +122,7 @@ export async function generateMinimalCard(
     // Badge de note
     const scoreText = `${userData.stats.avgScore}`;
     ctx.save();
-    ctx.font = "bold 14px Arial, sans-serif";
+    ctx.font = `bold 14px ${CARD_FONT}`;
     const scoreWidth = ctx.measureText(scoreText).width + 24;
 
     ctx.fillStyle = "#f5f3ff";
@@ -135,7 +136,7 @@ export async function generateMinimalCard(
     ctx.roundRect(width - scoreWidth - 24, 24, scoreWidth, 28, 14);
     ctx.stroke();
 
-    ctx.font = "bold 14px Arial, sans-serif";
+    ctx.font = `bold 14px ${CARD_FONT}`;
     ctx.fillStyle = "#7c3aed";
     ctx.textAlign = "center";
     ctx.fillText(`★ ${scoreText}`, width - scoreWidth / 2 - 24, 43);
@@ -173,7 +174,7 @@ export async function generateMinimalCard(
 
     // Valeur
     ctx.save();
-    ctx.font = "bold 16px Arial, sans-serif";
+    ctx.font = `bold 16px ${CARD_FONT}`;
     ctx.fillStyle = stat.text;
     ctx.textAlign = "center";
     ctx.fillText(stat.value.toString(), x + pillWidth / 2, y + 17);
@@ -181,7 +182,7 @@ export async function generateMinimalCard(
 
     // Label
     ctx.save();
-    ctx.font = "9px Arial, sans-serif";
+    ctx.font = `9px ${CARD_FONT}`;
     ctx.fillStyle = stat.text;
     ctx.globalAlpha = 0.7;
     ctx.textAlign = "center";
@@ -191,7 +192,7 @@ export async function generateMinimalCard(
 
   // Derniers animes (colonne gauche)
   ctx.save();
-  ctx.font = "bold 11px Arial, sans-serif";
+  ctx.font = `bold 11px ${CARD_FONT}`;
   ctx.fillStyle = "#44403c";
   ctx.textAlign = "left";
   ctx.fillText("Derniers animes", 24, 168);
@@ -200,7 +201,7 @@ export async function generateMinimalCard(
   const recentAnimes = userData.lastAnimes.slice(0, 3);
   if (recentAnimes.length === 0) {
     ctx.save();
-    ctx.font = "11px Arial, sans-serif";
+    ctx.font = `11px ${CARD_FONT}`;
     ctx.fillStyle = "#a8a29e";
     ctx.textAlign = "left";
     ctx.fillText("Aucune donnée", 24, 186);
@@ -222,7 +223,7 @@ export async function generateMinimalCard(
 
   // Derniers mangas (colonne droite)
   ctx.save();
-  ctx.font = "bold 11px Arial, sans-serif";
+  ctx.font = `bold 11px ${CARD_FONT}`;
   ctx.fillStyle = "#44403c";
   ctx.textAlign = "left";
   ctx.fillText("Derniers mangas", width / 2 + 10, 168);
@@ -231,7 +232,7 @@ export async function generateMinimalCard(
   const recentMangas = userData.lastMangas.slice(0, 3);
   if (recentMangas.length === 0) {
     ctx.save();
-    ctx.font = "11px Arial, sans-serif";
+    ctx.font = `11px ${CARD_FONT}`;
     ctx.fillStyle = "#a8a29e";
     ctx.textAlign = "left";
     ctx.fillText("Aucune donnée", width / 2 + 10, 186);

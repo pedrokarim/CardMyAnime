@@ -1,5 +1,5 @@
 import { UserData } from "../types";
-import { ServerCanvasHelper } from "../utils/serverCanvasHelpers";
+import { ServerCanvasHelper, CARD_FONT } from "../utils/serverCanvasHelpers";
 import { addWatermark, addPlatformLogo } from "../utils/watermarkHelper";
 
 export async function generateMediumCard(
@@ -64,7 +64,7 @@ export async function generateMediumCard(
           y: 80,
           text: "USER",
           fontSize: 20,
-          fontFamily: "Arial, sans-serif",
+          fontFamily: CARD_FONT,
           color: "#ffffff",
           textAlign: "center",
         });
@@ -98,7 +98,7 @@ export async function generateMediumCard(
         y: 80,
         text: "USER",
         fontSize: 20,
-        fontFamily: "Arial, sans-serif",
+        fontFamily: CARD_FONT,
         color: "#ffffff",
         textAlign: "center",
       });
@@ -121,7 +121,7 @@ export async function generateMediumCard(
     y: 95,
     text: `Animes vus: ${userData.stats.animesSeen}`,
     fontSize: 16,
-    fontFamily: "Arial, sans-serif",
+    fontFamily: CARD_FONT,
     color: "#e0e0e0",
     textAlign: "left",
   });
@@ -131,7 +131,7 @@ export async function generateMediumCard(
     y: 115,
     text: `Mangas lus: ${userData.stats.mangasRead}`,
     fontSize: 16,
-    fontFamily: "Arial, sans-serif",
+    fontFamily: CARD_FONT,
     color: "#e0e0e0",
     textAlign: "left",
   });
@@ -143,7 +143,7 @@ export async function generateMediumCard(
       y: 135,
       text: `Note moyenne: ★ ${userData.stats.avgScore}`,
       fontSize: 16,
-      fontFamily: "Arial, sans-serif",
+      fontFamily: CARD_FONT,
       color: "#ffd700",
       textAlign: "left",
     });
@@ -155,7 +155,7 @@ export async function generateMediumCard(
     y: 170,
     text: "Derniers animes:",
     fontSize: 18,
-    fontFamily: "Arial, sans-serif",
+    fontFamily: CARD_FONT,
     color: "#ffffff",
     textAlign: "left",
   });
@@ -170,7 +170,7 @@ export async function generateMediumCard(
       y: animeY,
       text: "Aucune donnée trouvée",
       fontSize: 14,
-      fontFamily: "Arial, sans-serif",
+      fontFamily: CARD_FONT,
       color: "#8b949e",
       textAlign: "left",
     });
@@ -193,7 +193,7 @@ export async function generateMediumCard(
     y: 170,
     text: "Derniers mangas:",
     fontSize: 18,
-    fontFamily: "Arial, sans-serif",
+    fontFamily: CARD_FONT,
     color: "#ffffff",
     textAlign: "left",
   });
@@ -208,7 +208,7 @@ export async function generateMediumCard(
       y: mangaY,
       text: "Aucune donnée trouvée",
       fontSize: 14,
-      fontFamily: "Arial, sans-serif",
+      fontFamily: CARD_FONT,
       color: "#8b949e",
       textAlign: "left",
     });
