@@ -1,38 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { UserData, CardType } from "@/lib/types";
-import { generateSmallCard } from "@/lib/cards/smallCard";
-import { generateMediumCard } from "@/lib/cards/mediumCard";
-import { generateLargeCard } from "@/lib/cards/largeCard";
-import { generateSummaryCard } from "@/lib/cards/summaryCard";
-import { generateNeonCard } from "@/lib/cards/neonCard";
-import { generateMinimalCard } from "@/lib/cards/minimalCard";
-import { generateGlassmorphismCard } from "@/lib/cards/glassmorphismCard";
+import { useEffect, useState } from "react";
+import { ArrowLeft, RotateCcw } from "lucide-react";
+import { UserData, CardType, Platform } from "@/lib/types";
 import { CARD_DIMENSIONS } from "@/lib/cards/cardTypes";
-import ShareOptions from "./ShareOptions";
+import { CARD_TYPE_OPTIONS } from "@/lib/cardTypeOptions";
 import { trpc } from "@/lib/trpc/client";
 import { PlatformIcon } from "@/components/ui/platform-icon";
 import { CardLoading } from "@/components/ui/loading";
-import { CardStyleSvg } from "@/components/CardStyleSvg";
-import { CARD_TYPE_OPTIONS } from "@/lib/cardTypeOptions";
-import {
-  BookMarked,
-  BookOpen,
-  CalendarDays,
-  CheckCircle2,
-  Clock,
-  Film,
-  Heart,
-  Image as ImageIcon,
-  MessageSquare,
-  Palette,
-  Play,
-  Star,
-  Tags,
-  Tv,
-} from "lucide-react";
+import { SharePanel } from "@/components/preview/SharePanel";
+import { ProfileDetails } from "@/components/preview/ProfileDetails";
+import { cn } from "@/lib/utils";
 
 interface CardPreviewProps {
   userData: UserData;
@@ -42,27 +20,33 @@ interface CardPreviewProps {
   onCardGenerated: (cardUrl: string, shareableUrl: string) => void;
   onCardTypeChange?: (cardType: CardType) => void;
   onBackgroundToggle?: (useBackground: boolean) => void;
+  onBack?: () => void;
+  onRestart?: () => void;
   preGeneratedCard?: {
     cardUrl: string;
     shareableUrl: string;
   } | null;
 }
 
-const cardGenerators = {
-  small: generateSmallCard,
-  medium: generateMediumCard,
-  large: generateLargeCard,
-  summary: generateSummaryCard,
-  neon: generateNeonCard,
-  minimal: generateMinimalCard,
-  glassmorphism: generateGlassmorphismCard,
-};
-
-// Source unique : CARD_DIMENSIONS, partagé avec les routes de génération.
-// La copie locale avait déjà divergé du générateur.
-const cardDimensions = CARD_DIMENSIONS;
-
-
+/**
+ * Écran d'aperçu.
+ *
+ * L'écran précédent était une colonne : un pavé de statistiques, puis les
+ * derniers animes, puis les favoris, puis deux boutons de configuration, puis
+ * un sélecteur qu'il fallait déplier, puis enfin la carte, puis le partage.
+ * Trois hauteurs de fenêtre avant d'avoir vu ce qu'on était venu chercher.
+ *
+ * Il est réorganisé en deux questions posées côte à côte :
+ *
+ * - **à gauche, à quoi elle ressemble** — la carte, et juste dessous la bande
+ *   des sept formats. Le choix du format était derrière un bouton « Changer
+ *   le type » qui dépliait un second panneau ; il coûte maintenant un clic.
+ * - **à droite, comment je la récupère** — lien, téléchargement, codes
+ *   d'intégration, réseaux, options, et la sortie.
+ *
+ * Le reste du profil passe dans un bloc replié : il est déjà dessiné sur la
+ * carte, le répéter en grand au-dessus d'elle ne renseignait personne.
+ */
 export function CardPreview({
   userData,
   platform,
@@ -71,14 +55,14 @@ export function CardPreview({
   onCardGenerated,
   onCardTypeChange,
   onBackgroundToggle,
+  onBack,
+  onRestart,
   preGeneratedCard,
 }: CardPreviewProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isInitialGeneration, setIsInitialGeneration] = useState(
     !preGeneratedCard?.cardUrl
   );
-  const [showCardTypeSelector, setShowCardTypeSelector] = useState(false);
   const [generatedCardUrl, setGeneratedCardUrl] = useState<string | null>(
     preGeneratedCard?.cardUrl || null
   );
@@ -86,7 +70,6 @@ export function CardPreview({
     preGeneratedCard?.shareableUrl || null
   );
 
-  // Mettre à jour les données quand preGeneratedCard change
   useEffect(() => {
     if (preGeneratedCard) {
       setGeneratedCardUrl(preGeneratedCard.cardUrl);
@@ -94,13 +77,6 @@ export function CardPreview({
       setIsInitialGeneration(false);
     }
   }, [preGeneratedCard]);
-
-  // Génération automatique si aucune carte n'est pré-générée
-  useEffect(() => {
-    if (isInitialGeneration && userData && !isGenerating) {
-      generateCard();
-    }
-  }, [isInitialGeneration, userData]);
 
   const generateCardMutation = trpc.generateCard.useMutation({
     onSuccess: (result) => {
@@ -119,513 +95,266 @@ export function CardPreview({
     },
   });
 
-  const generateCard = async () => {
-    if (!userData) return;
+  useEffect(() => {
+    if (isInitialGeneration && userData && !isGenerating) {
+      setIsGenerating(true);
+      generateCardMutation.mutate({
+        platform: platform as Platform,
+        username: userData.username,
+        cardType,
+        useLastAnimeBackground,
+      });
+    }
+  }, [isInitialGeneration, userData]);
 
-    setIsGenerating(true);
-    generateCardMutation.mutate({
-      platform: platform as any,
-      username: userData.username,
-      cardType: cardType,
-      useLastAnimeBackground: useLastAnimeBackground,
-    });
-  };
-
-  const handleBackgroundToggle = (newBackgroundValue: boolean) => {
-    onBackgroundToggle?.(newBackgroundValue);
-
-    // Régénérer automatiquement la carte avec le nouveau background
+  const handleBackgroundToggle = (value: boolean) => {
+    onBackgroundToggle?.(value);
     if (userData) {
       setIsGenerating(true);
       generateCardMutation.mutate({
-        platform: platform as any,
+        platform: platform as Platform,
         username: userData.username,
-        cardType: cardType,
-        useLastAnimeBackground: newBackgroundValue,
+        cardType,
+        useLastAnimeBackground: value,
       });
     }
   };
 
   const downloadCard = () => {
     if (!generatedCardUrl) return;
-
     const link = document.createElement("a");
     link.download = `anime-card-${userData?.username}-${cardType}.png`;
     link.href = generatedCardUrl;
     link.click();
   };
 
-  const dimensions = cardDimensions[cardType];
+  const dimensions = CARD_DIMENSIONS[cardType];
+  const busy = isGenerating || isInitialGeneration;
+
+  const siteUrl =
+    typeof window !== "undefined" ? window.location.origin : "";
+  const absoluteCardUrl = shareableUrl ? `${siteUrl}${shareableUrl}` : "";
+
+  const stats = [
+    { value: userData?.stats.animesSeen, label: "animes" },
+    { value: userData?.stats.mangasRead, label: "mangas" },
+    { value: userData?.stats.totalEpisodes, label: "épisodes" },
+    {
+      value: userData?.stats.avgScore
+        ? userData.stats.avgScore.toLocaleString("fr-FR")
+        : undefined,
+      label: "note moy.",
+    },
+  ].filter((stat) => stat.value !== undefined && stat.value !== 0);
 
   return (
-    <div className="space-y-8">
-      {/* Informations utilisateur */}
-      <div className="bg-card/50 rounded-2xl p-8 border border-border/50 backdrop-blur-sm shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
-        {isGenerating && (
-          <div className="mb-4 p-4 bg-primary/10 border border-primary/20 rounded-xl backdrop-blur-sm">
-            <div className="flex items-center gap-3">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
-              <span className="text-primary font-medium">
-                Régénération de la carte en cours...
-              </span>
-            </div>
+    <div>
+      {/* Bandeau d'identité. Une ligne, pas un pavé : ces chiffres sont déjà
+          dessinés sur la carte juste en dessous. */}
+      <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-border/60 bg-card/60 px-4 py-3.5 backdrop-blur-sm">
+        <img
+          src={userData?.avatarUrl || "/images/avatar-fallback.png"}
+          alt=""
+          className="h-11 w-11 shrink-0 rounded-full border-2 border-primary object-cover"
+          onError={(event) => {
+            (event.target as HTMLImageElement).src =
+              "/images/avatar-fallback.png";
+          }}
+        />
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="truncate font-semibold text-foreground">
+              {userData?.username}
+            </span>
+            <PlatformIcon platform={platform as Platform} size={16} />
           </div>
-        )}
-
-        <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 mb-6">
-          <img
-            src={userData?.avatarUrl || "/images/avatar-fallback.png"}
-            alt={`Avatar de ${userData?.username}`}
-            className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 border-primary shadow-lg"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.src = "/images/avatar-fallback.png";
-            }}
-          />
-          <div className="flex-1 text-center sm:text-left">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
-              <h3 className="text-xl sm:text-2xl font-bold text-foreground">
-                {userData?.username}
-              </h3>
-              <PlatformIcon platform={platform as any} size={20} className="mx-auto sm:mx-0" />
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-sm text-muted-foreground">
-              <span className="flex items-center gap-2">
-                <Film className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
-                {userData?.stats.animesSeen} animes
-              </span>
-              <span className="flex items-center gap-2">
-                <BookOpen className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
-                {userData?.stats.mangasRead} mangas
-              </span>
-              {userData?.stats.avgScore && userData.stats.avgScore > 0 && (
-                <span className="flex items-center gap-2">
-                  <Star className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
-                  {userData.stats.avgScore}/10
-                </span>
-              )}
-              {userData?.stats.totalEpisodes && (
-                <span className="flex items-center gap-2">
-                  <Tv className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
-                  {userData.stats.totalEpisodes} épisodes
-                </span>
-              )}
-              {userData?.stats.totalChapters && (
-                <span className="flex items-center gap-2">
-                  <BookMarked className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
-                  {userData.stats.totalChapters} chapitres
-                </span>
-              )}
-              {userData?.stats.daysWatched && (
-                <span className="flex items-center gap-2">
-                  <Clock className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
-                  {userData.stats.daysWatched} jours
-                </span>
-              )}
-              {userData?.stats.watchingCount && (
-                <span className="flex items-center gap-2">
-                  <Play className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
-                  {userData.stats.watchingCount} en cours
-                </span>
-              )}
-              {userData?.stats.completedCount && (
-                <span className="flex items-center gap-2">
-                  <CheckCircle2 className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
-                  {userData.stats.completedCount} terminés
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Informations de profil supplémentaires */}
-        {(userData?.profile ||
-          userData?.personalMessage ||
-          userData?.stats.favoriteGenres) && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            {userData?.personalMessage && (
-              <div className="bg-muted/20 rounded-xl p-4 border border-border/30 backdrop-blur-sm">
-                <h4 className="text-sm font-semibold text-primary mb-2 flex items-center gap-2">
-                  <MessageSquare className="h-4 w-4 shrink-0" />
-                  Message personnel
-                </h4>
-                <p className="text-sm text-muted-foreground line-clamp-3">
-                  {userData.personalMessage}
-                </p>
-              </div>
-            )}
-
-            {userData?.profile?.joinDate && (
-              <div className="bg-muted/20 rounded-xl p-4 border border-border/30 backdrop-blur-sm">
-                <h4 className="text-sm font-semibold text-primary mb-2 flex items-center gap-2">
-                  <CalendarDays className="h-4 w-4 shrink-0" />
-                  Membre depuis
-                </h4>
-                <p className="text-sm text-muted-foreground">
-                  {(() => {
-                    const date = new Date(userData.profile.joinDate);
-                    return isNaN(date.getTime())
-                      ? userData.profile.joinDate
-                      : date.toLocaleDateString("fr-FR");
-                  })()}
-                </p>
-                {userData.profile.memberDays && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    ({userData.profile.memberDays} jours)
-                  </p>
-                )}
-              </div>
-            )}
-
-            {userData?.stats.favoriteGenres &&
-              userData.stats.favoriteGenres.length > 0 && (
-                <div className="bg-muted/20 rounded-xl p-4 border border-border/30 backdrop-blur-sm">
-                  <h4 className="text-sm font-semibold text-primary mb-2 flex items-center gap-2">
-                    <Tags className="h-4 w-4 shrink-0" />
-                    Genres favoris
-                  </h4>
-                  <div className="flex flex-wrap gap-1">
-                    {userData.stats.favoriteGenres
-                      .slice(0, 5)
-                      .map((genre, index) => (
-                        <span
-                          key={index}
-                          className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full"
-                        >
-                          {genre}
-                        </span>
-                      ))}
-                  </div>
-                </div>
-              )}
-          </div>
-        )}
-
-        {/* Derniers animes/mangas */}
-        <div className="grid grid-cols-2 gap-8">
-          <div>
-            <h4 className="text-lg font-semibold text-primary mb-3 flex items-center gap-2">
-              <Film className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
-              Derniers animes
-            </h4>
-            <div className="space-y-2">
-              {userData?.lastAnimes && userData.lastAnimes.length > 0 ? (
-                userData.lastAnimes.slice(0, 3).map((anime, index) => (
-                  <div
-                    key={index}
-                    className="text-sm text-muted-foreground flex items-start gap-2"
-                  >
-                    <span className="text-primary font-bold flex-shrink-0">
-                      {index + 1}.
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <div className="truncate font-medium">{anime.title}</div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                        {anime.score && (
-                          <span className="flex items-center gap-1">
-                            <Star className="h-3 w-3" />
-                            {anime.score}/10
-                          </span>
-                        )}
-                        {anime.status && (
-                          <span className="bg-muted px-2 py-0.5 rounded-full">
-                            {anime.status}
-                          </span>
-                        )}
-                        {anime.progress && anime.totalEpisodes && (
-                          <span>
-                            {anime.progress}/{anime.totalEpisodes} épisodes
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-sm text-muted-foreground text-center py-4">
-                  Aucune donnée trouvée
-                </div>
-              )}
-            </div>
-          </div>
-          <div>
-            <h4 className="text-lg font-semibold text-primary mb-3 flex items-center gap-2">
-              <BookOpen className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
-              Derniers mangas
-            </h4>
-            <div className="space-y-2">
-              {userData?.lastMangas && userData.lastMangas.length > 0 ? (
-                userData.lastMangas.slice(0, 3).map((manga, index) => (
-                  <div
-                    key={index}
-                    className="text-sm text-muted-foreground flex items-start gap-2"
-                  >
-                    <span className="text-primary font-bold flex-shrink-0">
-                      {index + 1}.
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <div className="truncate font-medium">{manga.title}</div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                        {manga.score && (
-                          <span className="flex items-center gap-1">
-                            <Star className="h-3 w-3" />
-                            {manga.score}/10
-                          </span>
-                        )}
-                        {manga.status && (
-                          <span className="bg-muted px-2 py-0.5 rounded-full">
-                            {manga.status}
-                          </span>
-                        )}
-                        {manga.progress && manga.totalChapters && (
-                          <span>
-                            {manga.progress}/{manga.totalChapters} chapitres
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-sm text-muted-foreground text-center py-4">
-                  Aucune donnée trouvée
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Favoris si disponibles */}
-        {userData?.favorites &&
-          (userData.favorites.anime?.length > 0 ||
-            userData.favorites.manga?.length > 0) && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {userData.favorites.anime &&
-                userData.favorites.anime.length > 0 && (
-                  <div>
-                    <h4 className="text-lg font-semibold text-primary mb-3 flex items-center gap-2">
-                      <Heart className="h-[18px] w-[18px] shrink-0 text-primary" />
-                      Animes favoris
-                    </h4>
-                    <div className="space-y-2">
-                      {userData.favorites.anime
-                        .slice(0, 3)
-                        .map((anime, index) => (
-                          <div
-                            key={index}
-                            className="text-sm text-muted-foreground flex items-center gap-2"
-                          >
-                            <span className="text-primary font-bold flex-shrink-0">
-                              {anime.position || index + 1}.
-                            </span>
-                            <span className="truncate font-medium">
-                              {anime.title}
-                            </span>
-                          </div>
-                        ))}
-                    </div>
-                  </div>
-                )}
-
-              {userData.favorites.manga &&
-                userData.favorites.manga.length > 0 && (
-                  <div>
-                    <h4 className="text-lg font-semibold text-primary mb-3 flex items-center gap-2">
-                      <Heart className="h-[18px] w-[18px] shrink-0 text-primary" />
-                      Mangas favoris
-                    </h4>
-                    <div className="space-y-2">
-                      {userData.favorites.manga
-                        .slice(0, 3)
-                        .map((manga, index) => (
-                          <div
-                            key={index}
-                            className="text-sm text-muted-foreground flex items-center gap-2"
-                          >
-                            <span className="text-primary font-bold flex-shrink-0">
-                              {manga.position || index + 1}.
-                            </span>
-                            <span className="truncate font-medium">
-                              {manga.title}
-                            </span>
-                          </div>
-                        ))}
-                    </div>
-                  </div>
-                )}
-            </div>
+          {userData?.profile?.joinDate && (
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Membre depuis{" "}
+              {(() => {
+                const date = new Date(userData.profile!.joinDate!);
+                return isNaN(date.getTime())
+                  ? userData.profile!.joinDate
+                  : date.toLocaleDateString("fr-FR");
+              })()}
+            </p>
           )}
-      </div>
-
-      {/* Boutons de configuration */}
-      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-        <Button
-          onClick={() => setShowCardTypeSelector(!showCardTypeSelector)}
-          variant="outline"
-          className="px-4 sm:px-6 py-3 w-full sm:w-auto"
-          disabled={isGenerating}
-        >
-          <div className="flex items-center gap-2">
-            {isGenerating ? (
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current"></div>
-            ) : (
-              <Palette className="h-[18px] w-[18px]" />
-            )}
-            <span className="hidden sm:inline">
-              {isGenerating
-                ? "Génération..."
-                : showCardTypeSelector
-                ? "Masquer les types"
-                : "Changer le type"}
-            </span>
-            <span className="sm:hidden">
-              {isGenerating
-                ? "Génération..."
-                : showCardTypeSelector
-                ? "Masquer"
-                : "Changer type"}
-            </span>
-          </div>
-        </Button>
-
-        {/* Bouton pour activer/désactiver le background */}
-        <Button
-          onClick={() => handleBackgroundToggle(!useLastAnimeBackground)}
-          variant={useLastAnimeBackground ? "default" : "outline"}
-          className="px-4 sm:px-6 py-3 w-full sm:w-auto"
-          disabled={isGenerating}
-        >
-          <div className="flex items-center gap-2">
-            {isGenerating ? (
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current"></div>
-            ) : (
-              <ImageIcon className="h-[18px] w-[18px]" />
-            )}
-            <span className="hidden sm:inline">
-              {isGenerating
-                ? "Génération..."
-                : useLastAnimeBackground
-                ? "Désactiver le background"
-                : "Activer le background"}
-            </span>
-            <span className="sm:hidden">
-              {isGenerating
-                ? "Génération..."
-                : useLastAnimeBackground
-                ? "Désactiver BG"
-                : "Activer BG"}
-            </span>
-          </div>
-        </Button>
-      </div>
-
-        {/* Sélecteur de type de carte */}
-        {showCardTypeSelector && (
-          <div className="bg-card/50 rounded-2xl p-6 border border-border/50 backdrop-blur-sm shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
-          <h3 className="text-xl font-bold text-foreground mb-4 text-center">
-            Changer le type de carte
-          </h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {CARD_TYPE_OPTIONS.map((cardTypeOption) => (
-              <div
-                key={cardTypeOption.value}
-                onClick={() =>
-                  onCardTypeChange?.(cardTypeOption.value as CardType)
-                }
-                className={`relative p-4 rounded-xl cursor-pointer transition-all duration-300 border border-border/50 backdrop-blur-sm ${
-                  cardType === cardTypeOption.value
-                    ? "bg-primary/5 border-primary/60 shadow-[0_4px_16px_rgba(0,0,0,0.12)] scale-[1.02]"
-                    : "bg-card/50 hover:border-primary/30 hover:bg-card/70 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] hover:scale-[1.01]"
-                }`}
-              >
-                <div className="text-center space-y-2">
-                  <div className="flex justify-center mb-2">
-                    <CardStyleSvg type={cardTypeOption.value as CardType} size={72} />
-                  </div>
-                  <h4 className="font-semibold text-foreground text-sm">
-                    {cardTypeOption.label}
-                  </h4>
-                  <p className="text-xs text-muted-foreground">
-                    {cardTypeOption.description}
-                  </p>
-                  <div className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full inline-block">
-                    {cardTypeOption.size}
-                  </div>
-                </div>
-                {cardType === cardTypeOption.value && (
-                  <div className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full shadow-[0_0_8px_rgba(var(--primary),0.5)]"></div>
-                )}
-              </div>
-            ))}
-          </div>
         </div>
-      )}
 
-      {/* Zone de prévisualisation */}
-      <div className="flex justify-center">
-        <div className="relative">
-          <div
-            className="relative rounded-2xl overflow-hidden shadow-[0_4px_16px_rgba(0,0,0,0.12)] border border-border/50 bg-card/50 backdrop-blur-sm"
-            style={{
-              width: Math.min(dimensions.width, 600),
-              height: Math.min(dimensions.height, 500),
-            }}
-          >
-            {isGenerating || isInitialGeneration ? (
-              <div className="w-full h-full flex items-center justify-center">
-                <CardLoading
-                  message={
-                    isInitialGeneration
-                      ? "Génération initiale de votre carte..."
-                      : "Régénération de votre carte..."
-                  }
-                />
-              </div>
+        <div className="ml-auto flex flex-wrap gap-x-6 gap-y-2">
+          {stats.map((stat) => (
+            <div key={stat.label} className="text-left sm:text-right">
+              <b className="block text-[17px] font-semibold leading-tight text-foreground">
+                {typeof stat.value === "number"
+                  ? stat.value.toLocaleString("fr-FR")
+                  : stat.value}
+              </b>
+              <span className="text-[11px] text-muted-foreground">
+                {stat.label}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
+        {/* Colonne de gauche : la carte et ce qui la change. */}
+        <div className="rounded-2xl border border-border/60 bg-card/60 p-4 backdrop-blur-sm">
+          <div className="grid min-h-[280px] place-items-center rounded-xl border border-border/40 bg-gradient-to-br from-white/[.04] to-white/[.01] p-3.5">
+            {busy ? (
+              <CardLoading
+                message={
+                  isInitialGeneration
+                    ? "Génération de votre carte..."
+                    : "Régénération de votre carte..."
+                }
+              />
             ) : generatedCardUrl ? (
               <img
                 src={generatedCardUrl}
-                alt="Carte générée"
-                className="w-full h-full object-contain"
+                alt={`Carte ${cardType} de ${userData?.username}`}
+                className="max-h-[340px] w-auto max-w-full rounded-lg shadow-[0_18px_44px_rgba(0,0,0,.55)]"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <div className="text-center text-muted-foreground">
-                  <Palette className="mx-auto mb-4 h-12 w-12 opacity-60" />
-                  <p className="text-lg font-medium mb-2">
-                    Carte générée automatiquement
-                  </p>
-                  <p className="text-sm">
-                    Votre carte a été générée avec succès
-                  </p>
-                  <p className="text-xs mt-3 text-muted-foreground">
-                    {dimensions.width} × {dimensions.height}px
-                  </p>
-                </div>
-              </div>
+              <p className="text-sm text-muted-foreground">
+                La carte n'a pas pu être générée.
+              </p>
             )}
           </div>
 
-          {/* Indicateur de taille */}
-          <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2">
-            <div className="bg-primary text-primary-foreground text-sm px-4 py-2 rounded-full shadow-lg font-medium">
-              {dimensions.width} × {dimensions.height}
+          <div className="mt-2.5 flex justify-center">
+            <span className="rounded-full border border-border/70 px-2.5 py-0.5 text-[11.5px] text-muted-foreground">
+              {dimensions.width} × {dimensions.height} px — PNG
+            </span>
+          </div>
+
+          <p className="mb-2 mt-3.5 text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Format de la carte
+          </p>
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {CARD_TYPE_OPTIONS.map((option) => {
+              const active = option.value === cardType;
+              const { width, height } = CARD_DIMENSIONS[option.value];
+              // La silhouette dit le rapport de forme, pas la taille : à
+              // l'échelle réelle « Petite » serait un trait de 15 px et les
+              // sept vignettes se ressembleraient toutes.
+              const shapeWidth = Math.min(58, Math.round((20 * width) / height));
+
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  aria-pressed={active}
+                  disabled={busy}
+                  onClick={() => onCardTypeChange?.(option.value)}
+                  className={cn(
+                    "w-[84px] shrink-0 rounded-xl border px-1.5 py-2 text-center transition-all duration-200",
+                    "disabled:pointer-events-none disabled:opacity-50",
+                    active
+                      ? "border-primary/70 bg-primary/12"
+                      : "border-border/60 bg-white/[.02] hover:border-foreground/25 motion-safe:hover:-translate-y-0.5"
+                  )}
+                >
+                  <span className="mb-1.5 grid h-[30px] place-items-center rounded-md border border-border/40 bg-muted/50">
+                    <span
+                      className={cn(
+                        "block rounded-[2px]",
+                        active ? "bg-primary/80" : "bg-muted-foreground/45"
+                      )}
+                      style={{ width: shapeWidth, height: 20 }}
+                    />
+                  </span>
+                  <b className="block text-[11.5px] font-semibold text-foreground">
+                    {option.label}
+                  </b>
+                  <span className="text-[9.5px] text-muted-foreground">
+                    {width}×{height}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Colonne de droite : ce qu'on fait de la carte. */}
+        <div className="flex flex-col gap-3">
+          <SharePanel
+            cardUrl={absoluteCardUrl}
+            siteUrl={siteUrl}
+            username={userData.username}
+            cardType={cardType}
+            onDownload={downloadCard}
+            disabled={busy || !generatedCardUrl}
+          />
+
+          <div className="rounded-2xl border border-border/60 bg-card/60 p-4 backdrop-blur-sm">
+            <h3 className="mb-3 text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Options
+            </h3>
+            <div className="flex items-center gap-3">
+              <div className="min-w-0 flex-1">
+                <p className="text-[12.5px] text-foreground">Arrière-plan</p>
+                <p className="text-[11px] text-muted-foreground">
+                  La jaquette du dernier anime suivi
+                </p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={useLastAnimeBackground}
+                aria-label="Arrière-plan avec le dernier anime"
+                disabled={busy}
+                onClick={() => handleBackgroundToggle(!useLastAnimeBackground)}
+                className={cn(
+                  "relative inline-flex h-[22px] w-10 shrink-0 items-center rounded-full transition-colors disabled:opacity-50",
+                  useLastAnimeBackground
+                    ? "bg-primary"
+                    : "bg-muted-foreground/40"
+                )}
+              >
+                <span
+                  className={cn(
+                    "inline-block h-4 w-4 rounded-full bg-white transition-transform",
+                    useLastAnimeBackground ? "translate-x-[21px]" : "translate-x-[3px]"
+                  )}
+                />
+              </button>
             </div>
           </div>
+
+          {(onBack || onRestart) && (
+            <div className="rounded-2xl border border-border/60 bg-card/60 p-4 backdrop-blur-sm">
+              <h3 className="mb-3 text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Et ensuite
+              </h3>
+              <div className="flex gap-2">
+                {onBack && (
+                  <button
+                    type="button"
+                    onClick={onBack}
+                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-border/70 py-2.5 text-[12.5px] font-medium text-foreground transition-colors hover:bg-accent/60"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    Modifier
+                  </button>
+                )}
+                {onRestart && (
+                  <button
+                    type="button"
+                    onClick={onRestart}
+                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-border/70 py-2.5 text-[12.5px] font-medium text-foreground transition-colors hover:bg-accent/60"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                    Recommencer
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Boutons d'action */}
-      <div className="flex gap-6 justify-center">
-        {generatedCardUrl && shareableUrl && (
-          <ShareOptions
-            shareableUrl={shareableUrl}
-            username={userData.username}
-            platform={platform || ""}
-            cardType={cardType}
-            useLastAnimeBackground={useLastAnimeBackground}
-          />
-        )}
-      </div>
+      <ProfileDetails userData={userData} />
     </div>
   );
 }

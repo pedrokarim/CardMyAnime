@@ -23,7 +23,7 @@ import { ButtonLoading } from "@/components/ui/loading";
 import { SITE_CONFIG } from "@/lib/constants";
 import Link from "next/link";
 import { captureCarteEchouee, captureCarteGeneree, captureEtape } from "@/lib/analytics";
-import { ArrowLeft, ArrowRight, ChevronDown, Loader2, RotateCcw } from "lucide-react";
+import { ArrowLeft, ArrowRight, ChevronDown, Loader2 } from "lucide-react";
 
 type Step = "platform" | "cardType" | "username" | "preview";
 
@@ -335,7 +335,23 @@ export default function HomePage() {
          * L'écart des deux (80 px) vaut deux fois le décalage recherché, la
          * navbar faisant environ 80 px de haut.
          */}
-        <div className="relative z-10 mx-auto flex w-[min(1120px,92vw)] flex-1 flex-col justify-center pb-16 pt-[132px] sm:pb-20 sm:pt-40">
+        {/*
+         * L'accroche est centrée dans ce qui reste sous la navbar flottante,
+         * pas dans l'écran : d'où un rembourrage haut plus épais que le bas,
+         * leur écart valant deux fois le décalage recherché.
+         *
+         * L'assistant en demande moins. Son contenu est long — l'aperçu tient
+         * deux colonnes et une bande de formats — et ces 48 px de respiration
+         * en trop suffisaient à le pousser sous le pli.
+         */}
+        <div
+          className={cn(
+            "relative z-10 mx-auto flex w-[min(1120px,92vw)] flex-1 flex-col justify-center",
+            isHero
+              ? "pb-16 pt-[132px] sm:pb-20 sm:pt-40"
+              : "pb-12 pt-[108px] sm:pb-16 sm:pt-28"
+          )}
+        >
           {/* Accroche. Elle disparaît entièrement dès qu'on entre dans
               l'assistant : la place qu'elle libère est exactement celle dont
               le stepper et le panneau ont besoin. */}
@@ -419,7 +435,14 @@ export default function HomePage() {
             <StepIndicator current={currentStep as Step} />
           )}
 
-          <div className="mx-auto w-full max-w-4xl">
+          {/* L'aperçu reprend toute la largeur de la scène : ses deux colonnes
+              ne tiennent pas dans les 896 px qui conviennent à un formulaire. */}
+          <div
+            className={cn(
+              "mx-auto w-full",
+              currentStep === "preview" ? "max-w-none" : "max-w-4xl"
+            )}
+          >
             {/* Étape 2: Sélection du type de carte */}
             {currentStep === "cardType" && (
               <CardTypeStep
@@ -541,18 +564,12 @@ export default function HomePage() {
               </div>
             )}
 
-            {/* Étape 4: Prévisualisation */}
+            {/* Étape 4: Prévisualisation.
+                Pas de titre ici : le fil d'étapes affiche déjà « Aperçu »
+                juste au-dessus, et ces deux lignes de plus poussaient la
+                colonne de partage sous le pli. */}
             {currentStep === "preview" && (
-              <div className="space-y-8">
-                <div className="text-center">
-                  <h2 className="text-4xl font-bold text-foreground mb-4">
-                    Votre carte personnalisée
-                  </h2>
-                  <p className="text-xl text-muted-foreground">
-                    Visualisez et téléchargez votre carte générée
-                  </p>
-                </div>
-
+              <div>
                 {userData && (
                   <CardPreview
                     userData={userData}
@@ -582,31 +599,14 @@ export default function HomePage() {
                         useLastAnimeBackground: useBackground,
                       });
                     }}
+                    /* Modifier et Recommencer sont absorbés par la colonne
+                       de droite : ils faisaient partie de « et ensuite »,
+                       pas d'une barre isolée en pied d'écran. */
+                    onBack={goToPreviousStep}
+                    onRestart={resetToStart}
                     preGeneratedCard={generatedCardData}
                   />
                 )}
-
-                <div className="flex flex-col justify-center gap-3 sm:flex-row sm:gap-4">
-                  <Button
-                    onClick={goToPreviousStep}
-                    variant="outline"
-                    className="w-full gap-2 px-6 py-3 sm:w-auto sm:px-8"
-                  >
-                    <ArrowLeft className="h-4 w-4" />
-                    <span className="hidden sm:inline">
-                      Modifier les paramètres
-                    </span>
-                    <span className="sm:hidden">Modifier</span>
-                  </Button>
-                  <Button
-                    onClick={resetToStart}
-                    variant="outline"
-                    className="w-full gap-2 px-6 py-3 sm:w-auto sm:px-8"
-                  >
-                    <RotateCcw className="h-4 w-4" />
-                    Recommencer
-                  </Button>
-                </div>
               </div>
             )}
           </div>
