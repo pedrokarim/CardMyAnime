@@ -3,14 +3,33 @@ import { JSDOM } from "jsdom";
 
 const NAUTILJON_BASE_URL = "https://www.nautiljon.com";
 
+/**
+ * Nautiljon est derrière Cloudflare, qui renvoie 403 aux requêtes sans
+ * User-Agent — ce que `fetch` envoie par défaut côté Node. Sans ces en-têtes
+ * le scraping échouait systématiquement, et le cache resservait indéfiniment
+ * les dernières données valides.
+ */
+const BROWSER_HEADERS = {
+  "User-Agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
+  Accept:
+    "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+  "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8",
+};
+
 export async function fetchUserData(username: string): Promise<UserData> {
   try {
     // Fetch user profile page
     const profileUrl = `${NAUTILJON_BASE_URL}/membre/profil,${username}.html`;
-    const response = await fetch(profileUrl);
+    const response = await fetch(profileUrl, {
+      headers: BROWSER_HEADERS,
+      signal: AbortSignal.timeout(15000),
+    });
 
     if (!response.ok) {
-      throw new Error("Utilisateur non trouvé");
+      throw new Error(
+        `Nautiljon a répondu ${response.status} pour le profil ${username}`
+      );
     }
 
     const html = await response.text();
@@ -104,7 +123,14 @@ export async function fetchUserData(username: string): Promise<UserData> {
       "Erreur lors de la récupération des données Nautiljon:",
       error
     );
-    throw new Error("Impossible de récupérer les données utilisateur");
+    // On conserve la cause : un 403 Cloudflare et un pseudo inexistant
+    // demandent des actions opposées, les confondre coûte du temps de
+    // diagnostic.
+    throw new Error(
+      `Impossible de récupérer les données utilisateur (${
+        error instanceof Error ? error.message : String(error)
+      })`
+    );
   }
 }
 
