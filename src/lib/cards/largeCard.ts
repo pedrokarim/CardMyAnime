@@ -105,16 +105,15 @@ export async function generateLargeCard(
     }
   }
 
-  // Nom d'utilisateur
-  helper.drawText({
-    x: 180,
-    y: 70,
-    text: userData.username,
-    fontSize: 36,
-    fontFamily: "Arial, sans-serif",
-    color: "#ffffff",
-    textAlign: "left",
-  });
+  // Nom d'utilisateur — tronqué : un pseudo long sortait du canvas
+  helper.drawTruncatedText(
+    userData.username,
+    180,
+    70,
+    width - 180 - 60,
+    36,
+    "#ffffff"
+  );
 
   // Stats détaillées
   helper.drawText({
@@ -301,9 +300,9 @@ export async function generateLargeCard(
     showText: true,
   });
 
-  // Ajouter le logo de la plateforme (haut droite)
+  // Ajouter le logo de la plateforme (bas gauche, comme les autres cartes)
   await addPlatformLogo(helper, platform, {
-    position: "top-right",
+    position: "bottom-left",
     size: 30,
   });
 

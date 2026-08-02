@@ -105,16 +105,15 @@ export async function generateMediumCard(
     }
   }
 
-  // Nom d'utilisateur
-  helper.drawText({
-    x: 150,
-    y: 60,
-    text: userData.username,
-    fontSize: 32,
-    fontFamily: "Arial, sans-serif",
-    color: "#ffffff",
-    textAlign: "left",
-  });
+  // Nom d'utilisateur — tronqué : un pseudo long sortait du canvas
+  helper.drawTruncatedText(
+    userData.username,
+    150,
+    60,
+    width - 150 - 20,
+    32,
+    "#ffffff"
+  );
 
   // Stats détaillées
   helper.drawText({

@@ -58,6 +58,35 @@ export async function getStaticAsset(key: keyof typeof STATIC_ASSETS): Promise<I
   return staticAssetCache.get(key) ?? null;
 }
 
+/**
+ * Tronque `text` avec une ellipse pour tenir dans `maxWidth`, en utilisant la
+ * police deja posee sur `ctx`.
+ *
+ * Les titres d'animes et de mangas sont reguliement a rallonge, et un pseudo
+ * n'a aucune limite de longueur : sans troncature le texte sort du canvas ou
+ * passe sous les autres elements. Version utilisable par les cartes qui
+ * dessinent directement sur le contexte plutot que via ServerCanvasHelper.
+ */
+export function truncateToWidth(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number
+): string {
+  if (ctx.measureText(text).width <= maxWidth) return text;
+
+  const ellipsis = "...";
+  let truncated = text;
+
+  while (
+    truncated.length > 0 &&
+    ctx.measureText(truncated + ellipsis).width > maxWidth
+  ) {
+    truncated = truncated.slice(0, -1);
+  }
+
+  return truncated + ellipsis;
+}
+
 export interface CanvasConfig {
   width: number;
   height: number;
@@ -186,6 +215,24 @@ export class ServerCanvasHelper {
     const width = this.ctx.measureText(text).width;
     this.ctx.restore();
     return width;
+  }
+
+  /**
+   * Tronque un texte pour une police donnee, sans dependre de l'etat courant
+   * du contexte. Renvoyer le libelle permet d'en mesurer la largeur reelle
+   * pour enchainer plusieurs elements sans qu'ils se chevauchent.
+   */
+  truncateTextToWidth(
+    text: string,
+    maxWidth: number,
+    fontSize: number,
+    fontFamily: string = "Arial, sans-serif"
+  ): string {
+    this.ctx.save();
+    this.ctx.font = `${fontSize}px ${fontFamily}`;
+    const result = truncateToWidth(this.ctx, text, maxWidth);
+    this.ctx.restore();
+    return result;
   }
 
   // Tronquer le texte avec ellipses

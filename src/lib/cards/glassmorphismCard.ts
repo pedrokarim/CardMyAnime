@@ -1,5 +1,8 @@
 import { UserData } from "../types";
-import { ServerCanvasHelper } from "../utils/serverCanvasHelpers";
+import {
+  ServerCanvasHelper,
+  truncateToWidth,
+} from "../utils/serverCanvasHelpers";
 import { addWatermark, addPlatformLogo } from "../utils/watermarkHelper";
 
 export async function generateGlassmorphismCard(
@@ -130,7 +133,17 @@ export async function generateGlassmorphismCard(
   ctx.font = "bold 28px Arial, sans-serif";
   ctx.fillStyle = "#ffffff";
   ctx.textAlign = "left";
-  ctx.fillText(userData.username, avatarX + 100, avatarY + 35);
+  // Tronqué : un pseudo long passait sous le badge de note, qui commence à
+  // panelX + panelW - 90
+  const usernameX = avatarX + 100;
+  const usernameMaxWidth =
+    (userData.stats.avgScore > 0 ? panelX + panelW - 90 - 15 : panelX + panelW) -
+    usernameX;
+  ctx.fillText(
+    truncateToWidth(ctx, userData.username, usernameMaxWidth),
+    usernameX,
+    avatarY + 35
+  );
   ctx.restore();
 
   // Sous-titre
@@ -255,7 +268,9 @@ export async function generateGlassmorphismCard(
       ctx.fill();
       ctx.restore();
 
-      helper.drawTruncatedText(anime.title, panelX + 42, y, 250, 11, "rgba(255,255,255,0.75)");
+      // 235 et non 250 : la note de la colonne gauche est alignée à droite sur
+      // panelX + panelW / 2 - 15, le titre arrivait juste dessous
+      helper.drawTruncatedText(anime.title, panelX + 42, y, 235, 11, "rgba(255,255,255,0.75)");
 
       if (anime.score && anime.score > 0) {
         ctx.save();
@@ -342,7 +357,7 @@ export async function generateGlassmorphismCard(
   // Watermark et logo
   await addWatermark(helper, {
     position: "bottom-right",
-    opacity: 0.6,
+    opacity: 1.0,
     size: 30,
     showText: false,
   });

@@ -125,16 +125,15 @@ export async function generateSummaryCard(
     }
   }
 
-  // Nom d'utilisateur
-  helper.drawText({
-    x: 130,
-    y: 65,
-    text: userData.username,
-    fontSize: 32,
-    fontFamily: "Arial, sans-serif",
-    color: "#f0f6fc",
-    textAlign: "left",
-  });
+  // Nom d'utilisateur — tronqué : un pseudo long sortait du canvas
+  helper.drawTruncatedText(
+    userData.username,
+    130,
+    65,
+    width - 130 - 30,
+    32,
+    "#f0f6fc"
+  );
 
   // Date d'inscription si disponible et valide
   if (userData.profile?.joinDate) {
@@ -316,23 +315,38 @@ export async function generateSummaryCard(
       textAlign: "left",
     });
 
+    // Chaque genre occupait une case fixe de 120px : un libellé plus long
+    // débordait sur la case suivante et les deux se chevauchaient. On les
+    // enchaîne maintenant à leur largeur réelle, en tronquant les plus longs
+    // et en s'arrêtant avant le bord de la carte.
     const genres = userData.stats.favoriteGenres.slice(0, 5);
-    const genreCardWidth = 120; // Plus petit
-    const genreSpacing = 20; // Espacement fixe et logique
+    const genreGap = 18;
+    const genreMaxWidth = 160;
+    const genreFontSize = 12;
+    let genreX = 30;
 
-    genres.forEach((genre, index) => {
-      const genreX = 30 + index * (genreCardWidth + genreSpacing);
-      // SUPPRIMER LE CARRÉ GRIS - Juste le texte
+    for (const genre of genres) {
+      const label = helper.truncateTextToWidth(
+        genre,
+        genreMaxWidth,
+        genreFontSize
+      );
+      const labelWidth = helper.measureText(label, genreFontSize);
+
+      if (genreX + labelWidth > width - 30) break;
+
       helper.drawText({
-        x: genreX + genreCardWidth / 2,
+        x: genreX,
         y: 408,
-        text: genre,
-        fontSize: 12,
+        text: label,
+        fontSize: genreFontSize,
         fontFamily: "Arial, sans-serif",
         color: "#58a6ff", // Couleur bleue pour les genres
-        textAlign: "center",
+        textAlign: "left",
       });
-    });
+
+      genreX += labelWidth + genreGap;
+    }
   }
 
   // Section des derniers animes et mangas côte à côte
@@ -381,11 +395,13 @@ export async function generateSummaryCard(
           ? "[ABANDONNÉ]"
           : "";
 
+      // 310 et non 340 : la note est alignée à droite sur x=380, elle démarre
+      // donc vers 350. Un titre allant jusqu'à 370 passait dessous.
       helper.drawTruncatedText(
         `${index + 1}. ${statusIcon} ${anime.title}`,
         30,
         y,
-        340,
+        310,
         13,
         "#e0e0e0"
       );
@@ -445,11 +461,12 @@ export async function generateSummaryCard(
           ? "[ABANDONNÉ]"
           : "";
 
+      // Même réserve que pour les animes : la note est alignée à droite sur 770
       helper.drawTruncatedText(
         `${index + 1}. ${statusIcon} ${manga.title}`,
         420,
         y,
-        330,
+        310,
         13,
         "#e0e0e0"
       );

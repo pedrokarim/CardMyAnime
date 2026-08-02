@@ -1,5 +1,8 @@
 import { UserData } from "../types";
-import { ServerCanvasHelper } from "../utils/serverCanvasHelpers";
+import {
+  ServerCanvasHelper,
+  truncateToWidth,
+} from "../utils/serverCanvasHelpers";
 import { addWatermark, addPlatformLogo } from "../utils/watermarkHelper";
 
 export async function generateNeonCard(
@@ -112,6 +115,16 @@ export async function generateNeonCard(
     }
   }
 
+  // Largeur reservee par le badge de note, pour que le pseudo s'arrete avant
+  let scoreReserve = 0;
+  if (userData.stats.avgScore > 0) {
+    ctx.save();
+    ctx.font = "bold 18px Arial, sans-serif";
+    scoreReserve =
+      ctx.measureText(`★ ${userData.stats.avgScore}`).width + 30 + 15;
+    ctx.restore();
+  }
+
   // Nom d'utilisateur avec glow néon cyan
   ctx.save();
   ctx.font = "bold 28px Arial, sans-serif";
@@ -119,7 +132,12 @@ export async function generateNeonCard(
   ctx.shadowColor = "#00ffff";
   ctx.shadowBlur = 12;
   ctx.textAlign = "left";
-  ctx.fillText(userData.username, 115, 60);
+  // Tronqué : un pseudo long passait sous le badge de note
+  ctx.fillText(
+    truncateToWidth(ctx, userData.username, width - 115 - scoreReserve),
+    115,
+    60
+  );
   ctx.restore();
 
   // Sous-titre stats avec glow magenta
@@ -224,7 +242,8 @@ export async function generateNeonCard(
       ctx.fillText(`${index + 1}.`, 30, y);
       ctx.restore();
 
-      helper.drawTruncatedText(anime.title, 50, y, 230, 12, "#e0e0e0");
+      // 205 et non 230 : la note est alignée à droite sur 290, elle démarre vers 268
+      helper.drawTruncatedText(anime.title, 50, y, 205, 12, "#e0e0e0");
 
       if (anime.score && anime.score > 0) {
         ctx.save();
@@ -267,7 +286,8 @@ export async function generateNeonCard(
       ctx.fillText(`${index + 1}.`, 310, y);
       ctx.restore();
 
-      helper.drawTruncatedText(manga.title, 330, y, 220, 12, "#e0e0e0");
+      // Même réserve : la note est alignée à droite sur width - 30
+      helper.drawTruncatedText(manga.title, 330, y, 205, 12, "#e0e0e0");
 
       if (manga.score && manga.score > 0) {
         ctx.save();
@@ -315,7 +335,7 @@ export async function generateNeonCard(
   // Watermark et logo plateforme
   await addWatermark(helper, {
     position: "bottom-right",
-    opacity: 0.7,
+    opacity: 1.0,
     size: 30,
     showText: false,
   });

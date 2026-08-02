@@ -1,5 +1,8 @@
 import { UserData } from "../types";
-import { ServerCanvasHelper } from "../utils/serverCanvasHelpers";
+import {
+  ServerCanvasHelper,
+  truncateToWidth,
+} from "../utils/serverCanvasHelpers";
 import { addWatermark, addPlatformLogo } from "../utils/watermarkHelper";
 
 export async function generateMinimalCard(
@@ -78,12 +81,27 @@ export async function generateMinimalCard(
     }
   }
 
+  // Largeur reservee par le badge de note, pour que le pseudo s'arrete avant
+  let scoreReserve = 0;
+  if (userData.stats.avgScore > 0) {
+    ctx.save();
+    ctx.font = "bold 14px Arial, sans-serif";
+    scoreReserve =
+      ctx.measureText(`${userData.stats.avgScore}`).width + 24 + 24 + 12;
+    ctx.restore();
+  }
+
   // Nom d'utilisateur - typographie clean
   ctx.save();
   ctx.font = "bold 22px Arial, sans-serif";
   ctx.fillStyle = "#1c1917";
   ctx.textAlign = "left";
-  ctx.fillText(userData.username, 96, 48);
+  // Tronqué : un pseudo long passait sous le badge de note
+  ctx.fillText(
+    truncateToWidth(ctx, userData.username, width - 96 - scoreReserve),
+    96,
+    48
+  );
   ctx.restore();
 
   // Sous-titre stats
@@ -235,7 +253,7 @@ export async function generateMinimalCard(
   // Watermark et logo
   await addWatermark(helper, {
     position: "bottom-right",
-    opacity: 0.5,
+    opacity: 0.7,
     size: 25,
     showText: false,
   });
