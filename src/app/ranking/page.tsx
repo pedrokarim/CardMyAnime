@@ -12,6 +12,8 @@ import { useQueryState } from "nuqs";
 import { useState, useEffect } from "react";
 import { PlatformIcon } from "@/components/ui/platform-icon";
 import { PageLoading } from "@/components/ui/loading";
+import { useDebouncedValue } from "@/lib/hooks/useDebouncedValue";
+import { buildCardPath } from "@/lib/cards/cardUrl";
 
 const ITEMS_PER_PAGE = 20;
 
@@ -42,10 +44,14 @@ export default function RankingPage() {
 
   const pageNumber = parseInt(currentPage);
 
+  // Sans ce debounce, chaque frappe declenche une requete tRPC (donc un appel
+  // base) : on n'interroge le serveur qu'une fois la saisie stabilisee.
+  const debouncedSearch = useDebouncedValue(searchTerm.trim(), 350);
+
   const { data, isLoading, error } = trpc.getTopCards.useQuery({
     page: pageNumber,
     limit: ITEMS_PER_PAGE,
-    search: searchTerm.trim() || undefined,
+    search: debouncedSearch || undefined,
     sortBy,
   });
 
@@ -69,12 +75,14 @@ export default function RankingPage() {
     });
   };
 
-  // Réinitialiser la page quand on change les filtres
+  // Réinitialiser la page quand on change les filtres. On se cale sur la
+  // recherche debouncee : la page se remet a 1 en meme temps que la requete
+  // part, pas a chaque frappe.
   useEffect(() => {
     if (pageNumber > 1) {
       setCurrentPage("1");
     }
-  }, [searchTerm, sortBy, setCurrentPage]);
+  }, [debouncedSearch, sortBy, setCurrentPage]);
 
   const cardTypeLabels: Record<string, string> = {
     small: "Petite",
@@ -309,7 +317,11 @@ export default function RankingPage() {
                       {(user.cardTypes || []).map((ct: any, i: number) => (
                         <a
                           key={i}
-                          href={`/card?platform=${user.platform}&username=${encodeURIComponent(user.username)}&type=${ct.cardType}`}
+                          href={buildCardPath(
+                            user.platform,
+                            user.username,
+                            ct.cardType
+                          )}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center justify-between p-2.5 rounded-lg border border-border/50 bg-background/50 hover:bg-accent/50 hover:border-primary/30 transition-colors group"
