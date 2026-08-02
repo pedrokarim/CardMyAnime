@@ -33,7 +33,10 @@ export type CardResult =
   | {
       ok: false;
       status: number;
+      /** Message renvoyé en JSON par la route historique. */
       error: string;
+      /** Titre court de la carte d'erreur ; `error` par défaut. */
+      title?: string;
       detail?: string;
       /** Renseigné dès que le type demandé est valide, pour dimensionner la carte d'erreur. */
       cardType?: CardType;
@@ -94,8 +97,10 @@ export async function resolveCard(
       return {
         ok: false,
         status: 404,
-        error: "Carte non trouvée. Veuillez d'abord générer la carte sur le site.",
-        detail: `Aucune carte "${validType}" pour ${validUsername} (${validPlatform}).`,
+        error:
+          "Carte non trouvée. Veuillez d'abord générer la carte sur le site.",
+        title: "Carte non trouvée",
+        detail: `Aucune carte "${validType}" pour ${validUsername} (${validPlatform}). Générez-la d'abord sur le site.`,
         cardType: validType,
       };
     }
@@ -213,7 +218,7 @@ export async function cardErrorImageResponse(
   result: Extract<CardResult, { ok: false }>
 ): Promise<NextResponse> {
   const buffer = await generateErrorCard({
-    title: result.error,
+    title: result.title ?? result.error,
     detail: result.detail,
     cardType: result.cardType,
   });
