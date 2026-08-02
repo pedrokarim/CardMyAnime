@@ -5,6 +5,68 @@ import { normalizeUsername } from "../username";
 const CACHE_DURATION_HOURS = 24; // Les données expirent après 24h
 const CACHE_DURATION_MS = CACHE_DURATION_HOURS * 60 * 60 * 1000;
 
+/**
+ * Au-delà de ce délai sans récupération réussie, on cesse de servir la donnée
+ * en cache.
+ *
+ * Le rafraîchissement en arrière-plan (« stale-while-revalidate ») est une
+ * bonne chose : il absorbe les pannes courtes sans que personne ne le
+ * remarque. Mais il n'avait aucune borne, et un échec ne faisait que produire
+ * un `console.error` sans avancer `expiresAt`. Résultat : quand Jikan a cessé
+ * de répondre, les cartes MyAnimeList ont affiché les données du 1er juillet
+ * pendant 31 jours, et Nautiljon celles du 14 juin pendant 48 — sans le
+ * moindre signal.
+ *
+ * Sept jours laissent largement le temps d'absorber une panne passagère, tout
+ * en garantissant qu'on n'affichera jamais un profil vieux d'un mois comme
+ * s'il était à jour.
+ */
+const STALE_TOLERANCE_DAYS = 7;
+const STALE_TOLERANCE_MS = STALE_TOLERANCE_DAYS * 24 * 60 * 60 * 1000;
+
+/**
+ * Levée quand la donnée en cache est trop ancienne et que la plateforme reste
+ * injoignable. Distinguée d'une erreur générique pour que l'appelant puisse
+ * afficher un message honnête plutôt qu'« erreur interne ».
+ */
+export type CacheDecision =
+  /** Encore valide : on sert le cache sans rien faire. */
+  | "fresh"
+  /** Expiré mais récent : on sert le cache et on renouvelle derrière. */
+  | "stale-revalidate"
+  /** Trop vieux : on retente en direct, et on refuse de servir si ça échoue. */
+  | "too-old";
+
+/**
+ * Décide quoi faire d'une ligne de cache. Isolé du reste pour être testable :
+ * c'est la règle qui a manqué pendant la panne de Jikan.
+ */
+export function decideCacheAction(
+  expiresAt: Date,
+  lastFetched: Date,
+  now: Date = new Date(),
+  staleToleranceMs: number = STALE_TOLERANCE_MS
+): CacheDecision {
+  if (expiresAt > now) return "fresh";
+  return now.getTime() - lastFetched.getTime() <= staleToleranceMs
+    ? "stale-revalidate"
+    : "too-old";
+}
+
+export class StaleDataError extends Error {
+  constructor(
+    public readonly platform: string,
+    public readonly username: string,
+    public readonly ageInDays: number,
+    public readonly cause: unknown
+  ) {
+    super(
+      `Données ${platform} indisponibles pour ${username} : la plateforme ne répond plus et la dernière récupération réussie date de ${ageInDays} jour(s).`
+    );
+    this.name = "StaleDataError";
+  }
+}
+
 export class UserDataCacheService {
   private static instance: UserDataCacheService;
 
@@ -46,18 +108,50 @@ export class UserDataCacheService {
 
       const now = new Date();
 
-      // Si on a des données en cache et qu'elles ne sont pas expirées
-      if (cachedData && cachedData.expiresAt > now) {
-        return JSON.parse(cachedData.data);
-      }
+      // `lastFetched` ne bouge que sur une récupération réussie : son âge dit
+      // donc depuis combien de temps la plateforme ne répond plus.
+      if (cachedData) {
+        const decision = decideCacheAction(
+          cachedData.expiresAt,
+          cachedData.lastFetched,
+          now
+        );
 
-      // Si on a des données expirées, on les renouvelle en arrière-plan
-      if (cachedData && cachedData.expiresAt <= now) {
-        this.refreshDataInBackground(platform, username, prisma);
-
-        // Retourner les anciennes données pendant qu'on renouvelle
-        if (cachedData.data) {
+        if (decision === "fresh") {
           return JSON.parse(cachedData.data);
+        }
+
+        const ageMs = now.getTime() - cachedData.lastFetched.getTime();
+        const ageInDays = Math.floor(ageMs / (24 * 60 * 60 * 1000));
+
+        if (decision === "stale-revalidate") {
+          // Panne courte : on sert l'ancienne donnée et on renouvelle derrière.
+          this.refreshDataInBackground(platform, username, prisma);
+
+          if (cachedData.data) {
+            return JSON.parse(cachedData.data);
+          }
+        } else {
+          // Trop vieux pour être servi tel quel. Dernière tentative en direct :
+          // si la plateforme est revenue, on repart proprement.
+          console.warn(
+            `⚠️ Cache ${platform}:${username} périmé depuis ${ageInDays} jours, tentative de récupération synchrone`
+          );
+
+          try {
+            const recovered = await this.fetchFreshData(platform, username);
+            await executeWithRetry(async () => {
+              await this.saveToCache(platform, username, recovered, prisma);
+            });
+            console.log(
+              `✅ Cache ${platform}:${username} rétabli après ${ageInDays} jours`
+            );
+            return recovered;
+          } catch (error) {
+            // On refuse d'afficher un profil vieux d'un mois comme s'il était
+            // à jour : mieux vaut dire que la donnée est indisponible.
+            throw new StaleDataError(platform, username, ageInDays, error);
+          }
         }
       }
 
@@ -159,8 +253,12 @@ export class UserDataCacheService {
         const freshData = await this.fetchFreshData(platform, username);
         await this.saveToCache(platform, username, freshData, prisma);
       } catch (error) {
+        // Cet échec est silencieux pour le visiteur, qui reçoit l'ancienne
+        // donnée. On journalise donc l'ancienneté : c'est le seul indice
+        // qu'une plateforme est en train de décrocher, avant que la borne de
+        // STALE_TOLERANCE_DAYS ne finisse par couper.
         console.error(
-          `❌ Erreur lors du renouvellement pour ${platform}:${username}:`,
+          `❌ Renouvellement ${platform}:${username} en échec (la donnée servie continue de vieillir) :`,
           error
         );
       }
@@ -213,6 +311,51 @@ export class UserDataCacheService {
   /**
    * Obtient les statistiques du cache
    */
+  /**
+   * Fraîcheur des données par plateforme.
+   *
+   * `lastFetched` n'avance que sur une récupération réussie : l'âge du plus
+   * récent dit donc depuis combien de temps la plateforme répond encore. Sans
+   * cette vue, une plateforme peut décrocher des semaines sans que rien ne le
+   * signale — c'est exactement ce qui s'est produit avec Jikan et Nautiljon.
+   */
+  async getFreshnessByPlatform(): Promise<
+    Array<{
+      platform: string;
+      entries: number;
+      lastSuccessfulFetch: Date | null;
+      ageInHours: number | null;
+      stale: boolean;
+    }>
+  > {
+    const { prisma } = await import("../prisma");
+
+    const rows = await prisma.userDataCache.groupBy({
+      by: ["platform"],
+      _count: { _all: true },
+      _max: { lastFetched: true },
+    });
+
+    const now = Date.now();
+
+    return rows
+      .map((row) => {
+        const last = row._max.lastFetched;
+        const ageInHours = last
+          ? Math.round((now - last.getTime()) / (60 * 60 * 1000))
+          : null;
+
+        return {
+          platform: row.platform,
+          entries: row._count._all,
+          lastSuccessfulFetch: last,
+          ageInHours,
+          stale: last ? now - last.getTime() > STALE_TOLERANCE_MS : true,
+        };
+      })
+      .sort((a, b) => a.platform.localeCompare(b.platform));
+  }
+
   async getCacheStats(): Promise<{
     totalEntries: number;
     expiredEntries: number;

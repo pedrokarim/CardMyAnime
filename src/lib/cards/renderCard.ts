@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { userDataCache } from "@/lib/services/userDataCache";
+import { userDataCache, StaleDataError } from "@/lib/services/userDataCache";
 import { viewTracker } from "@/lib/services/viewTracker";
 import { generateSmallCard } from "@/lib/cards/smallCard";
 import { generateMediumCard } from "@/lib/cards/mediumCard";
@@ -206,6 +206,19 @@ export async function resolveCard(
     return { ok: true, buffer: cardBuffer, cardType: validType };
   } catch (error) {
     console.error("Erreur lors de la génération de la carte:", error);
+
+    // Donnée trop ancienne et plateforme injoignable : on le dit, plutôt que
+    // de laisser croire à une panne passagère de notre côté.
+    if (error instanceof StaleDataError) {
+      return {
+        ok: false,
+        status: 503,
+        error: error.message,
+        title: "Données indisponibles",
+        detail: `${error.platform} ne répond plus. Dernière mise à jour réussie il y a ${error.ageInDays} jours.`,
+      };
+    }
+
     return {
       ok: false,
       status: 500,

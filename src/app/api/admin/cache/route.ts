@@ -72,8 +72,14 @@ export async function GET() {
 
     await ensurePrismaConnection();
     // Retourner des statistiques sur le cache et les vues
-    const [totalCards, totalViews, totalViews24h, cacheStats, viewStats] =
-      await Promise.all([
+    const [
+      totalCards,
+      totalViews,
+      totalViews24h,
+      cacheStats,
+      viewStats,
+      freshness,
+    ] = await Promise.all([
         prisma.cardGeneration.count(),
         prisma.cardGeneration.aggregate({
           _sum: { views: true },
@@ -83,6 +89,7 @@ export async function GET() {
         }),
         userDataCache.getCacheStats(),
         viewTracker.getViewStats(),
+        userDataCache.getFreshnessByPlatform(),
       ]);
 
     return NextResponse.json({
@@ -93,6 +100,10 @@ export async function GET() {
       },
       cache: cacheStats,
       views: viewStats,
+      // Âge de la dernière récupération réussie par plateforme : c'est ce qui
+      // manquait pour voir une panne de source avant qu'elle ne dure des
+      // semaines.
+      freshness,
     });
   } catch (error) {
     console.error("Erreur lors de la récupération des stats:", error);
