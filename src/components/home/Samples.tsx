@@ -1,3 +1,7 @@
+"use client";
+
+import { motion } from "framer-motion";
+
 /**
  * Section « exemples » de l'accueil, cible de l'ancre `#exemples`.
  *
@@ -44,9 +48,22 @@ export function Samples() {
           plus haute et les autres se retrouvent avec un bas vide sous leur
           légende. Ici chacune ne mesure que ce qu'elle occupe. */}
       <div className="columns-1 gap-[22px] sm:columns-2 lg:columns-3">
-        {SAMPLES.map((sample) => (
-          <figure
+        {SAMPLES.map((sample, index) => (
+          /* Le clic sur « Voir des exemples » amenait la section d'un coup,
+             déjà entièrement dessinée. Les cartes se posent maintenant à
+             mesure que le défilement les atteint : l'arrivée se lit comme un
+             mouvement, pas comme une coupe. `once` — rejouer à chaque
+             passage transformerait un défilement ordinaire en diaporama. */
+          <motion.figure
             key={sample.file}
+            initial={{ opacity: 0, y: 18 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.15, margin: "0px 0px -60px 0px" }}
+            transition={{
+              duration: 0.5,
+              delay: (index % 3) * 0.07,
+              ease: [0.22, 0.9, 0.24, 1],
+            }}
             className="group mb-[22px] break-inside-avoid overflow-hidden rounded-2xl border border-border/70 bg-card/60 transition-[transform,border-color] duration-300 motion-safe:hover:-translate-y-1 hover:border-primary/40"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -63,7 +80,7 @@ export function Samples() {
               <b className="font-semibold text-foreground">{sample.label}</b>
               <span>{sample.meta}</span>
             </figcaption>
-          </figure>
+          </motion.figure>
         ))}
       </div>
     </section>

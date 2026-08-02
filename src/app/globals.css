@@ -121,6 +121,12 @@
   * {
     @apply border-border outline-ring/50;
   }
+  /* Les ancres de la page d'accueil (« Voir des exemples ») et les retours en
+     haut entre deux etapes glissent au lieu de sauter. Neutralise sous
+     `prefers-reduced-motion`, plus bas dans ce fichier. */
+  html {
+    scroll-behavior: smooth;
+  }
   body {
     @apply bg-background text-foreground;
   }

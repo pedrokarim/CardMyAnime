@@ -11,6 +11,10 @@ import { CoverWall, CoverWallVeils } from "@/components/home/CoverWall";
 import { PlatformRail } from "@/components/home/PlatformRail";
 import { StepIndicator } from "@/components/home/StepIndicator";
 import { Samples } from "@/components/home/Samples";
+import { CardTypeStep } from "@/components/home/CardTypeStep";
+import { RecentUsernames } from "@/components/home/RecentUsernames";
+import { useRecentUsernames } from "@/lib/recentUsernames";
+import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { trpc } from "@/lib/trpc/client";
 import { useQueryState } from "nuqs";
@@ -18,9 +22,8 @@ import { PlatformIcon } from "@/components/ui/platform-icon";
 import { ButtonLoading } from "@/components/ui/loading";
 import { SITE_CONFIG } from "@/lib/constants";
 import Link from "next/link";
-import { CardStyleSvg } from "@/components/CardStyleSvg";
 import { captureCarteEchouee, captureCarteGeneree, captureEtape } from "@/lib/analytics";
-import { ArrowRight, ChevronDown } from "lucide-react";
+import { ArrowLeft, ArrowRight, ChevronDown, Loader2, RotateCcw } from "lucide-react";
 
 type Step = "platform" | "cardType" | "username" | "preview";
 
@@ -53,6 +56,21 @@ function withRailTransition(update: () => void) {
   }
 
   doc.startViewTransition(() => flushSync(update));
+}
+
+/**
+ * Retour en haut après un changement d'étape.
+ *
+ * La grille des styles est plus haute qu'un écran : on choisit son format en
+ * bas de page, et sans ça l'étape suivante s'ouvrait avec la page toujours
+ * défilée — le titre, le fil d'étapes et le champ de saisie hors champ, sur
+ * une zone désormais vide. Le défilement est reporté après la peinture, sinon
+ * il vise la hauteur de l'étape qu'on vient de quitter.
+ */
+function backToTop() {
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" }))
+  );
 }
 
 export default function HomePage() {
@@ -102,6 +120,23 @@ export default function HomePage() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [recentOpen, setRecentOpen] = useState(false);
+  const [isSlowSearch, setIsSlowSearch] = useState(false);
+  const recent = useRecentUsernames();
+
+  /*
+   * Une recherche prend d'ordinaire moins d'une seconde. Passé trois, le
+   * spinner ne dit plus rien d'utile : il tourne aussi bien quand ça avance
+   * que quand c'est bloqué. Le message reprend la parole à ce moment-là.
+   */
+  useEffect(() => {
+    if (!isLoading) {
+      setIsSlowSearch(false);
+      return;
+    }
+    const timer = setTimeout(() => setIsSlowSearch(true), 3000);
+    return () => clearTimeout(timer);
+  }, [isLoading]);
   const [generatedCardData, setGeneratedCardData] = useState<{
     cardUrl: string;
     shareableUrl: string;
@@ -127,63 +162,16 @@ export default function HomePage() {
     }
   }, [currentStep, platform, username, userData, isLoading, cardType]);
 
-  const cardTypes = [
-    {
-      value: "small",
-      label: "Petite",
-      description: "Avatar + pseudo + 3 derniers animes",
-      size: "400×150",
-      icon: "🎌",
-    },
-    {
-      value: "medium",
-      label: "Moyenne",
-      description: "Avatar + stats + derniers animes/mangas",
-      size: "600×300",
-      icon: "📊",
-    },
-    {
-      value: "large",
-      label: "Grande",
-      description: "Profil complet avec images",
-      size: "800×500",
-      icon: "🖼️",
-    },
-    {
-      value: "summary",
-      label: "Résumé",
-      description: "Profil complet avec stats détaillées",
-      size: "800×600",
-      icon: "📈",
-    },
-    {
-      value: "neon",
-      label: "Néon",
-      description: "Style cyberpunk avec effets néon lumineux",
-      size: "600×350",
-      icon: "💜",
-    },
-    {
-      value: "minimal",
-      label: "Minimal",
-      description: "Design épuré et élégant sur fond clair",
-      size: "500×250",
-      icon: "✨",
-    },
-    {
-      value: "glassmorphism",
-      label: "Glass",
-      description: "Effet verre givré avec fond coloré",
-      size: "700×400",
-      icon: "💎",
-    },
-  ];
-
   const fetchUserDataMutation = trpc.fetchUserData.useMutation({
     onSuccess: async (result) => {
       if (result.success && result.data) {
         setUserData(result.data);
+        // Mémorisé sur l'aboutissement, et avec la casse renvoyée par la
+        // plateforme plutôt que celle tapée : l'historique doit proposer des
+        // pseudos qui existent.
+        recent.remember(result.data.username, platform as Platform);
         await setCurrentStep("preview");
+        backToTop();
         captureEtape("preview", { platform: platform ?? "", cardType });
         // Générer automatiquement la carte après avoir récupéré les données
         generateCardMutation.mutate({
@@ -238,8 +226,15 @@ export default function HomePage() {
     }
   };
 
-  const fetchUserData = async () => {
-    if (!username?.trim()) {
+  /**
+   * `overrideUsername` sert aux entrées de l'historique : `setUsername` passe
+   * par nuqs et n'est donc pas immédiat, la valeur choisie ne serait pas
+   * encore lisible ici. On la transmet directement plutôt que d'attendre.
+   */
+  const fetchUserData = async (overrideUsername?: string) => {
+    const value = (overrideUsername ?? username ?? "").trim();
+
+    if (!value) {
       setError("Veuillez entrer un nom d'utilisateur");
       return;
     }
@@ -252,12 +247,10 @@ export default function HomePage() {
     setIsLoading(true);
     setError(null);
 
-    const params = {
+    fetchUserDataMutation.mutate({
       platform: platform as Platform,
-      username: username.trim(),
-    };
-
-    fetchUserDataMutation.mutate(params);
+      username: value,
+    });
   };
 
   const handleCardGenerated = (cardUrl: string, shareableUrl: string) => {};
@@ -302,6 +295,7 @@ export default function HomePage() {
       await setCurrentStep("username");
       captureEtape("username", { platform: platform ?? "", cardType });
     }
+    backToTop();
   };
 
   const goToPreviousStep = async () => {
@@ -309,6 +303,7 @@ export default function HomePage() {
       withRailTransition(() => setCurrentStep("platform"));
     else if (currentStep === "username") await setCurrentStep("cardType");
     else if (currentStep === "preview") await setCurrentStep("username");
+    backToTop();
   };
 
   // L'accueil et l'étape 1 sont une seule et même chose : la hero EST la
@@ -427,97 +422,16 @@ export default function HomePage() {
           <div className="mx-auto w-full max-w-4xl">
             {/* Étape 2: Sélection du type de carte */}
             {currentStep === "cardType" && (
-              <div className="text-center space-y-8">
-                <div>
-                  <h2 className="text-4xl font-bold text-foreground mb-4">
-                    Choisissez le type de carte
-                  </h2>
-                  <p className="text-xl text-muted-foreground">
-                    Sélectionnez le format qui vous convient le mieux
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                  {cardTypes.map((cardTypeOption) => (
-                    <div
-                      key={cardTypeOption.value}
-                      onClick={() =>
-                        setCardType(cardTypeOption.value as CardType)
-                      }
-                      className={`relative p-6 sm:p-8 rounded-2xl cursor-pointer transition-all duration-300 border border-border/50 backdrop-blur-sm ${
-                        cardType === cardTypeOption.value
-                          ? "bg-primary/5 border-primary/60 shadow-[0_4px_16px_rgba(0,0,0,0.12)] scale-[1.02]"
-                          : "bg-card/50 hover:border-primary/30 hover:bg-card/70 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] hover:scale-[1.01]"
-                      }`}
-                    >
-                      <div className="text-center space-y-3 sm:space-y-4">
-                        <div className="flex justify-center mb-3 sm:mb-4">
-                          <CardStyleSvg type={cardTypeOption.value as CardType} size={100} />
-                        </div>
-                        <h3 className="text-xl sm:text-2xl font-bold text-foreground">
-                          {cardTypeOption.label}
-                        </h3>
-                        <p className="text-sm sm:text-base text-muted-foreground px-2">
-                          {cardTypeOption.description}
-                        </p>
-                        <div className="text-xs sm:text-sm text-muted-foreground bg-muted px-2 sm:px-3 py-1 rounded-full inline-block">
-                          {cardTypeOption.size}
-                        </div>
-                      </div>
-                      {cardType === cardTypeOption.value && (
-                        <div className="absolute top-3 right-3 sm:top-4 sm:right-4 w-3 h-3 bg-primary rounded-full shadow-[0_0_8px_rgba(var(--primary),0.5)]"></div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Toggle pour l'arrière-plan du dernier anime */}
-                <div className="flex items-center justify-center space-x-3 p-4 bg-card/50 rounded-2xl border border-border/50 backdrop-blur-sm shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
-                  <span className="text-white text-sm">
-                    Arrière-plan avec le dernier anime
-                  </span>
-                  <button
-                    onClick={() =>
-                      setUseLastAnimeBackground(
-                        useLastAnimeBackground === "1" ? "0" : "1"
-                      )
-                    }
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      useLastAnimeBackground === "1"
-                        ? "bg-primary"
-                        : "bg-gray-600"
-                    }`}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        useLastAnimeBackground === "1"
-                          ? "translate-x-6"
-                          : "translate-x-1"
-                      }`}
-                    />
-                  </button>
-                  <span className="text-white/60 text-xs">
-                    {useLastAnimeBackground === "1" ? "Activé" : "Désactivé"}
-                  </span>
-                </div>
-
-                <div className="flex gap-4 justify-center">
-                  <Button
-                    onClick={goToPreviousStep}
-                    variant="outline"
-                    className="px-8 py-3"
-                  >
-                    ← Retour
-                  </Button>
-                  <Button
-                    onClick={goToNextStep}
-                    disabled={!cardType}
-                    className="px-8 py-3 text-lg font-semibold"
-                  >
-                    Continuer →
-                  </Button>
-                </div>
-              </div>
+              <CardTypeStep
+                cardType={cardType as CardType}
+                onSelect={(value) => setCardType(value)}
+                useBackground={useLastAnimeBackground === "1"}
+                onBackgroundChange={(value) =>
+                  setUseLastAnimeBackground(value ? "1" : "0")
+                }
+                onBack={goToPreviousStep}
+                onContinue={goToNextStep}
+              />
             )}
 
             {/* Étape 3: Saisie du nom d'utilisateur */}
@@ -535,17 +449,36 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                <div className="max-w-2xl mx-auto space-y-6">
+                <div className="mx-auto max-w-2xl space-y-6">
                   <div className="flex gap-4">
-                    <Input
-                      placeholder="Entrez votre nom d'utilisateur..."
-                      value={username || ""}
-                      onChange={(e) => setUsername(e.target.value)}
-                      onKeyPress={(e) => e.key === "Enter" && fetchUserData()}
-                      className="text-lg py-4"
-                    />
+                    {/* `relative` : c'est l'ancrage du panneau des recherches
+                        récentes, qui se pose sous le champ. */}
+                    <div className="relative flex-1">
+                      <Input
+                        placeholder="Entrez votre nom d'utilisateur..."
+                        value={username || ""}
+                        onChange={(e) => setUsername(e.target.value)}
+                        onFocus={() => setRecentOpen(true)}
+                        onBlur={() => setRecentOpen(false)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") fetchUserData();
+                          if (e.key === "Escape") setRecentOpen(false);
+                        }}
+                        className="w-full py-4 text-lg"
+                      />
+                      <RecentUsernames
+                        open={recentOpen}
+                        entries={recent.shown}
+                        onPick={(value) => {
+                          setRecentOpen(false);
+                          setUsername(value);
+                          fetchUserData(value);
+                        }}
+                        onForget={recent.forget}
+                      />
+                    </div>
                     <Button
-                      onClick={fetchUserData}
+                      onClick={() => fetchUserData()}
                       disabled={isLoading || !username?.trim()}
                       className="px-8 py-4 text-lg font-semibold"
                     >
@@ -560,8 +493,36 @@ export default function HomePage() {
                     </Button>
                   </div>
 
+                  {/*
+                   * Passé trois secondes, l'attente cesse d'être lisible comme
+                   * un chargement : on ne sait plus si ça avance ou si c'est
+                   * cassé. Le message ne fait que redonner cette information.
+                   */}
+                  <AnimatePresence>
+                    {isSlowSearch && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -6, height: 0 }}
+                        animate={{ opacity: 1, y: 0, height: "auto" }}
+                        exit={{ opacity: 0, y: -6, height: 0 }}
+                        transition={{
+                          duration: 0.3,
+                          ease: [0.22, 0.9, 0.24, 1],
+                        }}
+                        className="overflow-hidden"
+                      >
+                        <div className="flex items-start gap-3 rounded-xl border border-border/60 bg-card/60 p-3.5 text-left backdrop-blur-sm">
+                          <Loader2 className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-primary" />
+                          <p className="text-sm text-muted-foreground">
+                            Ça prend un peu plus de temps que d'habitude.
+                            Patientez quelques instants, ça arrive.
+                          </p>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
                   {error && (
-                    <div className="p-4 bg-destructive/20 border border-destructive/30 rounded-xl">
+                    <div className="rounded-xl border border-destructive/30 bg-destructive/20 p-4">
                       <p className="text-destructive">{error}</p>
                     </div>
                   )}
@@ -570,9 +531,10 @@ export default function HomePage() {
                 <Button
                   onClick={goToPreviousStep}
                   variant="outline"
-                  className="px-8 py-3"
+                  className="gap-2 px-8 py-3"
                 >
-                  ← Retour
+                  <ArrowLeft className="h-4 w-4" />
+                  Retour
                 </Button>
               </div>
             )}
@@ -622,22 +584,25 @@ export default function HomePage() {
                   />
                 )}
 
-                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
+                <div className="flex flex-col justify-center gap-3 sm:flex-row sm:gap-4">
                   <Button
                     onClick={goToPreviousStep}
                     variant="outline"
-                    className="px-6 sm:px-8 py-3 w-full sm:w-auto"
+                    className="w-full gap-2 px-6 py-3 sm:w-auto sm:px-8"
                   >
-                    <span className="hidden sm:inline">← Modifier les paramètres</span>
-                    <span className="sm:hidden">← Modifier</span>
+                    <ArrowLeft className="h-4 w-4" />
+                    <span className="hidden sm:inline">
+                      Modifier les paramètres
+                    </span>
+                    <span className="sm:hidden">Modifier</span>
                   </Button>
                   <Button
                     onClick={resetToStart}
                     variant="outline"
-                    className="px-6 sm:px-8 py-3 w-full sm:w-auto"
+                    className="w-full gap-2 px-6 py-3 sm:w-auto sm:px-8"
                   >
-                    <span className="hidden sm:inline">🔄 Recommencer</span>
-                    <span className="sm:hidden">🔄 Recommencer</span>
+                    <RotateCcw className="h-4 w-4" />
+                    Recommencer
                   </Button>
                 </div>
               </div>

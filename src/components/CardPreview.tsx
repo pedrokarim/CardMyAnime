@@ -16,6 +16,23 @@ import { trpc } from "@/lib/trpc/client";
 import { PlatformIcon } from "@/components/ui/platform-icon";
 import { CardLoading } from "@/components/ui/loading";
 import { CardStyleSvg } from "@/components/CardStyleSvg";
+import { CARD_TYPE_OPTIONS } from "@/lib/cardTypeOptions";
+import {
+  BookMarked,
+  BookOpen,
+  CalendarDays,
+  CheckCircle2,
+  Clock,
+  Film,
+  Heart,
+  Image as ImageIcon,
+  MessageSquare,
+  Palette,
+  Play,
+  Star,
+  Tags,
+  Tv,
+} from "lucide-react";
 
 interface CardPreviewProps {
   userData: UserData;
@@ -45,57 +62,6 @@ const cardGenerators = {
 // La copie locale avait déjà divergé du générateur.
 const cardDimensions = CARD_DIMENSIONS;
 
-const cardTypes = [
-  {
-    value: "small",
-    label: "Petite",
-    description: "Avatar + pseudo + 3 derniers animes",
-    size: "400×150",
-    icon: "🎌",
-  },
-  {
-    value: "medium",
-    label: "Moyenne",
-    description: "Avatar + stats + derniers animes/mangas",
-    size: "600×300",
-    icon: "📊",
-  },
-  {
-    value: "large",
-    label: "Grande",
-    description: "Profil complet avec images",
-    size: "800×500",
-    icon: "🖼️",
-  },
-  {
-    value: "summary",
-    label: "Résumé",
-    description: "Stats détaillées avec derniers animes/mangas",
-    size: "800×600",
-    icon: "📈",
-  },
-  {
-    value: "neon",
-    label: "Néon",
-    description: "Style cyberpunk avec effets néon lumineux",
-    size: "600×350",
-    icon: "💜",
-  },
-  {
-    value: "minimal",
-    label: "Minimal",
-    description: "Design épuré et élégant sur fond clair",
-    size: "500×250",
-    icon: "✨",
-  },
-  {
-    value: "glassmorphism",
-    label: "Glass",
-    description: "Effet verre givré avec fond coloré",
-    size: "700×400",
-    icon: "💎",
-  },
-];
 
 export function CardPreview({
   userData,
@@ -225,46 +191,46 @@ export function CardPreview({
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-sm text-muted-foreground">
               <span className="flex items-center gap-2">
-                <span className="text-xl">🎬</span>
+                <Film className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
                 {userData?.stats.animesSeen} animes
               </span>
               <span className="flex items-center gap-2">
-                <span className="text-xl">📚</span>
+                <BookOpen className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
                 {userData?.stats.mangasRead} mangas
               </span>
               {userData?.stats.avgScore && userData.stats.avgScore > 0 && (
                 <span className="flex items-center gap-2">
-                  <span className="text-xl">⭐</span>
+                  <Star className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
                   {userData.stats.avgScore}/10
                 </span>
               )}
               {userData?.stats.totalEpisodes && (
                 <span className="flex items-center gap-2">
-                  <span className="text-xl">📺</span>
+                  <Tv className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
                   {userData.stats.totalEpisodes} épisodes
                 </span>
               )}
               {userData?.stats.totalChapters && (
                 <span className="flex items-center gap-2">
-                  <span className="text-xl">📖</span>
+                  <BookMarked className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
                   {userData.stats.totalChapters} chapitres
                 </span>
               )}
               {userData?.stats.daysWatched && (
                 <span className="flex items-center gap-2">
-                  <span className="text-xl">⏰</span>
+                  <Clock className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
                   {userData.stats.daysWatched} jours
                 </span>
               )}
               {userData?.stats.watchingCount && (
                 <span className="flex items-center gap-2">
-                  <span className="text-xl">▶️</span>
+                  <Play className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
                   {userData.stats.watchingCount} en cours
                 </span>
               )}
               {userData?.stats.completedCount && (
                 <span className="flex items-center gap-2">
-                  <span className="text-xl">✅</span>
+                  <CheckCircle2 className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
                   {userData.stats.completedCount} terminés
                 </span>
               )}
@@ -280,7 +246,7 @@ export function CardPreview({
             {userData?.personalMessage && (
               <div className="bg-muted/20 rounded-xl p-4 border border-border/30 backdrop-blur-sm">
                 <h4 className="text-sm font-semibold text-primary mb-2 flex items-center gap-2">
-                  <span className="text-lg">💬</span>
+                  <MessageSquare className="h-4 w-4 shrink-0" />
                   Message personnel
                 </h4>
                 <p className="text-sm text-muted-foreground line-clamp-3">
@@ -292,7 +258,7 @@ export function CardPreview({
             {userData?.profile?.joinDate && (
               <div className="bg-muted/20 rounded-xl p-4 border border-border/30 backdrop-blur-sm">
                 <h4 className="text-sm font-semibold text-primary mb-2 flex items-center gap-2">
-                  <span className="text-lg">📅</span>
+                  <CalendarDays className="h-4 w-4 shrink-0" />
                   Membre depuis
                 </h4>
                 <p className="text-sm text-muted-foreground">
@@ -315,7 +281,7 @@ export function CardPreview({
               userData.stats.favoriteGenres.length > 0 && (
                 <div className="bg-muted/20 rounded-xl p-4 border border-border/30 backdrop-blur-sm">
                   <h4 className="text-sm font-semibold text-primary mb-2 flex items-center gap-2">
-                    <span className="text-lg">🎭</span>
+                    <Tags className="h-4 w-4 shrink-0" />
                     Genres favoris
                   </h4>
                   <div className="flex flex-wrap gap-1">
@@ -339,7 +305,7 @@ export function CardPreview({
         <div className="grid grid-cols-2 gap-8">
           <div>
             <h4 className="text-lg font-semibold text-primary mb-3 flex items-center gap-2">
-              <span className="text-xl">🎬</span>
+              <Film className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
               Derniers animes
             </h4>
             <div className="space-y-2">
@@ -357,7 +323,7 @@ export function CardPreview({
                       <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
                         {anime.score && (
                           <span className="flex items-center gap-1">
-                            <span>⭐</span>
+                            <Star className="h-3 w-3" />
                             {anime.score}/10
                           </span>
                         )}
@@ -384,7 +350,7 @@ export function CardPreview({
           </div>
           <div>
             <h4 className="text-lg font-semibold text-primary mb-3 flex items-center gap-2">
-              <span className="text-xl">📚</span>
+              <BookOpen className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
               Derniers mangas
             </h4>
             <div className="space-y-2">
@@ -402,7 +368,7 @@ export function CardPreview({
                       <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
                         {manga.score && (
                           <span className="flex items-center gap-1">
-                            <span>⭐</span>
+                            <Star className="h-3 w-3" />
                             {manga.score}/10
                           </span>
                         )}
@@ -438,7 +404,7 @@ export function CardPreview({
                 userData.favorites.anime.length > 0 && (
                   <div>
                     <h4 className="text-lg font-semibold text-primary mb-3 flex items-center gap-2">
-                      <span className="text-xl">❤️</span>
+                      <Heart className="h-[18px] w-[18px] shrink-0 text-primary" />
                       Animes favoris
                     </h4>
                     <div className="space-y-2">
@@ -465,7 +431,7 @@ export function CardPreview({
                 userData.favorites.manga.length > 0 && (
                   <div>
                     <h4 className="text-lg font-semibold text-primary mb-3 flex items-center gap-2">
-                      <span className="text-xl">💖</span>
+                      <Heart className="h-[18px] w-[18px] shrink-0 text-primary" />
                       Mangas favoris
                     </h4>
                     <div className="space-y-2">
@@ -503,7 +469,7 @@ export function CardPreview({
             {isGenerating ? (
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current"></div>
             ) : (
-              <span className="text-lg">🎨</span>
+              <Palette className="h-[18px] w-[18px]" />
             )}
             <span className="hidden sm:inline">
               {isGenerating
@@ -533,9 +499,7 @@ export function CardPreview({
             {isGenerating ? (
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current"></div>
             ) : (
-              <span className="text-lg">
-                {useLastAnimeBackground ? "🖼️" : "🎭"}
-              </span>
+              <ImageIcon className="h-[18px] w-[18px]" />
             )}
             <span className="hidden sm:inline">
               {isGenerating
@@ -562,7 +526,7 @@ export function CardPreview({
             Changer le type de carte
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {cardTypes.map((cardTypeOption) => (
+            {CARD_TYPE_OPTIONS.map((cardTypeOption) => (
               <div
                 key={cardTypeOption.value}
                 onClick={() =>
@@ -626,7 +590,7 @@ export function CardPreview({
             ) : (
               <div className="w-full h-full flex items-center justify-center">
                 <div className="text-center text-muted-foreground">
-                  <div className="text-6xl mb-4">🎨</div>
+                  <Palette className="mx-auto mb-4 h-12 w-12 opacity-60" />
                   <p className="text-lg font-medium mb-2">
                     Carte générée automatiquement
                   </p>
