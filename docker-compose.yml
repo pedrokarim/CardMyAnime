@@ -74,6 +74,10 @@ services:
     # Volumes pour les logs uniquement
     volumes:
       - ./logs:/app/logs
+      # Jaquettes du fond de la page d'accueil. Hors image et hors git : elles
+      # sont regenerees par un cron mensuel et doivent survivre aux deploiements,
+      # sinon chaque reconstruction repartirait d'un dossier vide.
+      - ./covers:/app/public/covers
     # Réseau
     networks:
       - cardmyanime-network

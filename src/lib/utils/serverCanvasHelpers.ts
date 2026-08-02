@@ -54,7 +54,13 @@ function registerBundledFonts(): void {
   }
 }
 
-registerBundledFonts();
+// Ce module est aussi tiré dans le bundle client par CardPreview, où `canvas`
+// n'existe pas : `registerFont` y serait `undefined` et l'import planterait au
+// chargement. L'enregistrement n'a de sens que côté serveur, où les cartes
+// sont réellement dessinées.
+if (typeof window === "undefined") {
+  registerBundledFonts();
+}
 
 // --- Cache statique pour les assets locaux ---
 const staticAssetCache = new Map<string, Image>();

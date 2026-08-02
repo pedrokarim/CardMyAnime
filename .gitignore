@@ -47,3 +47,7 @@ next-env.d.ts
 
 # prototypes locaux (non versionnes)
 /prototypes
+
+# Jaquettes du fond de la page d'accueil : generees par
+# scripts/generate-cover-wall.js et portees par un volume Docker, pas par git.
+/public/covers

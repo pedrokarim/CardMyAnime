@@ -10,16 +10,17 @@ import {
   isPlatformDisabled,
   platformDisabledReason,
 } from "@/lib/platformStatus";
+import { CoverWall, CoverWallVeils } from "@/components/home/CoverWall";
+import { cn } from "@/lib/utils";
 import { trpc } from "@/lib/trpc/client";
 import { useQueryState } from "nuqs";
-import Image from "next/image";
 import { PlatformIcon } from "@/components/ui/platform-icon";
-import { motion, AnimatePresence } from "framer-motion";
 import { ButtonLoading } from "@/components/ui/loading";
 import { SITE_CONFIG } from "@/lib/constants";
 import Link from "next/link";
 import { CardStyleSvg } from "@/components/CardStyleSvg";
 import { captureCarteEchouee, captureCarteGeneree, captureEtape } from "@/lib/analytics";
+import { ArrowRight, ChevronDown } from "lucide-react";
 
 type Step = "platform" | "cardType" | "username" | "preview";
 
@@ -298,48 +299,36 @@ export default function HomePage() {
     else if (currentStep === "preview") await setCurrentStep("username");
   };
 
+  // L'accueil et l'étape 1 sont une seule et même chose : la hero EST la
+  // sélection de plateforme. On ne change donc jamais de page, on replie la
+  // scène.
+  const isHero = currentStep === "platform";
+
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <div className="inline-block mb-8">
-            {/* Logo et titre - avec AnimatePresence pour libérer l'espace */}
-            <AnimatePresence>
-              {currentStep === "platform" && (
-                <motion.div
-                  initial={{ scale: 1, opacity: 1, y: 0 }}
-                  exit={{ scale: 0.3, opacity: 0, y: -50 }}
-                  transition={{ duration: 0.6, ease: "easeInOut" }}
-                >
-                  <div className="flex justify-center mb-6">
-                    <Image
-                      src={SITE_CONFIG.site.logo}
-                      alt={`${SITE_CONFIG.site.name} Logo`}
-                      width={120}
-                      height={120}
-                    />
-                  </div>
-                  {/* Titre et sous-titre */}
-                  <div className="text-center mb-12">
-                    <h1 className="text-5xl font-bold text-white mb-4">
-                      {SITE_CONFIG.site.name}
-                    </h1>
-                    <p className="text-xl text-gray-300">
-                      Générez vos cartes de profil anime personnalisées
-                    </p>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+    <div className="relative min-h-screen overflow-hidden bg-background">
+      <CoverWall dimmed={!isHero} />
+      <CoverWallVeils dimmed={!isHero} />
+
+      <div className="relative z-10 container mx-auto px-4 pb-12 pt-24 sm:pb-8 sm:pt-28">
+        {/* Accroche : disparaît dès qu'on entre dans le wizard */}
+        {isHero && (
+          <div className="mx-auto mb-8 max-w-3xl sm:mb-10">
+            <h1 className="text-4xl font-bold leading-[1.05] tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+              Votre profil anime,
+              <br />
+              <span className="bg-gradient-to-r from-primary to-cyan-400 bg-clip-text text-transparent">
+                en une image
+              </span>
+            </h1>
+            <p className="mt-4 max-w-[52ch] text-[15px] leading-relaxed text-muted-foreground sm:mt-5 sm:text-lg">
+              Un pseudo, un style. On génère une carte PNG de vos dernières
+              séries, avec un lien direct à coller où vous voulez.
+            </p>
           </div>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            {SITE_CONFIG.site.description}
-          </p>
-        </div>
+        )}
 
         {/* Indicateur d'étapes */}
-        <div className="flex justify-center mb-12">
+        <div className={cn("justify-center mb-12", isHero ? "hidden" : "flex")}>
           <div className="flex items-center space-x-2 md:space-x-6">
             {["platform", "cardType", "username", "preview"].map(
               (step, index) => (
@@ -382,17 +371,11 @@ export default function HomePage() {
         <div className="max-w-4xl mx-auto">
           {/* Étape 1: Sélection de plateforme */}
           {currentStep === "platform" && (
-            <div className="text-center space-y-8">
-              <div>
-                <h2 className="text-4xl font-bold text-foreground mb-4">
-                  Choisissez votre plateforme
-                </h2>
-                <p className="text-xl text-muted-foreground">
-                  Sélectionnez la plateforme d'anime de votre choix
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            <div className="space-y-8">
+              {/* Bande horizontale. Elle ne disparaîtra pas au passage à
+                  l'étape suivante : elle se compacte et remonte au-dessus du
+                  stepper. */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-5">
                 {platforms.map((platformOption) => (
                   <div
                     key={platformOption.value}
@@ -438,13 +421,23 @@ export default function HomePage() {
                 ))}
               </div>
 
-              <Button
-                onClick={goToNextStep}
-                disabled={!platform}
-                className="px-8 py-3 text-lg font-semibold"
-              >
-                Continuer →
-              </Button>
+              <div className="flex flex-wrap items-center gap-3">
+                <Button
+                  onClick={goToNextStep}
+                  disabled={!platform}
+                  className="gap-2 px-7 py-3 text-base font-semibold"
+                >
+                  Continuer
+                  <ArrowRight className="h-[17px] w-[17px]" />
+                </Button>
+                <a
+                  href="#exemples"
+                  className="inline-flex items-center gap-2 rounded-xl border border-border px-6 py-3 text-base font-semibold text-foreground transition-colors hover:bg-accent"
+                >
+                  Voir des exemples
+                  <ChevronDown className="h-[17px] w-[17px]" />
+                </a>
+              </div>
             </div>
           )}
 

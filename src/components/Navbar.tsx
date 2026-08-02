@@ -43,7 +43,47 @@ export function Navbar({ currentPlatform }: NavbarProps) {
   const isHomePage = pathname === "/";
 
   return (
-    <nav className="bg-background border-b border-border">
+    /*
+     * Sur l'accueil, la navbar flotte au-dessus du mur de jaquettes : un fond
+     * plein la couperait en deux et une bordure franche serait pire encore.
+     *
+     * Deux couches superposées à la place :
+     *   1. un dégradé partant de `--background` et s'ouvrant vers le bas,
+     *   2. un flou dont l'opacité est masquée par le même dégradé.
+     *
+     * Le flou disparaît donc progressivement au lieu de s'arrêter sur une
+     * ligne nette, et comme tout part de `--background`, le rendu suit le
+     * thème clair comme le thème sombre sans être redéfini.
+     */
+    <nav
+      className={cn(
+        isHomePage
+          ? "fixed inset-x-0 top-0 z-50"
+          : "bg-background border-b border-border"
+      )}
+    >
+      {isHomePage && (
+        <>
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 -z-10"
+            style={{
+              background:
+                "linear-gradient(180deg, var(--background) 0%, color-mix(in oklab, var(--background) 82%, transparent) 45%, color-mix(in oklab, var(--background) 40%, transparent) 75%, transparent 100%)",
+            }}
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 -z-10 backdrop-blur-[7px]"
+            style={{
+              maskImage:
+                "linear-gradient(180deg, #000 0%, #000 45%, transparent 100%)",
+              WebkitMaskImage:
+                "linear-gradient(180deg, #000 0%, #000 45%, transparent 100%)",
+            }}
+          />
+        </>
+      )}
       <div className="container mx-auto px-4 pt-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}

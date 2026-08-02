@@ -165,6 +165,21 @@
      - défilement carrousel -> useReducedMotion() dans HeroBannerCarousel
    Ne restent ici que les mouvements purement CSS qu'on ne peut pas court-circuiter
    ailleurs. */
+
+/* --- Mur de jaquettes de la page d'accueil ---------------------------------
+   Les colonnes vont de 0 a -50% : chacune etant dupliquee, la seconde moitie
+   retombe exactement sur la premiere et la boucle n'a aucun raccord visible. */
+@keyframes wall-up {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-50%); }
+}
+@keyframes wall-down {
+  from { transform: translateY(-50%); }
+  to   { transform: translateY(0); }
+}
+.animate-wall-up   { animation: wall-up 60s linear infinite; }
+.animate-wall-down { animation: wall-down 60s linear infinite; }
+
 @media (prefers-reduced-motion: reduce) {
   /* Balayage circulaire plein écran du changement de thème : c'est le
      déplacement le plus large de tout le site. Le thème bascule net. */
@@ -175,5 +190,11 @@
 
   html {
     scroll-behavior: auto !important;
+  }
+
+  /* Mur de jaquettes : defilement continu, donc coupe net. */
+  .animate-wall-up,
+  .animate-wall-down {
+    animation: none !important;
   }
 }
