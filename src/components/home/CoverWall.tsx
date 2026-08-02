@@ -33,7 +33,7 @@ export function CoverWall({ dimmed = false }: { dimmed?: boolean }) {
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/covers/manifest.json")
+    fetch("/api/covers/manifest.json")
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (!cancelled && Array.isArray(data?.columns)) setColumns(data.columns);
@@ -81,7 +81,7 @@ export function CoverWall({ dimmed = false }: { dimmed?: boolean }) {
             // eslint-disable-next-line @next/next/no-img-element
             <img
               key={`${file}-${i}`}
-              src={`/covers/${file}`}
+              src={`/api/covers/${file}`}
               alt=""
               width={120}
               height={172}
