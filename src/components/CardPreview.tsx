@@ -210,7 +210,9 @@ export function CardPreview({
       <div className="mt-4 grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
         {/* Colonne de gauche : la carte et ce qui la change. */}
         <div className="rounded-2xl border border-border/60 bg-card/60 p-4 backdrop-blur-sm">
-          <div className="grid min-h-[280px] place-items-center rounded-xl border border-border/40 bg-gradient-to-br from-white/[.04] to-white/[.01] p-3.5">
+          {/* `bg-muted/40` et non un dégradé de blanc translucide : sur le
+              thème clair, du blanc sur du blanc ne dessinait plus de cadre. */}
+          <div className="grid min-h-[280px] place-items-center rounded-xl border border-border/40 bg-muted/40 p-3.5">
             {busy ? (
               <CardLoading
                 message={
