@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { Home, Trophy, TrendingUp, Mail, Info, Github, Twitter, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { useValeurClient } from "@/lib/hooks/useValeurClient";
 import { PlatformIcon } from "@/components/ui/platform-icon";
 import { DiscordIcon } from "@/components/ui/discord-icon";
 import { Platform } from "@/lib/types";
@@ -13,25 +14,37 @@ import { SITE_CONFIG } from "@/lib/constants";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { SelecteurLangue } from "@/components/SelecteurLangue";
+import { useTraduction } from "@/lib/i18n/client";
 
 interface NavbarProps {
   currentPlatform?: Platform;
 }
 
+const REFONTE_TENDANCES = new Date("2026-02-10").getTime();
+const DUREE_BADGE_NEW = 20 * 24 * 60 * 60 * 1000;
+
+function estTendancesRecent() {
+  return Date.now() - REFONTE_TENDANCES < DUREE_BADGE_NEW;
+}
+
 export function Navbar({ currentPlatform }: NavbarProps) {
+  const { t } = useTraduction();
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Badge "NEW" visible pendant 20 jours après la refonte Tendances (10 fév 2026)
-  const TENDANCES_LAUNCH = new Date("2026-02-10");
-  const isTendancesNew = Date.now() - TENDANCES_LAUNCH.getTime() < 20 * 24 * 60 * 60 * 1000;
+  // Badge "NEW" visible pendant 20 jours après la refonte Tendances (10 fév 2026).
+  // Lu côté client uniquement : l'horloge du serveur et celle du navigateur ne
+  // tombent pas forcément du même côté de l'échéance, et un badge présent au
+  // rendu serveur mais absent à l'hydratation casse React.
+  const isTendancesNew = useValeurClient(estTendancesRecent, false);
 
   const navLinks = [
-    { href: "/", label: "Accueil", isNew: false },
-    { href: "/ranking", label: "Classement", isNew: false },
-    { href: "/tendances", label: "Tendances", isNew: isTendancesNew },
-    { href: "/contact", label: "Contact", isNew: false },
-    { href: "/about", label: "À propos", isNew: false },
+    { href: "/", label: t.nav.accueil, isNew: false },
+    { href: "/ranking", label: t.nav.classement, isNew: false },
+    { href: "/tendances", label: t.nav.tendances, isNew: isTendancesNew },
+    { href: "/contact", label: t.nav.contact, isNew: false },
+    { href: "/about", label: t.nav.apropos, isNew: false },
   ];
 
   const socialLinks = [
@@ -56,6 +69,7 @@ export function Navbar({ currentPlatform }: NavbarProps) {
      * thème clair comme le thème sombre sans être redéfini.
      */
     <nav
+      aria-label={t.nav.principale}
       className={cn(
         isHomePage
           ? "fixed inset-x-0 top-0 z-50"
@@ -95,12 +109,12 @@ export function Navbar({ currentPlatform }: NavbarProps) {
               height={32}
               className="rounded-lg"
             />
-            <span className="text-2xl font-bold text-foreground">
+            <span translate="no" className="text-2xl font-bold text-foreground">
               {SITE_CONFIG.site.name}
             </span>
             {currentPlatform && isHomePage && (
               <div className="hidden sm:flex items-center gap-2 ml-4">
-                <span className="text-sm text-muted-foreground">via</span>
+                <span className="text-sm text-muted-foreground">{t.nav.via}</span>
                 <PlatformIcon platform={currentPlatform} size={20} />
               </div>
             )}
@@ -115,8 +129,9 @@ export function Navbar({ currentPlatform }: NavbarProps) {
                 <Link
                   key={index}
                   href={link.href}
+                  aria-current={isActive ? "page" : undefined}
                   className={cn(
-                    "relative text-[16px] font-medium transition-colors px-4 py-2",
+                    "relative text-[16px] font-medium transition-colors px-4 py-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                     isActive
                       ? "text-foreground"
                       : "text-muted-foreground hover:text-foreground"
@@ -125,7 +140,7 @@ export function Navbar({ currentPlatform }: NavbarProps) {
                   {link.label}
                   {link.isNew && (
                     <span className="absolute -top-1 -right-1 px-1.5 py-0.5 text-[10px] font-bold leading-none rounded-full bg-orange-500 text-white">
-                      NEW
+                      {t.nav.nouveau}
                     </span>
                   )}
                 </Link>
@@ -136,22 +151,27 @@ export function Navbar({ currentPlatform }: NavbarProps) {
               const Icon = link.icon;
 
               return (
-                <Link
+                <a
                   key={index}
                   href={link.href}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={t.commun.nouvelOnglet(link.label)}
+                  className="text-muted-foreground hover:text-foreground transition-colors rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   title={link.label}
                 >
-                  <Icon className="w-5 h-5" />
-                </Link>
+                  <Icon aria-hidden="true" className="w-5 h-5" />
+                </a>
               );
             })}
 
+            <SelecteurLangue />
             <ThemeToggle className="text-muted-foreground hover:text-foreground" />
           </div>
 
-          {/* Mobile: Theme Toggle + Menu Button */}
+          {/* Mobile: Language + Theme Toggle + Menu Button */}
           <div className="flex md:hidden items-center gap-1">
+            <SelecteurLangue />
             <ThemeToggle className="text-muted-foreground hover:text-foreground" />
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
@@ -161,7 +181,7 @@ export function Navbar({ currentPlatform }: NavbarProps) {
                   className="text-foreground hover:bg-muted"
                 >
                 <Menu className="h-6 w-6" />
-                <span className="sr-only">Ouvrir le menu</span>
+                <span className="sr-only">{t.nav.ouvrirMenu}</span>
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-80">
@@ -177,7 +197,7 @@ export function Navbar({ currentPlatform }: NavbarProps) {
                   {SITE_CONFIG.site.name}
                   {currentPlatform && isHomePage && (
                     <div className="flex items-center gap-2 ml-2">
-                      <span className="text-xs text-muted-foreground">via</span>
+                      <span className="text-xs text-muted-foreground">{t.nav.via}</span>
                       <PlatformIcon platform={currentPlatform} size={16} />
                     </div>
                   )}
@@ -196,18 +216,19 @@ export function Navbar({ currentPlatform }: NavbarProps) {
                       key={index}
                       href={link.href}
                       onClick={() => setMobileMenuOpen(false)}
+                      aria-current={isActive ? "page" : undefined}
                       className={cn(
-                        "flex items-center gap-3 px-4 py-3 text-base font-medium rounded-lg transition-colors",
+                        "flex items-center gap-3 px-4 py-3 text-base font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                         isActive
                           ? "bg-primary/10 text-primary"
                           : "text-foreground hover:bg-muted"
                       )}
                     >
-                      <IconComponent className="w-5 h-5" />
+                      <IconComponent aria-hidden="true" className="w-5 h-5" />
                       <span>{link.label}</span>
                       {link.isNew && (
                         <span className="px-1.5 py-0.5 text-[10px] font-bold leading-none rounded-full bg-orange-500 text-white">
-                          NEW
+                          {t.nav.nouveau}
                         </span>
                       )}
                     </Link>
@@ -218,23 +239,24 @@ export function Navbar({ currentPlatform }: NavbarProps) {
               {/* Social Links */}
               <div className="mt-8 pt-6 border-t border-border">
                 <p className="text-sm font-medium text-muted-foreground mb-4 px-4">
-                  Suivez-nous
+                  {t.nav.suivezNous}
                 </p>
                 <div className="space-y-2">
                   {socialLinks.map((link, index) => {
                     const Icon = link.icon;
 
                     return (
-                      <Link
+                      <a
                         key={index}
                         href={link.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-3 px-4 py-3 text-base font-medium text-foreground hover:bg-muted rounded-lg transition-colors"
-                        title={link.label}
+                        className="flex items-center gap-3 px-4 py-3 text-base font-medium text-foreground hover:bg-muted rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       >
-                        <Icon className="w-5 h-5" />
+                        <Icon aria-hidden="true" className="w-5 h-5" />
                         <span>{link.label}</span>
-                      </Link>
+                      </a>
                     );
                   })}
                 </div>

@@ -2,16 +2,12 @@
 
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTraduction } from "@/lib/i18n/client";
 
 export const STEPS = ["platform", "cardType", "username", "preview"] as const;
 export type Step = (typeof STEPS)[number];
 
-const LABELS: Record<Step, string> = {
-  platform: "Plateforme",
-  cardType: "Style",
-  username: "Pseudo",
-  preview: "Aperçu",
-};
+
 
 /**
  * Fil d'étapes.
@@ -26,16 +22,33 @@ const LABELS: Record<Step, string> = {
  * côte à côte ne tiennent pas dans 390 px et se replient sur deux lignes.
  */
 export function StepIndicator({ current }: { current: Step }) {
+  const { t } = useTraduction();
   const currentIndex = STEPS.indexOf(current);
+
+  const libelles: Record<Step, string> = {
+    platform: t.accueil.etiquettePlateforme,
+    cardType: t.accueil.etiquetteStyle,
+    username: t.accueil.etiquettePseudo,
+    preview: t.accueil.etiquetteApercu,
+  };
 
   return (
     <div className="mb-[22px] flex flex-wrap items-center justify-center">
+      {/* Le fil ne dit rien à un lecteur d'écran : des pastilles, des coches et
+          quatre mots sans lien entre eux. La progression est donc annoncée. */}
+      <p className="sr-only" aria-live="polite">
+        {t.accueil.etapeSur(
+          currentIndex + 1,
+          STEPS.length,
+          libelles[current]
+        )}
+      </p>
       {STEPS.map((step, index) => {
         const done = index < currentIndex;
         const now = index === currentIndex;
 
         return (
-          <div key={step} className="flex items-center">
+          <div key={step} aria-hidden="true" className="flex items-center">
             <div
               className={cn(
                 "flex items-center gap-[9px] text-[13px] transition-colors duration-300",
@@ -54,13 +67,13 @@ export function StepIndicator({ current }: { current: Step }) {
                 )}
               >
                 {done ? (
-                  <Check className="h-3.5 w-3.5" strokeWidth={3} />
+                  <Check aria-hidden="true" className="h-3.5 w-3.5" strokeWidth={3} />
                 ) : (
                   index + 1
                 )}
               </span>
               <span className={cn(!now && "hidden sm:inline")}>
-                {LABELS[step]}
+                {libelles[step]}
               </span>
             </div>
 

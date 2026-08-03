@@ -2,9 +2,11 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { Users, Star } from "lucide-react";
+import { Users, Star, ChevronLeft, ChevronRight } from "lucide-react";
 import { getGenreColor } from "@/lib/utils/genreColors";
 import type { EnrichedMediaData } from "@/lib/services/mediaEnrichment";
+import { useTraduction } from "@/lib/i18n/client";
+import type { Dictionnaire, Langue } from "@/lib/i18n";
 
 interface HeroSlide {
   title: string;
@@ -25,6 +27,7 @@ interface HeroBannerCarouselProps {
 }
 
 export function HeroBannerCarousel({ animes }: HeroBannerCarouselProps) {
+  const { t, langue } = useTraduction();
   const slides: HeroSlide[] = animes
     .filter((a) => a.enriched?.bannerImage && !a.enriched?.isAdult)
     .slice(0, 5)
@@ -49,6 +52,14 @@ export function HeroBannerCarousel({ animes }: HeroBannerCarouselProps) {
     [current]
   );
 
+  const goRelative = useCallback(
+    (delta: number, total: number) => {
+      setDirection(delta);
+      setCurrent((prev) => (prev + delta + total) % total);
+    },
+    []
+  );
+
   useEffect(() => {
     if (slides.length < 2) return;
     // Le défilement automatique s'arrête au survol et au focus clavier, et ne
@@ -70,10 +81,10 @@ export function HeroBannerCarousel({ animes }: HeroBannerCarouselProps) {
   if (slides.length === 1) {
     const slide = slides[0];
     return (
-      <div className="relative h-[400px] sm:h-[500px] lg:h-[600px] overflow-hidden">
+      <div className="relative h-[400px] sm:h-[500px] lg:h-[600px] overflow-hidden pleine-largeur">
         <img
           src={slide.bannerImage}
-          alt={slide.title}
+          alt=""
           width={1900}
           height={600}
           fetchPriority="high"
@@ -81,7 +92,7 @@ export function HeroBannerCarousel({ animes }: HeroBannerCarouselProps) {
         />
         {/* Netflix-style gradient: strong dark bottom fading to transparent */}
         <div className="absolute inset-0 bg-gradient-to-t from-background from-5% via-background/50 via-35% to-transparent to-70%" />
-        <SlideOverlay slide={slide} />
+        <SlideOverlay slide={slide} t={t} langue={langue} />
       </div>
     );
   }
@@ -105,15 +116,25 @@ export function HeroBannerCarousel({ animes }: HeroBannerCarouselProps) {
 
   return (
     <div
-      className="relative h-[400px] sm:h-[500px] lg:h-[600px] overflow-hidden"
+      className="relative h-[400px] sm:h-[500px] lg:h-[600px] overflow-hidden pleine-largeur"
       role="region"
       aria-roledescription="carrousel"
-      aria-label="Animes en tendance"
+      aria-label={t.tendances.carrousel}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onFocusCapture={() => setIsPaused(true)}
       onBlurCapture={() => setIsPaused(false)}
     >
+      {/* Le changement de diapositive ne bouge ni le focus ni l'URL : sans
+          annonce, il est entièrement muet pour un lecteur d'écran. */}
+      <p className="sr-only" aria-live="polite">
+        {t.tendances.diapositive(
+          current + 1,
+          slides.length,
+          slides[current].title
+        )}
+      </p>
+
       <AnimatePresence initial={false} custom={direction} mode="popLayout">
         <motion.div
           key={current}
@@ -127,7 +148,7 @@ export function HeroBannerCarousel({ animes }: HeroBannerCarouselProps) {
           {/* Ken Burns image */}
           <motion.img
             src={slides[current].bannerImage}
-            alt={slides[current].title}
+            alt=""
             width={1900}
             height={600}
             fetchPriority="high"
@@ -141,9 +162,28 @@ export function HeroBannerCarousel({ animes }: HeroBannerCarouselProps) {
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 via-30% to-transparent" />
 
           {/* Content overlay */}
-          <SlideOverlay slide={slides[current]} />
+          <SlideOverlay slide={slides[current]} t={t} langue={langue} />
         </motion.div>
       </AnimatePresence>
+
+      {/* Diapositive précédente / suivante : les pastilles seules obligent à
+          viser une cible de 8 px pour avancer d'un cran. */}
+      <button
+        type="button"
+        onClick={() => goRelative(-1, slides.length)}
+        aria-label={t.tendances.diapositivePrecedente}
+        className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/40 text-white backdrop-blur-sm transition-colors hover:bg-black/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black/40"
+      >
+        <ChevronLeft aria-hidden="true" className="w-5 h-5" />
+      </button>
+      <button
+        type="button"
+        onClick={() => goRelative(1, slides.length)}
+        aria-label={t.tendances.diapositiveSuivante}
+        className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/40 text-white backdrop-blur-sm transition-colors hover:bg-black/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black/40"
+      >
+        <ChevronRight aria-hidden="true" className="w-5 h-5" />
+      </button>
 
       {/* Dot indicators - positioned above the overlap zone */}
       <div className="absolute bottom-28 sm:bottom-32 left-1/2 -translate-x-1/2 flex gap-2 z-20">
@@ -155,7 +195,7 @@ export function HeroBannerCarousel({ animes }: HeroBannerCarouselProps) {
             className={`h-2 rounded-full transition-[width,background-color] duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black/40 ${
               i === current ? "bg-white w-6" : "bg-white/40 hover:bg-white/60 w-2"
             }`}
-            aria-label={`Aller à la diapositive ${i + 1} sur ${slides.length}`}
+            aria-label={t.tendances.allerDiapositive(i + 1, slides.length)}
             aria-current={i === current}
           />
         ))}
@@ -164,7 +204,15 @@ export function HeroBannerCarousel({ animes }: HeroBannerCarouselProps) {
   );
 }
 
-function SlideOverlay({ slide }: { slide: HeroSlide }) {
+function SlideOverlay({
+  slide,
+  t,
+  langue,
+}: {
+  slide: HeroSlide;
+  t: Dictionnaire;
+  langue: Langue;
+}) {
   const studio = slide.enriched.studios?.find((s) => s.isAnimationStudio)?.name ?? slide.enriched.studios?.[0]?.name;
   const score = slide.enriched.averageScore
     ? (slide.enriched.averageScore / 10).toFixed(1)
@@ -180,7 +228,7 @@ function SlideOverlay({ slide }: { slide: HeroSlide }) {
         transition={{ delay: 0.2, duration: 0.5 }}
         className="text-center max-w-2xl"
       >
-        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2 drop-shadow-lg">
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2 drop-shadow-lg text-balance">
           {slide.title}
         </h2>
 
@@ -209,7 +257,8 @@ function SlideOverlay({ slide }: { slide: HeroSlide }) {
         <div className="flex items-center justify-center gap-4 text-sm text-white/80">
           <span className="flex items-center gap-1.5 tabular-nums">
             <Users aria-hidden="true" className="w-4 h-4" />
-            {slide.viewers} viewer{slide.viewers > 1 ? "s" : ""}
+            {new Intl.NumberFormat(langue).format(slide.viewers)}{" "}
+            {t.tendances.spectateurs(slide.viewers)}
           </span>
           {score != null && (
             <span className="flex items-center gap-1.5 tabular-nums">

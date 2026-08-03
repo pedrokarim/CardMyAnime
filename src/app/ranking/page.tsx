@@ -8,14 +8,57 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc/client";
-import { useQueryState } from "nuqs";
-import { useState, useEffect } from "react";
+import { useQueryState, parseAsStringLiteral } from "nuqs";
+import { useState } from "react";
+import Link from "next/link";
 import { PlatformIcon } from "@/components/ui/platform-icon";
 import { PageLoading } from "@/components/ui/loading";
 import { useDebouncedValue } from "@/lib/hooks/useDebouncedValue";
 import { buildCardPath } from "@/lib/cards/cardUrl";
+import { useTraduction } from "@/lib/i18n/client";
 
 const ITEMS_PER_PAGE = 20;
+
+const SORT_KEYS = ["views", "views24h", "createdAt"] as const;
+type SortKey = (typeof SORT_KEYS)[number];
+
+
+/**
+ * Flèche de pagination. En bout de liste il n'y a nulle part où aller : on
+ * rend un élément inerte plutôt qu'un lien désactivé, qui reste cliquable.
+ */
+function LienPagination({
+  href,
+  actif,
+  libelle,
+  children,
+}: {
+  href: string;
+  actif: boolean;
+  libelle: string;
+  children: React.ReactNode;
+}) {
+  if (!actif) {
+    return (
+      <span
+        aria-hidden="true"
+        className="p-2 rounded-lg border border-border opacity-50 cursor-not-allowed"
+      >
+        {children}
+      </span>
+    );
+  }
+
+  return (
+    <Link
+      href={href}
+      aria-label={libelle}
+      className="p-2 rounded-lg border border-border hover:bg-accent transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary"
+    >
+      {children}
+    </Link>
+  );
+}
 
 function generatePaginationRange(currentPage: number, totalPages: number) {
   const delta = 2;
@@ -33,16 +76,31 @@ function generatePaginationRange(currentPage: number, totalPages: number) {
 }
 
 export default function RankingPage() {
+  const { t, langue } = useTraduction();
+  const formateurNombre = new Intl.NumberFormat(langue);
+
+  // Recherche et tri vivent dans l'URL au même titre que la page : un
+  // classement filtré doit pouvoir se partager par lien et survivre au
+  // rechargement. `history: "replace"` évite d'empiler une entrée d'historique
+  // par frappe au clavier.
   const [currentPage, setCurrentPage] = useQueryState("page", {
     defaultValue: "1",
   });
-  const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState<"views" | "views24h" | "createdAt">(
-    "views"
+  const [searchTerm, setSearchTerm] = useQueryState("recherche", {
+    defaultValue: "",
+    history: "replace",
+  });
+  const [sortBy, setSortBy] = useQueryState(
+    "tri",
+    parseAsStringLiteral(SORT_KEYS).withDefault("views").withOptions({
+      history: "replace",
+    })
   );
   const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set());
 
-  const pageNumber = parseInt(currentPage);
+  // `?page=abc` ne doit pas produire une requête sur la page NaN.
+  const parsedPage = parseInt(currentPage, 10);
+  const pageNumber = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
 
   // Sans ce debounce, chaque frappe declenche une requete tRPC (donc un appel
   // base) : on n'interroge le serveur qu'une fois la saisie stabilisee.
@@ -59,8 +117,17 @@ export default function RankingPage() {
   const displayTotalCount = data?.totalCount || 0;
   const displayTotalPages = data?.totalPages || 0;
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page.toString());
+  /**
+   * Lien vers une page du classement, filtres courants conservés. Un vrai
+   * href, pas un onClick : Ctrl+clic, clic milieu et « ouvrir dans un nouvel
+   * onglet » fonctionnent, et l'état est déjà dans l'URL de toute façon.
+   */
+  const lienPage = (page: number) => {
+    const params = new URLSearchParams();
+    params.set("page", String(page));
+    if (searchTerm) params.set("recherche", searchTerm);
+    if (sortBy !== "views") params.set("tri", sortBy);
+    return `?${params.toString()}`;
   };
 
   const toggleExpand = (key: string) => {
@@ -75,23 +142,27 @@ export default function RankingPage() {
     });
   };
 
-  // Réinitialiser la page quand on change les filtres. On se cale sur la
-  // recherche debouncee : la page se remet a 1 en meme temps que la requete
-  // part, pas a chaque frappe.
-  useEffect(() => {
-    if (pageNumber > 1) {
-      setCurrentPage("1");
-    }
-  }, [debouncedSearch, sortBy, setCurrentPage]);
+  // La requête reste debouncée (350 ms) ; seul le retour à la page 1 quitte
+  // l'effet. Un effet se déclenche aussi au montage, et ramenait un lien
+  // partagé « page 3, filtré » sur la page 1 avant la moindre frappe.
+  const changerRecherche = (valeur: string) => {
+    setSearchTerm(valeur || null);
+    if (pageNumber > 1) setCurrentPage("1");
+  };
+
+  const changerTri = (valeur: SortKey) => {
+    setSortBy(valeur);
+    if (pageNumber > 1) setCurrentPage("1");
+  };
 
   const cardTypeLabels: Record<string, string> = {
-    small: "Petite",
-    medium: "Moyenne",
-    large: "Grande",
-    summary: "Résumé",
-    neon: "Néon",
-    minimal: "Minimal",
-    glassmorphism: "Glass",
+    small: t.formats.small,
+    medium: t.formats.medium,
+    large: t.formats.large,
+    summary: t.formats.summary,
+    neon: t.formats.neon,
+    minimal: t.formats.minimal,
+    glassmorphism: t.formats.glassmorphism,
   };
 
   const cardTypeColors: Record<string, string> = {
@@ -111,18 +182,23 @@ export default function RankingPage() {
   };
 
   if (isLoading) {
-    return <PageLoading message="Chargement du classement..." />;
+    return <PageLoading message={t.classement.chargement} />;
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-6xl mb-4">❌</div>
-          <h3 className="text-xl font-semibold text-foreground mb-2">
-            Erreur lors du chargement
-          </h3>
-          <p className="text-muted-foreground">{error.message}</p>
+      <div className="min-h-screen bg-background flex items-center justify-center px-6">
+        <div className="text-center max-w-md">
+          <div aria-hidden="true" className="text-6xl mb-4">❌</div>
+          <h1 className="text-xl font-semibold text-foreground mb-2 text-balance">
+            {t.classement.erreurTitre}
+          </h1>
+          <p className="text-muted-foreground text-pretty mb-4">
+            {t.classement.erreurTexte}
+          </p>
+          <p className="text-xs text-muted-foreground/70">
+            {t.commun.detailTechnique(error.message)}
+          </p>
         </div>
       </div>
     );
@@ -134,17 +210,20 @@ export default function RankingPage() {
         <div className="mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4">
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-2">
-                Classement{" "}
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-2 text-balance">
                 {sortBy === "views24h"
-                  ? "par vues 24h"
+                  ? t.classement.titreParVues24h
                   : sortBy === "createdAt"
-                  ? "par date"
-                  : "par vues"}{" "}
-                ({displayTotalCount} profils)
+                  ? t.classement.titreParDate
+                  : t.classement.titreParVues}{" "}
+                <span className="tabular-nums">
+                  {t.classement.nombreProfils(
+                    formateurNombre.format(displayTotalCount)
+                  )}
+                </span>
               </h1>
-              <p className="text-muted-foreground text-sm sm:text-base">
-                Page {pageNumber} sur {displayTotalPages || 1}
+              <p className="text-muted-foreground text-sm sm:text-base tabular-nums">
+                {t.classement.pageSur(pageNumber, displayTotalPages || 1)}
               </p>
             </div>
           </div>
@@ -153,27 +232,50 @@ export default function RankingPage() {
           <div className="flex flex-col gap-4 mb-4">
             {/* Recherche */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <label htmlFor="recherche-pseudo" className="sr-only">
+                {t.classement.rechercherLabel}
+              </label>
+              <Search
+                aria-hidden="true"
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none"
+              />
               <input
-                type="text"
-                placeholder="Rechercher par pseudo..."
+                id="recherche-pseudo"
+                name="recherche"
+                type="search"
+                // Un pseudo n'est pas un mot : ni correction, ni majuscule
+                // automatique, ni suggestion du gestionnaire de mots de passe.
+                autoComplete="off"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                placeholder={t.classement.rechercherPlaceholder}
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                onChange={(e) => changerRecherche(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 bg-background border border-border rounded-lg text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary"
               />
             </div>
 
             {/* Tri */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-              <span className="text-sm text-muted-foreground">Trier par :</span>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as any)}
-                className="px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              <label
+                htmlFor="tri-classement"
+                className="text-sm text-muted-foreground"
               >
-                <option value="views">Vues totales</option>
-                <option value="views24h">Vues 24h</option>
-                <option value="createdAt">Date de création</option>
+                {t.classement.trierPar}
+              </label>
+              <select
+                id="tri-classement"
+                name="tri"
+                value={sortBy}
+                onChange={(e) => changerTri(e.target.value as SortKey)}
+                // Couleurs explicites : sans elles, le <select> natif garde le
+                // fond blanc du système sur Windows en thème sombre.
+                className="px-3 py-2 bg-background text-foreground border border-border rounded-lg text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary"
+              >
+                <option value="views">{t.classement.triVues}</option>
+                <option value="views24h">{t.classement.triVues24h}</option>
+                <option value="createdAt">{t.classement.triDate}</option>
               </select>
             </div>
           </div>
@@ -191,15 +293,20 @@ export default function RankingPage() {
                 key={userKey}
                 className="rounded-lg border border-border/50 overflow-hidden transition-colors hover:border-border"
               >
-                {/* Ligne principale */}
-                <div
-                  className="p-4 cursor-pointer hover:bg-accent/50 transition-colors"
+                {/* Ligne principale : un <button> et non un <div onClick>,
+                    sinon la ligne est inatteignable au clavier et son état
+                    déplié n'est annoncé nulle part. */}
+                <button
+                  type="button"
                   onClick={() => toggleExpand(userKey)}
+                  aria-expanded={isExpanded}
+                  aria-controls={`details-${userKey}`}
+                  className="w-full text-left p-4 cursor-pointer hover:bg-accent/50 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset"
                 >
                   {/* Version Mobile */}
                   <div className="grid grid-cols-[auto_1fr_auto] gap-x-3 gap-y-1 sm:hidden">
                     {/* Ligne 1: Rang | Pseudo | Stats */}
-                    <span className="text-sm text-muted-foreground w-8 flex-shrink-0 row-start-1 col-start-1 flex items-center">
+                    <span className="text-sm text-muted-foreground w-8 flex-shrink-0 row-start-1 col-start-1 flex items-center tabular-nums">
                       #{globalIndex + 1}
                     </span>
                     <div className="row-start-1 col-start-2 min-w-0">
@@ -210,17 +317,17 @@ export default function RankingPage() {
                     <div className="flex items-center gap-3 row-start-1 col-start-3">
                       <div className="text-center">
                         <div className="flex items-center gap-1">
-                          <Eye className="w-3 h-3 text-muted-foreground" />
-                          <span className="text-sm font-medium">
-                            {user.totalViews?.toLocaleString() || "0"}
+                          <Eye aria-hidden="true" className="w-3 h-3 text-muted-foreground" />
+                          <span className="text-sm font-medium tabular-nums">
+                            {formateurNombre.format(user.totalViews ?? 0)}
                           </span>
                         </div>
                       </div>
                       <div className="text-center">
                         <div className="flex items-center gap-1">
-                          <TrendingUp className="w-3 h-3 text-muted-foreground" />
-                          <span className="text-sm font-medium">
-                            {user.totalViews24h?.toLocaleString() || "0"}
+                          <TrendingUp aria-hidden="true" className="w-3 h-3 text-muted-foreground" />
+                          <span className="text-sm font-medium tabular-nums">
+                            {formateurNombre.format(user.totalViews24h ?? 0)}
                           </span>
                         </div>
                       </div>
@@ -236,9 +343,9 @@ export default function RankingPage() {
                           </span>
                         </div>
                         <span className="text-xs text-muted-foreground">
-                          {cardCount} carte{cardCount > 1 ? "s" : ""}
+                          {cardCount} {t.classement.cartes(cardCount)}
                         </span>
-                        <span className="text-xs text-primary">
+                        <span aria-hidden="true" className="text-xs text-primary">
                           {isExpanded ? "▲" : "▼"}
                         </span>
                       </div>
@@ -248,7 +355,7 @@ export default function RankingPage() {
                   {/* Version Desktop */}
                   <div className="hidden sm:flex sm:items-center sm:justify-between sm:gap-4">
                     <div className="flex items-center gap-4 flex-1 min-w-0">
-                      <span className="text-sm text-muted-foreground w-8 flex-shrink-0">
+                      <span className="text-sm text-muted-foreground w-8 flex-shrink-0 tabular-nums">
                         #{globalIndex + 1}
                       </span>
                       <span className="font-medium truncate">
@@ -262,7 +369,7 @@ export default function RankingPage() {
                       </div>
                       <div className="flex items-center gap-1 flex-shrink-0">
                         <span className="text-xs text-muted-foreground px-2 py-0.5 rounded-full bg-muted">
-                          {cardCount} carte{cardCount > 1 ? "s" : ""}
+                          {cardCount} {t.classement.cartes(cardCount)}
                         </span>
                       </div>
                       {/* Aperçu des types de cartes */}
@@ -287,32 +394,35 @@ export default function RankingPage() {
                     <div className="flex items-center gap-6 flex-shrink-0">
                       <div className="text-center">
                         <div className="flex items-center gap-1">
-                          <Eye className="w-3 h-3 text-muted-foreground" />
-                          <span className="text-sm font-medium">
-                            {user.totalViews?.toLocaleString() || "0"}
+                          <Eye aria-hidden="true" className="w-3 h-3 text-muted-foreground" />
+                          <span className="text-sm font-medium tabular-nums">
+                            {formateurNombre.format(user.totalViews ?? 0)}
                           </span>
                         </div>
-                        <p className="text-xs text-muted-foreground">vues</p>
+                        <p className="text-xs text-muted-foreground">{t.classement.vues}</p>
                       </div>
                       <div className="text-center">
                         <div className="flex items-center gap-1">
-                          <TrendingUp className="w-3 h-3 text-muted-foreground" />
-                          <span className="text-sm font-medium">
-                            {user.totalViews24h?.toLocaleString() || "0"}
+                          <TrendingUp aria-hidden="true" className="w-3 h-3 text-muted-foreground" />
+                          <span className="text-sm font-medium tabular-nums">
+                            {formateurNombre.format(user.totalViews24h ?? 0)}
                           </span>
                         </div>
-                        <p className="text-xs text-muted-foreground">24h</p>
+                        <p className="text-xs text-muted-foreground">{t.classement.vues24h}</p>
                       </div>
-                      <span className="text-xs text-primary">
-                        {isExpanded ? "▲ Masquer" : "▼ Détails"}
+                      <span aria-hidden="true" className="text-xs text-primary">
+                        {isExpanded ? t.classement.masquerDetails : t.classement.details}
                       </span>
                     </div>
                   </div>
-                </div>
+                </button>
 
                 {/* Détails dépliés - Liste des types de cartes */}
                 {isExpanded && (
-                  <div className="border-t border-border/50 bg-muted/20 px-4 py-3">
+                  <div
+                    id={`details-${userKey}`}
+                    className="border-t border-border/50 bg-muted/20 px-4 py-3"
+                  >
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                       {(user.cardTypes || []).map((ct: any, i: number) => (
                         <a
@@ -337,19 +447,19 @@ export default function RankingPage() {
                           </div>
                           <div className="flex items-center gap-3 flex-shrink-0">
                             <div className="flex items-center gap-1">
-                              <Eye className="w-3 h-3 text-muted-foreground" />
-                              <span className="text-xs">
-                                {ct.views?.toLocaleString() || "0"}
+                              <Eye aria-hidden="true" className="w-3 h-3 text-muted-foreground" />
+                              <span className="text-xs tabular-nums">
+                                {formateurNombre.format(ct.views ?? 0)}
                               </span>
                             </div>
                             <div className="flex items-center gap-1">
-                              <TrendingUp className="w-3 h-3 text-muted-foreground" />
-                              <span className="text-xs">
-                                {ct.views24h?.toLocaleString() || "0"}
+                              <TrendingUp aria-hidden="true" className="w-3 h-3 text-muted-foreground" />
+                              <span className="text-xs tabular-nums">
+                                {formateurNombre.format(ct.views24h ?? 0)}
                               </span>
                             </div>
                             <span className="text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                              Voir →
+                              {t.classement.voir}
                             </span>
                           </div>
                         </a>
@@ -364,47 +474,53 @@ export default function RankingPage() {
 
         {displayUsers.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-muted-foreground">Aucune carte générée</p>
+            <p className="text-muted-foreground text-pretty">
+              {searchTerm
+                ? t.classement.aucunResultat(searchTerm)
+                : t.classement.aucuneCarte}
+            </p>
           </div>
         )}
 
         {/* Pagination */}
         {displayTotalPages > 1 && (
-          <div className="mt-8 flex justify-center">
+          <nav aria-label={t.classement.pagination} className="mt-8 flex justify-center">
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => handlePageChange(pageNumber - 1)}
-                disabled={pageNumber === 1}
-                className="p-2 rounded-lg border border-border hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              <LienPagination
+                href={lienPage(pageNumber - 1)}
+                actif={pageNumber > 1}
+                libelle={t.classement.pagePrecedente}
               >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
+                <ChevronLeft aria-hidden="true" className="w-5 h-5" />
+              </LienPagination>
 
               {generatePaginationRange(pageNumber, displayTotalPages).map(
                 (page) => (
-                  <button
+                  <Link
                     key={page}
-                    onClick={() => handlePageChange(page)}
-                    className={`px-3 py-2 rounded-lg border transition-colors ${
+                    href={lienPage(page)}
+                    aria-label={t.classement.numeroPage(page)}
+                    aria-current={page === pageNumber ? "page" : undefined}
+                    className={`px-3 py-2 rounded-lg border tabular-nums transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                       page === pageNumber
                         ? "bg-primary text-primary-foreground border-primary"
                         : "border-border hover:bg-accent"
                     }`}
                   >
                     {page}
-                  </button>
+                  </Link>
                 )
               )}
 
-              <button
-                onClick={() => handlePageChange(pageNumber + 1)}
-                disabled={pageNumber === displayTotalPages}
-                className="p-2 rounded-lg border border-border hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              <LienPagination
+                href={lienPage(pageNumber + 1)}
+                actif={pageNumber < displayTotalPages}
+                libelle={t.classement.pageSuivante}
               >
-                <ChevronRight className="w-5 h-5" />
-              </button>
+                <ChevronRight aria-hidden="true" className="w-5 h-5" />
+              </LienPagination>
             </div>
-          </div>
+          </nav>
         )}
       </div>
     </div>

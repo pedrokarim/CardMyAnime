@@ -129,7 +129,36 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Supprime le délai de ~300 ms que le navigateur mobile s'accorde pour
+       distinguer un tap d'un double-tap-zoom. Le zoom pincé reste possible :
+       c'est le double-tap qu'on abandonne, pas l'accessibilité. */
+    touch-action: manipulation;
+    /* Le halo gris par défaut de WebKit déborde des coins arrondis. On garde un
+       retour tactile, mais teinté avec la couleur d'accent du site. */
+    -webkit-tap-highlight-color: color-mix(in oklab, var(--primary) 20%, transparent);
   }
+
+  /* Les surfaces pleine largeur (carrousel héros, modales, barres fixes) sont
+     les seules à toucher les encoches et la barre gestuelle. */
+  .pleine-largeur {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+/* Lien d'évitement : caché tant qu'il n'a pas le focus, premier élément
+   tabulable de la page. */
+.lien-evitement {
+  position: absolute;
+  left: 0.5rem;
+  top: 0.5rem;
+  z-index: 100;
+  transform: translateY(-200%);
+  transition: transform 150ms ease-out;
+}
+
+.lien-evitement:focus-visible {
+  transform: translateY(0);
 }
 
 /* View Transition - Circle animation pour le theme toggle */

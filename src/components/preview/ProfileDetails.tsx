@@ -2,6 +2,7 @@
 
 import { BookOpen, ChevronDown, Film, Heart, MessageSquare, Tags } from "lucide-react";
 import type { UserData } from "@/lib/types";
+import { useTraduction } from "@/lib/i18n/client";
 
 /**
  * Détail du profil, replié par défaut.
@@ -15,6 +16,7 @@ import type { UserData } from "@/lib/types";
  * clavier et l'annonce de l'état sont déjà là, gratuits et corrects.
  */
 export function ProfileDetails({ userData }: { userData: UserData }) {
+  const { t } = useTraduction();
   const animes = userData.lastAnimes?.slice(0, 4) ?? [];
   const mangas = userData.lastMangas?.slice(0, 4) ?? [];
   const favorites = [
@@ -41,7 +43,7 @@ export function ProfileDetails({ userData }: { userData: UserData }) {
 
       <div className="grid grid-cols-[repeat(auto-fit,minmax(min(220px,100%),1fr))] gap-6 px-5 pb-5 pt-1">
         {animes.length > 0 && (
-          <Column icon={<Film className="h-3.5 w-3.5" />} title="Derniers animes">
+          <Column icon={<Film aria-hidden="true" className="h-3.5 w-3.5" />} title={t.carte.derniersAnimesCourt}>
             <ol className="list-inside list-decimal space-y-1 text-[12.5px] text-muted-foreground">
               {animes.map((anime, index) => (
                 <li key={index} className="truncate">
@@ -53,7 +55,7 @@ export function ProfileDetails({ userData }: { userData: UserData }) {
         )}
 
         {mangas.length > 0 && (
-          <Column icon={<BookOpen className="h-3.5 w-3.5" />} title="Derniers mangas">
+          <Column icon={<BookOpen aria-hidden="true" className="h-3.5 w-3.5" />} title={t.carte.derniersMangasCourt}>
             <ol className="list-inside list-decimal space-y-1 text-[12.5px] text-muted-foreground">
               {mangas.map((manga, index) => (
                 <li key={index} className="truncate">
@@ -65,7 +67,7 @@ export function ProfileDetails({ userData }: { userData: UserData }) {
         )}
 
         {favorites.length > 0 && (
-          <Column icon={<Heart className="h-3.5 w-3.5" />} title="Favoris">
+          <Column icon={<Heart aria-hidden="true" className="h-3.5 w-3.5" />} title={t.carte.favoris}>
             <ol className="list-inside list-decimal space-y-1 text-[12.5px] text-muted-foreground">
               {favorites.map((favorite, index) => (
                 <li key={index} className="truncate">
@@ -77,7 +79,7 @@ export function ProfileDetails({ userData }: { userData: UserData }) {
         )}
 
         {genres.length > 0 && (
-          <Column icon={<Tags className="h-3.5 w-3.5" />} title="Genres favoris">
+          <Column icon={<Tags aria-hidden="true" className="h-3.5 w-3.5" />} title={t.carte.genresFavoris}>
             <div className="flex flex-wrap gap-1.5">
               {genres.map((genre) => (
                 <span
@@ -93,8 +95,8 @@ export function ProfileDetails({ userData }: { userData: UserData }) {
 
         {userData.personalMessage && (
           <Column
-            icon={<MessageSquare className="h-3.5 w-3.5" />}
-            title="Message personnel"
+            icon={<MessageSquare aria-hidden="true" className="h-3.5 w-3.5" />}
+            title={t.carte.messagePersonnel}
           >
             <p className="line-clamp-4 text-[12.5px] text-muted-foreground">
               {userData.personalMessage}

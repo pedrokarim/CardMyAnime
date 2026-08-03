@@ -4,13 +4,14 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, RotateCcw } from "lucide-react";
 import { UserData, CardType, Platform } from "@/lib/types";
 import { CARD_DIMENSIONS } from "@/lib/cards/cardTypes";
-import { CARD_TYPE_OPTIONS } from "@/lib/cardTypeOptions";
+import { cardTypeOptions } from "@/lib/cardTypeOptions";
 import { trpc } from "@/lib/trpc/client";
 import { PlatformIcon } from "@/components/ui/platform-icon";
 import { CardLoading } from "@/components/ui/loading";
 import { SharePanel } from "@/components/preview/SharePanel";
 import { ProfileDetails } from "@/components/preview/ProfileDetails";
 import { cn } from "@/lib/utils";
+import { useTraduction } from "@/lib/i18n/client";
 
 interface CardPreviewProps {
   userData: UserData;
@@ -59,6 +60,7 @@ export function CardPreview({
   onRestart,
   preGeneratedCard,
 }: CardPreviewProps) {
+  const { t, langue } = useTraduction();
   const [isGenerating, setIsGenerating] = useState(false);
   const [isInitialGeneration, setIsInitialGeneration] = useState(
     !preGeneratedCard?.cardUrl
@@ -217,34 +219,34 @@ export function CardPreview({
               <CardLoading
                 message={
                   isInitialGeneration
-                    ? "Génération de votre carte..."
-                    : "Régénération de votre carte..."
+                    ? t.carte.generationCarte
+                    : t.carte.regenerationCarte
                 }
               />
             ) : generatedCardUrl ? (
               <img
                 src={generatedCardUrl}
-                alt={`Carte ${cardType} de ${userData?.username}`}
+                alt={t.carte.alternativeCarte(cardType, userData.username)}
                 className="max-h-[340px] w-auto max-w-full rounded-lg shadow-[0_18px_44px_rgba(0,0,0,.55)]"
               />
             ) : (
               <p className="text-sm text-muted-foreground">
-                La carte n'a pas pu être générée.
+                {t.carte.echecGeneration}
               </p>
             )}
           </div>
 
           <div className="mt-2.5 flex justify-center">
-            <span className="rounded-full border border-border/70 px-2.5 py-0.5 text-[11.5px] text-muted-foreground">
-              {dimensions.width} × {dimensions.height} px — PNG
+            <span className="rounded-full border border-border/70 px-2.5 py-0.5 text-[11.5px] tabular-nums text-muted-foreground">
+              {dimensions.width} × {dimensions.height}&nbsp;px — PNG
             </span>
           </div>
 
           <p className="mb-2 mt-3.5 text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground">
-            Format de la carte
+            {t.carte.formatCarte}
           </p>
           <div className="flex gap-2 overflow-x-auto pb-1">
-            {CARD_TYPE_OPTIONS.map((option) => {
+            {cardTypeOptions(t).map((option) => {
               const active = option.value === cardType;
               const { width, height } = CARD_DIMENSIONS[option.value];
               // La silhouette dit le rapport de forme, pas la taille : à
@@ -260,7 +262,9 @@ export function CardPreview({
                   disabled={busy}
                   onClick={() => onCardTypeChange?.(option.value)}
                   className={cn(
-                    "w-[84px] shrink-0 rounded-xl border px-1.5 py-2 text-center transition-all duration-200",
+                    "w-[84px] shrink-0 rounded-xl border px-1.5 py-2 text-center",
+                    "transition-[border-color,background-color,translate] duration-200",
+                    "outline-none focus-visible:ring-2 focus-visible:ring-ring",
                     "disabled:pointer-events-none disabled:opacity-50",
                     active
                       ? "border-primary/70 bg-primary/12"
@@ -279,7 +283,7 @@ export function CardPreview({
                   <b className="block text-[11.5px] font-semibold text-foreground">
                     {option.label}
                   </b>
-                  <span className="text-[9.5px] text-muted-foreground">
+                  <span className="text-[9.5px] tabular-nums text-muted-foreground">
                     {width}×{height}
                   </span>
                 </button>
@@ -301,32 +305,37 @@ export function CardPreview({
 
           <div className="rounded-2xl border border-border/60 bg-card/60 p-4 backdrop-blur-sm">
             <h3 className="mb-3 text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground">
-              Options
+              {t.carte.options}
             </h3>
             <div className="flex items-center gap-3">
               <div className="min-w-0 flex-1">
-                <p className="text-[12.5px] text-foreground">Arrière-plan</p>
-                <p className="text-[11px] text-muted-foreground">
-                  La jaquette du dernier anime suivi
+                <p id="libelle-fond-apercu" className="text-[12.5px] text-foreground">
+                  {t.carte.arrierePlan}
+                </p>
+                <p id="aide-fond-apercu" className="text-[11px] text-muted-foreground">
+                  {t.carte.jaquetteDernierAnime}
                 </p>
               </div>
               <button
                 type="button"
                 role="switch"
                 aria-checked={useLastAnimeBackground}
-                aria-label="Arrière-plan avec le dernier anime"
+                aria-labelledby="libelle-fond-apercu"
+                aria-describedby="aide-fond-apercu"
                 disabled={busy}
                 onClick={() => handleBackgroundToggle(!useLastAnimeBackground)}
                 className={cn(
                   "relative inline-flex h-[22px] w-10 shrink-0 items-center rounded-full transition-colors disabled:opacity-50",
+                  "outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                   useLastAnimeBackground
                     ? "bg-primary"
                     : "bg-muted-foreground/40"
                 )}
               >
                 <span
+                  aria-hidden="true"
                   className={cn(
-                    "inline-block h-4 w-4 rounded-full bg-white transition-transform",
+                    "inline-block h-4 w-4 rounded-full bg-white transition-[translate]",
                     useLastAnimeBackground ? "translate-x-[21px]" : "translate-x-[3px]"
                   )}
                 />
@@ -337,7 +346,7 @@ export function CardPreview({
           {(onBack || onRestart) && (
             <div className="rounded-2xl border border-border/60 bg-card/60 p-4 backdrop-blur-sm">
               <h3 className="mb-3 text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground">
-                Et ensuite
+                {t.carte.etEnsuite}
               </h3>
               <div className="flex gap-2">
                 {onBack && (
@@ -346,8 +355,8 @@ export function CardPreview({
                     onClick={onBack}
                     className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-border/70 py-2.5 text-[12.5px] font-medium text-foreground transition-colors hover:bg-accent/60"
                   >
-                    <ArrowLeft className="h-4 w-4" />
-                    Modifier
+                    <ArrowLeft aria-hidden="true" className="h-4 w-4" />
+                    {t.accueil.modifier}
                   </button>
                 )}
                 {onRestart && (
@@ -356,8 +365,8 @@ export function CardPreview({
                     onClick={onRestart}
                     className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-border/70 py-2.5 text-[12.5px] font-medium text-foreground transition-colors hover:bg-accent/60"
                   >
-                    <RotateCcw className="h-4 w-4" />
-                    Recommencer
+                    <RotateCcw aria-hidden="true" className="h-4 w-4" />
+                    {t.accueil.recommencer}
                   </button>
                 )}
               </div>

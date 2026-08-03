@@ -5,8 +5,10 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { SITE_CONFIG } from "@/lib/constants";
 import { DiscordIcon } from "@/components/ui/discord-icon";
+import { useTraduction } from "@/lib/i18n/client";
 
 export default function SignInPage() {
+  const { t } = useTraduction();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -29,7 +31,7 @@ export default function SignInPage() {
         callbackUrl: "/admin",
       });
     } catch (error) {
-      setError("Erreur lors de la connexion");
+      setError(t.auth.erreurConnexion);
       setIsLoading(false);
     }
   };
@@ -42,38 +44,42 @@ export default function SignInPage() {
             <div className="flex justify-center mb-4">
               <img
                 src={SITE_CONFIG.site.logo}
-                alt={`${SITE_CONFIG.site.name} Logo`}
+                alt=""
+                width={64}
+                height={64}
                 className="w-16 h-16 rounded-lg"
               />
             </div>
-            <h1 className="text-2xl font-bold text-foreground mb-2">
-              Administration CardMyAnime
+            <h1 className="text-2xl font-bold text-foreground mb-2 text-balance">
+              {t.auth.titreAdmin}{" "}
+              <span translate="no">{SITE_CONFIG.site.name}</span>
             </h1>
-            <p className="text-muted-foreground">
-              Connexion requise pour accéder aux fonctionnalités
-              d'administration
+            <p className="text-muted-foreground text-pretty">
+              {t.auth.sousTitreAdmin}
             </p>
           </div>
 
-          {error && (
-            <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-              <p className="text-destructive text-sm">{error}</p>
-            </div>
-          )}
+          <div aria-live="polite" className="empty:hidden">
+            {error && (
+              <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+                <p className="text-destructive text-sm">{error}</p>
+              </div>
+            )}
+          </div>
 
           <button
             onClick={handleDiscordSignIn}
             disabled={isLoading}
-            className="w-full flex items-center justify-center gap-3 bg-[#5865F2] hover:bg-[#4752C4] disabled:opacity-50 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+            aria-busy={isLoading}
+            className="w-full flex items-center justify-center gap-3 bg-[#5865F2] hover:bg-[#4752C4] disabled:opacity-50 text-white font-medium py-3 px-4 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
-            <DiscordIcon className="w-5 h-5" />
-            {isLoading ? "Connexion..." : "Se connecter avec Discord"}
+            <DiscordIcon aria-hidden="true" className="w-5 h-5" />
+            {isLoading ? t.auth.connexion : t.auth.connexionDiscord}
           </button>
 
           <div className="mt-6 text-center">
             <p className="text-xs text-muted-foreground">
-              Seuls les utilisateurs Discord autorisés peuvent accéder à cette
-              section
+              {t.auth.noteAcces}
             </p>
           </div>
         </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useTraduction } from "@/lib/i18n/client";
 
 interface ReCAPTCHAProps {
   onChange: (token: string | null) => void;
@@ -27,6 +28,7 @@ export function ReCAPTCHAComponent({
   className = "",
   action = "data_deletion",
 }: ReCAPTCHAProps) {
+  const { t } = useTraduction();
   const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
   const isLoaded = useRef(false);
 
@@ -79,7 +81,7 @@ export function ReCAPTCHAComponent({
       <div className={`flex justify-center ${className}`}>
         <div className="p-4 border border-red-200 rounded-lg bg-red-50 dark:bg-red-950 dark:border-red-800">
           <p className="text-sm text-red-600 dark:text-red-400 text-center">
-            reCAPTCHA non configuré. Veuillez contacter l'administrateur.
+            {t.suppression.recaptchaAbsent}
           </p>
         </div>
       </div>
@@ -91,7 +93,7 @@ export function ReCAPTCHAComponent({
     <div className={`flex justify-center ${className}`}>
       <div className="p-3 border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-900 dark:border-gray-700">
         <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
-          🔒 Protection reCAPTCHA active
+          {t.suppression.recaptchaActif}
         </p>
       </div>
     </div>

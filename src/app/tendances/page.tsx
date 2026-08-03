@@ -1,20 +1,47 @@
 "use client";
 
-import { Flame, Star, Users, BookOpen, LayoutGrid, Rows3, ShieldAlert } from "lucide-react";
+import {
+  Flame,
+  Star,
+  Users,
+  BookOpen,
+  LayoutGrid,
+  Rows3,
+  ShieldAlert,
+  ImageOff,
+} from "lucide-react";
 import { trpc } from "@/lib/trpc/client";
 import { PageLoading } from "@/components/ui/loading";
 import { motion } from "framer-motion";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useSyncExternalStore } from "react";
 import { useQueryState, parseAsStringLiteral } from "nuqs";
 import { HeroBannerCarousel } from "@/components/tendances/HeroBannerCarousel";
 import { TrendCard } from "@/components/tendances/TrendCard";
 import { EmptyState } from "@/components/tendances/EmptyState";
 import { AdultContentModal } from "@/components/tendances/AdultContentModal";
 import { cardContainerVariants } from "@/components/tendances/animations";
+import { useTraduction } from "@/lib/i18n/client";
+import type { Dictionnaire, Langue } from "@/lib/i18n";
 
 const VIEW_MODES = ["grid", "compact"] as const;
 
 const ADULT_STORAGE_KEY = "cardmyanime_adult_verified";
+
+/*
+ * Le déverrouillage 18+ vit dans `sessionStorage`, hors de React. On l'expose
+ * comme un store externe plutôt que via un état recopié dans un effet : le
+ * rendu serveur n'a pas de `sessionStorage` et doit voir « verrouillé », le
+ * client lit la vraie valeur après hydratation, et `useSyncExternalStore`
+ * garantit que les deux ne se contredisent jamais.
+ */
+const abonnesAdulte = new Set<() => void>();
+
+function sAbonnerAdulte(rappel: () => void) {
+  abonnesAdulte.add(rappel);
+  return () => {
+    abonnesAdulte.delete(rappel);
+  };
+}
 
 function getAdultVerified(): boolean {
   try {
@@ -30,11 +57,12 @@ function setAdultVerified() {
   } catch {
     // sessionStorage not available
   }
+  abonnesAdulte.forEach((rappel) => rappel());
 }
 
 export default function TendancesPage() {
+  const { t, langue } = useTraduction();
   const { data, isLoading, error } = trpc.getTrends.useQuery();
-  const [imgErrors, setImgErrors] = useState<Set<string>>(new Set());
   // Dans l'URL plutôt qu'en état local : la vue choisie survit au rechargement
   // et se partage par lien. `history: "replace"` évite de polluer le bouton
   // Retour avec chaque bascule.
@@ -44,19 +72,19 @@ export default function TendancesPage() {
       history: "replace",
     })
   );
-  const [adultUnlocked, setAdultUnlocked] = useState(() => getAdultVerified());
+  const adultUnlocked = useSyncExternalStore(
+    sAbonnerAdulte,
+    getAdultVerified,
+    () => false
+  );
   const [showAdultModal, setShowAdultModal] = useState(false);
-
-  const handleImgError = (key: string) => {
-    setImgErrors((prev) => new Set(prev).add(key));
-  };
 
   const handleAdultClick = useCallback(() => {
     setShowAdultModal(true);
   }, []);
 
   const handleAdultConfirm = useCallback(() => {
-    setAdultUnlocked(true);
+    // Écrit dans le stockage, qui prévient ses abonnés — dont ce composant.
     setAdultVerified();
     setShowAdultModal(false);
   }, []);
@@ -66,18 +94,26 @@ export default function TendancesPage() {
   }, []);
 
   if (isLoading) {
-    return <PageLoading message="Chargement des tendances..." />;
+    return <PageLoading message={t.tendances.chargement} />;
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <Flame className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-xl font-semibold text-foreground mb-2">
-            Erreur lors du chargement
-          </h3>
-          <p className="text-muted-foreground">{error.message}</p>
+      <div className="min-h-screen bg-background flex items-center justify-center px-6">
+        <div className="text-center max-w-md">
+          <Flame
+            aria-hidden="true"
+            className="w-16 h-16 mx-auto text-muted-foreground mb-4"
+          />
+          <h1 className="text-xl font-semibold text-foreground mb-2 text-balance">
+            {t.tendances.erreurTitre}
+          </h1>
+          <p className="text-muted-foreground text-pretty mb-4">
+            {t.tendances.erreurTexte}
+          </p>
+          <p className="text-xs text-muted-foreground/70">
+            {t.commun.detailTechnique(error.message)}
+          </p>
         </div>
       </div>
     );
@@ -120,14 +156,13 @@ export default function TendancesPage() {
           className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8"
         >
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-1">
-              Tendances
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-1 text-balance">
+              {t.tendances.titre}
             </h1>
-            <p className="text-sm text-muted-foreground">
-              Les animés et mangas les plus populaires parmi nos{" "}
-              <span className="text-foreground font-medium">
-                {totalUsers} profils
-              </span>
+            <p className="text-sm text-muted-foreground text-pretty">
+              {t.tendances.sousTitre(
+                new Intl.NumberFormat(langue).format(totalUsers)
+              )}
             </p>
           </div>
 
@@ -137,7 +172,7 @@ export default function TendancesPage() {
               type="button"
               onClick={() => setViewMode("grid")}
               aria-pressed={viewMode === "grid"}
-              aria-label="Vue grille"
+              aria-label={t.tendances.vueGrille}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-[background-color,color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                 viewMode === "grid"
                   ? "bg-background text-foreground shadow-sm"
@@ -145,13 +180,13 @@ export default function TendancesPage() {
               }`}
             >
               <LayoutGrid aria-hidden="true" className="w-4 h-4" />
-              <span className="hidden sm:inline">Grille</span>
+              <span className="hidden sm:inline">{t.tendances.grille}</span>
             </button>
             <button
               type="button"
               onClick={() => setViewMode("compact")}
               aria-pressed={viewMode === "compact"}
-              aria-label="Vue compacte"
+              aria-label={t.tendances.vueCompacte}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-[background-color,color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                 viewMode === "compact"
                   ? "bg-background text-foreground shadow-sm"
@@ -159,7 +194,7 @@ export default function TendancesPage() {
               }`}
             >
               <Rows3 aria-hidden="true" className="w-4 h-4" />
-              <span className="hidden sm:inline">Compact</span>
+              <span className="hidden sm:inline">{t.tendances.compact}</span>
             </button>
           </div>
         </motion.div>
@@ -174,14 +209,14 @@ export default function TendancesPage() {
               className="flex items-center gap-3 mb-6"
             >
               <div className="p-2 rounded-lg bg-orange-500/10">
-                <Flame className="w-5 h-5 text-orange-500" />
+                <Flame aria-hidden="true" className="w-5 h-5 text-orange-500" />
               </div>
               <div>
                 <h2 className="text-xl font-bold text-foreground">
-                  Animés tendance
+                  {t.tendances.animesTendance}
                 </h2>
                 <p className="text-sm text-muted-foreground">
-                  Les plus regardés par la communauté
+                  {t.tendances.animesTendanceDesc}
                 </p>
               </div>
             </motion.div>
@@ -195,7 +230,6 @@ export default function TendancesPage() {
               >
                 {animes.map((anime: any, index: number) => {
                   const key = `anime-${index}`;
-                  if (imgErrors.has(key)) return null;
                   return (
                     <TrendCard
                       key={key}
@@ -204,9 +238,10 @@ export default function TendancesPage() {
                       coverUrl={anime.coverUrl}
                       count={anime.viewers}
                       countLabel="viewers"
+                      t={t}
+                      langue={langue}
                       avgScore={anime.avgScore}
                       enriched={anime.enriched}
-                      onImgError={() => handleImgError(key)}
                       isAdultUnlocked={adultUnlocked}
                       onAdultClick={handleAdultClick}
                     />
@@ -217,7 +252,6 @@ export default function TendancesPage() {
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                 {animes.map((anime: any, index: number) => {
                   const key = `anime-compact-${index}`;
-                  if (imgErrors.has(key)) return null;
                   return (
                     <CompactCard
                       key={key}
@@ -226,13 +260,14 @@ export default function TendancesPage() {
                       coverUrl={anime.enriched?.coverImage?.large ?? anime.coverUrl}
                       count={anime.viewers}
                       countLabel="viewers"
+                      t={t}
+                      langue={langue}
                       avgScore={anime.avgScore}
                       enrichedScore={anime.enriched?.averageScore}
                       isAdult={anime.enriched?.isAdult === true}
                       isAdultUnlocked={adultUnlocked}
                       onAdultClick={handleAdultClick}
                       delay={0.02 * index}
-                      onImgError={() => handleImgError(key)}
                     />
                   );
                 })}
@@ -251,14 +286,14 @@ export default function TendancesPage() {
               className="flex items-center gap-3 mb-6"
             >
               <div className="p-2 rounded-lg bg-purple-500/10">
-                <BookOpen className="w-5 h-5 text-purple-500" />
+                <BookOpen aria-hidden="true" className="w-5 h-5 text-purple-500" />
               </div>
               <div>
                 <h2 className="text-xl font-bold text-foreground">
-                  Mangas tendance
+                  {t.tendances.mangasTendance}
                 </h2>
                 <p className="text-sm text-muted-foreground">
-                  Les plus lus par la communauté
+                  {t.tendances.mangasTendanceDesc}
                 </p>
               </div>
             </motion.div>
@@ -272,7 +307,6 @@ export default function TendancesPage() {
               >
                 {mangas.map((manga: any, index: number) => {
                   const key = `manga-${index}`;
-                  if (imgErrors.has(key)) return null;
                   return (
                     <TrendCard
                       key={key}
@@ -281,9 +315,10 @@ export default function TendancesPage() {
                       coverUrl={manga.coverUrl}
                       count={manga.readers}
                       countLabel="lecteurs"
+                      t={t}
+                      langue={langue}
                       avgScore={manga.avgScore}
                       enriched={manga.enriched}
-                      onImgError={() => handleImgError(key)}
                       isAdultUnlocked={adultUnlocked}
                       onAdultClick={handleAdultClick}
                     />
@@ -294,7 +329,6 @@ export default function TendancesPage() {
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                 {mangas.map((manga: any, index: number) => {
                   const key = `manga-compact-${index}`;
-                  if (imgErrors.has(key)) return null;
                   return (
                     <CompactCard
                       key={key}
@@ -303,13 +337,14 @@ export default function TendancesPage() {
                       coverUrl={manga.enriched?.coverImage?.large ?? manga.coverUrl}
                       count={manga.readers}
                       countLabel="lecteurs"
+                      t={t}
+                      langue={langue}
                       avgScore={manga.avgScore}
                       enrichedScore={manga.enriched?.averageScore}
                       isAdult={manga.enriched?.isAdult === true}
                       isAdultUnlocked={adultUnlocked}
                       onAdultClick={handleAdultClick}
                       delay={0.02 * index}
-                      onImgError={() => handleImgError(key)}
                     />
                   );
                 })}
@@ -335,21 +370,26 @@ function CompactCard({
   isAdultUnlocked = false,
   onAdultClick,
   delay,
-  onImgError,
+  t,
+  langue,
 }: {
   rank: number;
   title: string;
   coverUrl: string;
   count: number;
   countLabel: string;
+  t: Dictionnaire;
+  langue: Langue;
   avgScore: number | null;
   enrichedScore?: number | null;
   isAdult?: boolean;
   isAdultUnlocked?: boolean;
   onAdultClick?: () => void;
   delay: number;
-  onImgError: () => void;
 }) {
+  // Jaquette cassée : on garde la vignette avec le titre, on ne retire pas
+  // l'œuvre du classement.
+  const [couvertureCassee, setCouvertureCassee] = useState(false);
   const score = enrichedScore
     ? Math.round(enrichedScore)
     : avgScore
@@ -372,24 +412,30 @@ function CompactCard({
           <button
             type="button"
             onClick={onAdultClick}
-            aria-label={`Afficher le contenu adulte : ${title}`}
+            aria-label={t.tendances.afficherAdulte(title)}
             className="absolute inset-0 z-10 cursor-pointer rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset"
           />
         )}
 
-        <img
-          src={coverUrl}
-          alt={title}
-          width={300}
-          height={400}
-          // `scale` : Tailwind v4 compile scale-* vers la propriété CSS
-          // individuelle `scale`, pas vers `transform`.
-          className={`w-full h-full object-cover transition-[scale,filter] duration-500 ${
-            isBlurred ? "blur-xl scale-110" : "motion-safe:group-hover:scale-105"
-          }`}
-          loading="lazy"
-          onError={onImgError}
-        />
+        {couvertureCassee ? (
+          <div className="w-full h-full flex items-center justify-center bg-muted text-muted-foreground">
+            <ImageOff aria-hidden="true" className="w-6 h-6" />
+          </div>
+        ) : (
+          <img
+            src={coverUrl}
+            alt=""
+            width={300}
+            height={400}
+            // `scale` : Tailwind v4 compile scale-* vers la propriété CSS
+            // individuelle `scale`, pas vers `transform`.
+            className={`w-full h-full object-cover transition-[scale,filter] duration-500 ${
+              isBlurred ? "blur-xl scale-110" : "motion-safe:group-hover:scale-105"
+            }`}
+            loading="lazy"
+            onError={() => setCouvertureCassee(true)}
+          />
+        )}
 
         {isBlurred ? (
           /* Adult overlay for compact card */
@@ -445,7 +491,10 @@ function CompactCard({
                   <BookOpen aria-hidden="true" className="w-3 h-3" />
                 )}
                 <span className="text-[11px] tabular-nums">
-                  {count} {count > 1 ? countLabel : countLabel.replace(/s$/, "")}
+                  {new Intl.NumberFormat(langue).format(count)}{" "}
+                  {countLabel === "viewers"
+                    ? t.tendances.spectateurs(count)
+                    : t.tendances.lecteurs(count)}
                 </span>
               </div>
             </div>

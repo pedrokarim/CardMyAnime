@@ -1,11 +1,23 @@
 import { ImageResponse } from "@vercel/og";
+import type { NextRequest } from "next/server";
 import { SITE_CONFIG } from "@/lib/constants";
+import { getDictionnaire, negocierLangue } from "@/lib/i18n";
 import { readFile } from "fs/promises";
 import { join } from "path";
 
 export const runtime = "nodejs";
 
-export async function GET() {
+export async function GET(requete: NextRequest) {
+  /*
+   * Négociée depuis l'en-tête, pas depuis le cookie : cette image est réclamée
+   * par les serveurs de Discord, Twitter ou Facebook lors du dépliage d'un
+   * lien, jamais par le navigateur du visiteur — il n'y a donc pas de cookie à
+   * lire. Le repli français reste la valeur par défaut, comme partout.
+   */
+  const t = getDictionnaire(
+    negocierLangue(requete.headers.get("accept-language"))
+  );
+
   // Charger les images depuis le système de fichiers
   let logoBase64 = "";
   let anilistBase64 = "";
@@ -157,7 +169,7 @@ export async function GET() {
               lineHeight: "1.4",
             }}
           >
-            {SITE_CONFIG.site.description}
+            {t.accueil.description}
           </p>
           <p
             style={{

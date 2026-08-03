@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { Star, Users, BookOpen, Heart, ShieldAlert } from "lucide-react";
+import { Star, Users, BookOpen, Heart, ShieldAlert, ImageOff } from "lucide-react";
 import { getGenreColor } from "@/lib/utils/genreColors";
 import {
   formatAiringCountdown,
@@ -10,6 +11,7 @@ import {
 } from "@/lib/utils/timeFormat";
 import { cardItemVariants } from "./animations";
 import type { EnrichedMediaData } from "@/lib/services/mediaEnrichment";
+import type { Dictionnaire, Langue } from "@/lib/i18n";
 
 interface TrendCardProps {
   rank: number;
@@ -19,7 +21,8 @@ interface TrendCardProps {
   countLabel: string;
   avgScore: number | null;
   enriched: EnrichedMediaData | null;
-  onImgError?: () => void;
+  t: Dictionnaire;
+  langue: Langue;
   isAdultUnlocked?: boolean;
   onAdultClick?: () => void;
 }
@@ -32,10 +35,14 @@ export function TrendCard({
   countLabel,
   avgScore,
   enriched,
-  onImgError,
+  t,
+  langue,
   isAdultUnlocked = false,
   onAdultClick,
 }: TrendCardProps) {
+  // Une jaquette cassée ne doit pas faire disparaître l'œuvre du classement :
+  // le rang, le score et le nombre de spectateurs restent l'information utile.
+  const [couvertureCassee, setCouvertureCassee] = useState(false);
   const displayTitle = enriched?.title.userPreferred ?? title;
   const studio =
     enriched?.studios?.find((s) => s.isAnimationStudio)?.name ??
@@ -58,10 +65,12 @@ export function TrendCard({
   const isAdult = enriched?.isAdult === true;
   const isBlurred = isAdult && !isAdultUnlocked;
 
-  // Les libellés arrivent au pluriel ("viewers", "lecteurs") : on retire le
-  // « s » au singulier, sinon on affiche « 1 viewers ».
+  // Le pluriel se décide dans le dictionnaire : « 1 viewer » / « 2 viewers »
+  // en anglais, « 1 lecteur » / « 2 lecteurs » en français.
   const countLabelDisplay =
-    count > 1 ? countLabel : countLabel.replace(/s$/, "");
+    countLabel === "viewers"
+      ? t.tendances.spectateurs(count)
+      : t.tendances.lecteurs(count);
 
   return (
     <motion.div variants={cardItemVariants} className="group">
@@ -73,7 +82,7 @@ export function TrendCard({
           <button
             type="button"
             onClick={onAdultClick}
-            aria-label={`Afficher le contenu adulte : ${displayTitle}`}
+            aria-label={t.tendances.afficherAdulte(displayTitle)}
             className="absolute inset-0 z-10 cursor-pointer rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset"
           />
         )}
@@ -82,9 +91,17 @@ export function TrendCard({
             doivent être recadrés sur la jaquette, sinon l'image déborde du
             dégradé de lisibilité, qui lui reste calé sur ce conteneur. */}
         <div className="relative w-[140px] lg:w-[180px] shrink-0 self-stretch overflow-hidden">
+          {couvertureCassee ? (
+            <div className="w-full h-full min-h-[210px] flex flex-col items-center justify-center gap-2 bg-muted text-muted-foreground">
+              <ImageOff aria-hidden="true" className="w-6 h-6" />
+              <span className="text-[10px] px-2 text-center">
+                {t.tendances.jaquetteIndisponible}
+              </span>
+            </div>
+          ) : (
           <img
             src={coverSrc}
-            alt={displayTitle}
+            alt=""
             width={180}
             height={270}
             // `scale` et non `transform` : Tailwind v4 compile scale-* vers la
@@ -98,8 +115,9 @@ export function TrendCard({
               isBlurred ? "blur-xl scale-110" : "motion-safe:group-hover:scale-105"
             }`}
             loading="lazy"
-            onError={onImgError}
+            onError={() => setCouvertureCassee(true)}
           />
+          )}
 
           {/* Adult overlay */}
           {isBlurred && (
@@ -134,10 +152,10 @@ export function TrendCard({
           {isBlurred ? (
             <div className="flex flex-col items-center justify-center h-full text-center py-4">
               <p className="text-sm font-medium text-muted-foreground mb-1">
-                Contenu adulte
+                {t.tendances.contenuAdulte}
               </p>
               <p className="text-xs text-muted-foreground/70">
-                Cliquez pour confirmer votre âge
+                {t.tendances.confirmerAge}
               </p>
             </div>
           ) : (
@@ -154,7 +172,8 @@ export function TrendCard({
                         <BookOpen aria-hidden="true" className="w-3.5 h-3.5" />
                       )}
                       <span className="font-medium text-foreground tabular-nums">
-                        {count} {countLabelDisplay}
+                        {new Intl.NumberFormat(langue).format(count)}{" "}
+                        {countLabelDisplay}
                       </span>
                     </div>
                     {format && (
@@ -194,8 +213,10 @@ export function TrendCard({
                 {/* Airing info */}
                 {enriched?.nextAiringEpisode && airingCountdown && (
                   <div className="text-xs text-green-400 mb-2">
-                    Ep {enriched.nextAiringEpisode.episode} dans{" "}
-                    {airingCountdown}
+                    {t.tendances.episodeDans(
+                      enriched.nextAiringEpisode.episode,
+                      airingCountdown
+                    )}
                   </div>
                 )}
 

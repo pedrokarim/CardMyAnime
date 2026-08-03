@@ -4,6 +4,7 @@ import { Check } from "lucide-react";
 import { PlatformIcon } from "@/components/ui/platform-icon";
 import type { Platform } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { useTraduction } from "@/lib/i18n/client";
 import {
   PLATFORM_STATUS,
   isPlatformDisabled,
@@ -11,21 +12,9 @@ import {
 } from "@/lib/platformStatus";
 
 const PLATFORMS = [
-  {
-    value: "anilist",
-    label: "AniList",
-    description: "API GraphQL officielle",
-  },
-  {
-    value: "mal",
-    label: "MyAnimeList",
-    description: "API Jikan non-officielle",
-  },
-  {
-    value: "nautiljon",
-    label: "Nautiljon",
-    description: "Scraping de profils publics",
-  },
+  { value: "anilist", label: "AniList" },
+  { value: "mal", label: "MyAnimeList" },
+  { value: "nautiljon", label: "Nautiljon" },
 ] as const;
 
 interface PlatformRailProps {
@@ -54,6 +43,14 @@ export function PlatformRail({
   onSelect,
   compact = false,
 }: PlatformRailProps) {
+  const { t } = useTraduction();
+
+  const descriptions: Record<string, string> = {
+    anilist: t.accueil.plateformeAnilist,
+    mal: t.accueil.plateformeMal,
+    nautiljon: t.accueil.plateformeNautiljon,
+  };
+
   return (
     <div
       style={{ viewTransitionName: "rail" }}
@@ -78,6 +75,7 @@ export function PlatformRail({
             className={cn(
               "relative flex items-center gap-3.5 overflow-hidden rounded-2xl border text-left",
               "bg-card/80 backdrop-blur-md",
+              "outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
               "transition-[transform,border-color,background-color,padding] duration-200",
               compact ? "px-3.5 py-[11px]" : "p-[18px]",
               // Repliée sur mobile, la bande ne garde que la plateforme
@@ -110,6 +108,7 @@ export function PlatformRail({
 
             <div className={cn("min-w-0", disabled && "opacity-45")}>
               <div
+                translate="no"
                 className={cn(
                   "font-semibold leading-[1.25] text-foreground",
                   compact ? "text-[13.5px]" : "text-[15.5px]"
@@ -119,7 +118,7 @@ export function PlatformRail({
               </div>
               {!compact && (
                 <div className="text-[12.5px] text-muted-foreground">
-                  {platform.description}
+                  {descriptions[platform.value]}
                 </div>
               )}
             </div>
@@ -135,7 +134,7 @@ export function PlatformRail({
                     : "absolute right-3 top-2.5"
                 )}
               >
-                {compact ? "Indispo." : status.shortLabel}
+                {compact ? t.accueil.plateformeIndisponible : status.shortLabel}
               </span>
             )}
 

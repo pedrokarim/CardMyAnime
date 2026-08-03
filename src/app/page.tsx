@@ -16,6 +16,14 @@ import { RecentUsernames } from "@/components/home/RecentUsernames";
 import { useRecentUsernames } from "@/lib/recentUsernames";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useTraduction } from "@/lib/i18n/client";
+
+/** Noms d'affichage des plateformes ; jamais traduits, jamais dérivés du slug. */
+const PLATFORM_LABELS: Record<Platform, string> = {
+  anilist: "AniList",
+  mal: "MyAnimeList",
+  nautiljon: "Nautiljon",
+};
 import { trpc } from "@/lib/trpc/client";
 import { useQueryState } from "nuqs";
 import { PlatformIcon } from "@/components/ui/platform-icon";
@@ -74,6 +82,7 @@ function backToTop() {
 }
 
 export default function HomePage() {
+  const { t } = useTraduction();
   const [currentStep, setCurrentStep] = useQueryState<Step>("step", {
     defaultValue: "platform",
     parse: (value): Step => {
@@ -181,7 +190,7 @@ export default function HomePage() {
           useLastAnimeBackground: useLastAnimeBackground === "1",
         });
       } else {
-        setError(result.error || "Erreur lors de la récupération des données");
+        setError(result.error || t.accueil.erreurProfilIntrouvable);
         // Motif catégorisé, jamais le message brut : il peut contenir le pseudo
         // cherché, qui est l'identité d'une personne sur une plateforme tierce.
         captureCarteEchouee(platform ?? "", "profil_introuvable");
@@ -190,7 +199,7 @@ export default function HomePage() {
     },
     onError: (error) => {
       console.error("Erreur tRPC:", error);
-      setError("Erreur de connexion - Vérifiez le nom d'utilisateur");
+      setError(t.accueil.erreurReseau);
       captureCarteEchouee(platform ?? "", "erreur_reseau");
       setIsLoading(false);
     },
@@ -235,12 +244,12 @@ export default function HomePage() {
     const value = (overrideUsername ?? username ?? "").trim();
 
     if (!value) {
-      setError("Veuillez entrer un nom d'utilisateur");
+      setError(t.accueil.erreurPseudoVide);
       return;
     }
 
     if (!platform) {
-      setError("Veuillez sélectionner une plateforme");
+      setError(t.accueil.erreurPlateformeVide);
       return;
     }
 
@@ -366,9 +375,9 @@ export default function HomePage() {
                   {/* Un seul enfant de flex, sinon le `gap` du conteneur
                       s'insère aussi entre les fragments de la phrase. */}
                   <span>
-                    Sans compte · 7 styles
+                    {t.accueil.argumentSansCompte}
                     <span className="hidden sm:inline">
-                      {" · mise à jour automatique"}
+                      {t.accueil.heroMajBadge}
                     </span>
                   </span>
                 </span>
@@ -376,15 +385,14 @@ export default function HomePage() {
 
               <div className="hero-rise mt-6 [--rise-delay:80ms] sm:mt-7">
                 <h1 className="text-[clamp(36px,5vw,58px)] font-bold leading-[1.04] tracking-[-0.025em] text-foreground">
-                  Votre profil anime,
+                  {t.accueil.heroTitre}
                   <br />
                   <span className="bg-gradient-to-r from-primary to-cyan-400 bg-clip-text text-transparent">
-                    en une image
+                    {t.accueil.heroTitreAccent}
                   </span>
                 </h1>
                 <p className="mt-[18px] max-w-[52ch] text-[16.5px] leading-[1.55] text-muted-foreground">
-                  Un pseudo, un style. On génère une carte PNG de vos dernières
-                  séries, avec un lien direct à coller où vous voulez.
+{t.accueil.heroSousTitreCourt}
                 </p>
               </div>
             </>
@@ -419,15 +427,18 @@ export default function HomePage() {
                     "0 10px 28px color-mix(in srgb, var(--primary) 32%, transparent)",
                 }}
               >
-                Continuer
-                <ArrowRight className="h-[17px] w-[17px] transition-transform duration-200 group-hover:translate-x-[3px]" />
+                {t.accueil.continuer}
+                <ArrowRight
+                  aria-hidden="true"
+                  className="h-[17px] w-[17px] transition-transform duration-200 group-hover:translate-x-[3px]"
+                />
               </button>
               <a
                 href="#exemples"
                 className="group inline-flex items-center justify-center gap-2.5 rounded-xl border border-border/70 px-5 py-3.5 text-[15px] font-semibold text-foreground transition-colors hover:bg-accent/60 sm:px-6"
               >
-                <span className="sm:hidden">Exemples</span>
-                <span className="hidden sm:inline">Voir des exemples</span>
+                <span className="sm:hidden">{t.accueil.exemples}</span>
+                <span className="hidden sm:inline">{t.accueil.voirExemples}</span>
                 <ChevronDown className="h-[17px] w-[17px] transition-transform duration-200 group-hover:translate-y-[2px]" />
               </a>
             </div>
@@ -461,13 +472,15 @@ export default function HomePage() {
             {currentStep === "username" && (
               <div className="text-center space-y-8">
                 <div>
-                  <h2 className="text-4xl font-bold text-foreground mb-4">
-                    Entrez votre nom d'utilisateur
+                  <h2 className="text-4xl font-bold text-foreground mb-4 text-balance">
+                    {t.accueil.titrePseudo}
                   </h2>
                   <div className="flex items-center justify-center gap-3 mb-4">
                     <PlatformIcon platform={platform} size={32} />
                     <p className="text-xl text-muted-foreground">
-                      Récupérez vos données depuis {platform}
+                      {t.accueil.sousTitrePseudo(
+                        PLATFORM_LABELS[platform as Platform] ?? platform
+                      )}
                     </p>
                   </div>
                 </div>
@@ -480,7 +493,7 @@ export default function HomePage() {
                         récentes, qui se pose sous le champ. */}
                     <div className="relative flex-1">
                       <Input
-                        placeholder="Entrez votre nom d'utilisateur..."
+                        placeholder={t.accueil.exemplePseudo}
                         value={username || ""}
                         onChange={(e) => setUsername(e.target.value)}
                         onFocus={() => setRecentOpen(true)}
@@ -510,10 +523,10 @@ export default function HomePage() {
                       {isLoading ? (
                         <div className="flex items-center gap-2">
                           <ButtonLoading size="sm" />
-                          Récupération...
+{t.accueil.recuperation}
                         </div>
                       ) : (
-                        "Récupérer"
+                        t.accueil.recuperer
                       )}
                     </Button>
                   </div>
@@ -538,8 +551,7 @@ export default function HomePage() {
                         <div className="flex items-start gap-3 rounded-xl border border-border/60 bg-card/60 p-3.5 text-left backdrop-blur-sm">
                           <Loader2 className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-primary" />
                           <p className="text-sm text-muted-foreground">
-                            Ça prend un peu plus de temps que d'habitude.
-                            Patientez quelques instants, ça arrive.
+{t.accueil.rechercheLente}
                           </p>
                         </div>
                       </motion.div>
@@ -632,8 +644,7 @@ export default function HomePage() {
                 MyAnimeList, ainsi que le scraping pour Nautiljon.
               </p>
               <p>
-                Les cartes sont générées côté serveur et stockées
-                temporairement.
+{t.accueil.piedStockage}
               </p>
             </div>
 
@@ -652,14 +663,14 @@ export default function HomePage() {
                 </p>
                 <span className="hidden sm:inline">•</span>
                 <Link href="/terms" className="text-primary hover:underline">
-                  Conditions d'utilisation
+{t.accueil.piedConditions}
                 </Link>
                 <span className="hidden sm:inline">•</span>
                 <Link
                   href="/data-deletion"
                   className="text-primary hover:underline"
                 >
-                  Suppression de données
+{t.accueil.piedSuppression}
                 </Link>
               </div>
             </div>

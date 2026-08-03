@@ -1,0 +1,565 @@
+import type { Dictionnaire } from "./fr";
+
+/**
+ * English dictionary.
+ *
+ * Typed against the French one on purpose: adding a key there and forgetting it
+ * here fails the build instead of silently shipping a blank label.
+ */
+export const en: Dictionnaire = {
+  commun: {
+    chargement: "Loading…",
+    reessayer: "Try again",
+    retour: "Back",
+    fermer: "Close",
+    detailTechnique: (message) => `Technical detail: ${message}`,
+    nouvelOnglet: (libelle) => `${libelle} (opens in a new tab)`,
+    allerAuContenu: "Skip to main content",
+    langue: "Language",
+    choisirLangue: "Choose a language",
+    francais: "Français",
+    anglais: "English",
+  },
+
+  nav: {
+    principale: "Main navigation",
+    accueil: "Home",
+    classement: "Leaderboard",
+    tendances: "Trending",
+    contact: "Contact",
+    apropos: "About",
+    nouveau: "NEW",
+    ouvrirMenu: "Open menu",
+    suivezNous: "Follow us",
+    via: "via",
+  },
+
+  accueil: {
+    slogan: "Generate your own anime profile cards",
+    description:
+      "Create dynamic, elegant profile cards for your favourite anime platforms",
+
+    etapeSur: (index, total, libelle) =>
+      `Step ${index} of ${total}: ${libelle}`,
+    etapePlateforme: "Platform selection",
+    etapeFormat: "Card format selection",
+    etapePseudo: "Username entry",
+    etapeApercu: "Card preview",
+
+    titrePlateforme: "Choose Your Platform",
+    sousTitrePlateforme: "Pick the anime platform you use",
+    plateformeAnilist: "Official GraphQL API",
+    plateformeMal: "Unofficial Jikan API",
+    plateformeNautiljon: "Public profile scraping",
+    versFormat: "Choose a Format",
+
+    titreFormat: "Choose a Card Format",
+    sousTitreFormat: "Pick the layout that suits you best",
+    fondDernierAnime: "Use your latest anime as background",
+    active: "On",
+    desactive: "Off",
+    versPlateforme: "Change Platform",
+    versPseudo: "Enter My Username",
+
+    titrePseudo: "Enter Your Username",
+    sousTitrePseudo: (plateforme) => `Fetch your data from ${plateforme}`,
+    libellePseudo: (plateforme) => `Username on ${plateforme}`,
+    exemplePseudo: "For example: Sakura…",
+    recuperer: "Fetch My Profile",
+    recuperation: "Fetching…",
+    versFormatRetour: "Change Format",
+
+    titreApercu: "Your Personalised Card",
+    sousTitreApercu: "Preview and download your generated card",
+    modifierParametres: "Edit Settings",
+    modifier: "Edit",
+    recommencer: "Start Over",
+
+    erreurPseudoVide: "Enter the username of the profile to fetch.",
+    erreurPlateformeVide: "Go back to the first step to choose a platform.",
+    erreurProfilIntrouvable:
+      "Profile not found. Check the spelling of the username, or try another platform.",
+    erreurReseau:
+      "Could not reach the server. Check your connection, then try again.",
+
+    piedSources:
+      "uses the public AniList and MyAnimeList APIs, plus scraping for Nautiljon.",
+    piedStockage: "Cards are generated server-side and stored temporarily.",
+
+    etiquettePlateforme: "Platform",
+    etiquetteStyle: "Style",
+    etiquettePseudo: "Username",
+    etiquetteApercu: "Preview",
+    argumentSansCompte: "No account · 7 styles",
+    heroTitre: "Your anime profile,",
+    heroTitreAccent: "as one image",
+    heroSousTitre:
+      "A username, a style. We generate a PNG card of your latest series, ready to drop into a forum, a README or a profile.",
+    continuer: "Continue",
+    plateformeIndisponible: "Down",
+    titreStyle: "Choose a Card Style",
+    fondDescription:
+      "The cover of the last series you watched becomes the card background.",
+    rechercheLente:
+      "This is taking longer than usual. Hang on a moment, it is on its way.",
+    historiqueTitre: "Recently searched",
+    historiqueRetirer: (pseudo) => `Remove ${pseudo} from history`,
+    heroMajBadge: " · updates automatically",
+    heroSousTitreCourt:
+      "A username, a style. We generate a PNG card of your latest series, with a direct link to paste anywhere.",
+    exemples: "Samples",
+    voirExemples: "See samples",
+    piedConditions: "Terms of Use",
+    piedSuppression: "Data Deletion",
+  },
+
+  formats: {
+    small: "Small",
+    smallDesc: "Avatar + username + 3 latest anime",
+    medium: "Medium",
+    mediumDesc: "Avatar + stats + latest anime/manga",
+    large: "Large",
+    largeDesc: "Full profile with artwork",
+    summary: "Summary",
+    summaryDesc: "Detailed stats with latest anime/manga",
+    neon: "Neon",
+    neonDesc: "Cyberpunk style with glowing neon effects",
+    minimal: "Minimal",
+    minimalDesc: "Clean, elegant design on a light background",
+    glassmorphism: "Glass",
+    glassmorphismDesc: "Frosted glass effect over a colourful background",
+  },
+
+  carte: {
+    regeneration: "Regenerating your card…",
+    animes: "anime",
+    mangas: "manga",
+    episodes: "episodes",
+    chapitres: "chapters",
+    jours: "days",
+    enCours: "watching",
+    termines: "completed",
+    messagePersonnel: "Personal message",
+    membreDepuis: "Member since",
+    joursMembre: (jours) => `(${jours} days)`,
+    genresFavoris: "Favourite genres",
+    derniersAnimes: "Latest anime",
+    derniersMangas: "Latest manga",
+    animesFavoris: "Favourite anime",
+    mangasFavoris: "Favourite manga",
+    aucuneDonnee: "No data found",
+
+
+    arrierePlan: "Background",
+    generationCarte: "Generating your card…",
+    derniersAnimesCourt: "Latest anime",
+    derniersMangasCourt: "Latest manga",
+    favoris: "Favourites",
+    formatCarte: "Card format",
+    options: "Options",
+    etEnsuite: "What next",
+    jaquetteDernierAnime: "The cover of the last anime you watched",
+    echecGeneration: "The card could not be generated.",
+    changerFormat: "Change Format",
+    masquerFormats: "Hide Formats",
+    changerFormatCourt: "Change Format",
+    masquer: "Hide",
+    generation: "Generating…",
+    activerFond: "Enable Background",
+    desactiverFond: "Disable Background",
+    activerFondCourt: "With Background",
+    desactiverFondCourt: "No Background",
+    titreSelecteurFormat: "Change the card format",
+
+    generationInitiale: "Generating your card…",
+    regenerationCarte: "Regenerating your card…",
+    aucuneCarte: "No card to display",
+    relancerGeneration: "Start generation again from the buttons above.",
+    alternativeCarte: (format, pseudo) => `${format} card for ${pseudo}`,
+  },
+
+  partage: {
+    titre: "Share Your Card",
+    sousTitre: "Copy the snippet that matches where you want to embed the card",
+    markdown: "Markdown",
+    bbcode: "BB Code",
+    html: "HTML Embed",
+    url: "Direct URL",
+    copier: "Copy",
+    copierCode: (format) => `Copy the ${format} snippet`,
+    copie: "✓ Copied!",
+    copieAnnonce: (format) => `${format} copied to clipboard`,
+    erreurCopie:
+      "Copying failed. Select the snippet below and copy it manually.",
+
+    messageSocial: "My anime profile as one image",
+    lienCarte: "Card link",
+    copierLien: "Copy the card link",
+    telecharger: "Download the PNG",
+    integrer: "Embed",
+    partagerSur: "Share on",
+    copieCourt: "Copied",
+    partagerReseau: (reseau) => `Share on ${reseau}`,
+    copierPourDiscord: "Copy the link for Discord",
+    conseil: "Tip:",
+    conseilTexte:
+      "Use Markdown for GitHub, Discord or forums. BB Code for forums that support it. HTML for websites. The image links back to the site!",
+  },
+
+  classement: {
+    chargement: "Loading the leaderboard…",
+    erreurTitre: "The leaderboard could not be loaded",
+    erreurTexte:
+      "Reload the page in a moment. If the problem persists, the service is probably temporarily unavailable.",
+    titreParVues: "Leaderboard by total views",
+    titreParVues24h: "Leaderboard by views in 24h",
+    titreParDate: "Leaderboard by date",
+    nombreProfils: (total) => `(${total} profiles)`,
+    pageSur: (page, total) => `Page ${page} of ${total}`,
+    rechercherLabel: "Search for a profile by username",
+    rechercherPlaceholder: "Search by username…",
+    trierPar: "Sort by:",
+    triVues: "Total views",
+    triVues24h: "Views in 24h",
+    triDate: "Creation date",
+    cartes: (nombre) => (nombre > 1 ? "cards" : "card"),
+    vues: "views",
+    vues24h: "24h",
+    details: "▼ Details",
+    masquerDetails: "▲ Hide",
+    voir: "View →",
+    aucunResultat: (recherche) =>
+      `No profile matches “${recherche}”. Try another username.`,
+    aucuneCarte: "No cards generated yet.",
+    pagination: "Leaderboard pagination",
+    pagePrecedente: "Previous page",
+    pageSuivante: "Next page",
+    numeroPage: (page) => `Page ${page}`,
+  },
+
+  tendances: {
+    chargement: "Loading trends…",
+    erreurTitre: "Trends could not be loaded",
+    erreurTexte:
+      "Reload the page in a moment. If the problem persists, the trends service is probably being updated.",
+    titre: "Trending",
+    sousTitre: (profils) =>
+      `The most popular anime and manga across our ${profils} profiles`,
+    vueGrille: "Grid view",
+    vueCompacte: "Compact view",
+    grille: "Grid",
+    compact: "Compact",
+    animesTendance: "Trending Anime",
+    animesTendanceDesc: "Most watched by the community",
+    mangasTendance: "Trending Manga",
+    mangasTendanceDesc: "Most read by the community",
+    spectateurs: (nombre) => (nombre > 1 ? "viewers" : "viewer"),
+    lecteurs: (nombre) => (nombre > 1 ? "readers" : "reader"),
+    jaquetteIndisponible: "Cover unavailable",
+    contenuAdulte: "Adult content",
+    confirmerAge: "Click to confirm your age",
+    afficherAdulte: (titre) => `Show adult content: ${titre}`,
+    episodeDans: (episode, delai) => `Ep ${episode} in ${delai}`,
+
+    modaleTitre: "Adult Content",
+    modaleTexte:
+      "This content is rated for adults only (18+). Do you confirm that you are at least 18 years old?",
+    modaleRefuser: "No, go back",
+    modaleAccepter: "Yes, I’m 18 or older",
+
+    carrousel: "Trending anime",
+    diapositive: (index, total, titre) =>
+      `Slide ${index} of ${total}: ${titre}`,
+    allerDiapositive: (index, total) => `Go to slide ${index} of ${total}`,
+    diapositivePrecedente: "Previous slide",
+    diapositiveSuivante: "Next slide",
+
+    videTitre: "Trends are coming soon",
+    videTexte:
+      "Community trends will appear once enough profiles have been generated and analysed.",
+  },
+
+  apropos: {
+    titre: "About",
+    sousTitre: (site) => `The story and the tech behind ${site}`,
+    quEstCe: (site) => `What is ${site}?`,
+    presentation1:
+      "is a dynamic profile card generator for anime and manga fans. Create personalised cards from your AniList, MyAnimeList or Nautiljon profile.",
+    presentation2:
+      "The project started from the urge to build something useful for the anime community, letting people share their taste and their stats in a visual, appealing way.",
+    fonctionnalites: "Features",
+    multiPlateformes: "Multi-platform",
+    multiPlateformesDesc:
+      "Supports AniList, MyAnimeList and Nautiljon with automatic data fetching",
+    septFormats: "7 card formats",
+    septFormatsDesc:
+      "Small, medium, large, summary, neon, minimal and glass to fit every need",
+    generationServeur: "Server-side generation",
+    generationServeurDesc:
+      "Images generated server-side with shareable URLs and view tracking",
+    classement: "Leaderboard",
+    classementDesc: "Ranking based on external views of shared cards",
+    plateformesSupportees: "Supported platforms",
+    anilistDesc:
+      "Official GraphQL API for profile data, statistics and anime/manga history.",
+    malDesc:
+      "Unofficial Jikan API for reliable, fast access to MyAnimeList data.",
+    nautiljonDesc:
+      "Public profile scraping to pull data from the French platform Nautiljon.",
+    technologies: "Tech stack",
+    frontend: "Frontend",
+    backend: "Backend",
+    apisServices: "APIs & Services",
+    developpeur: "Developer",
+    developpeurDesc: "Developer, anime fan and modern web tech enthusiast",
+    licence: "Licence & Contributing",
+    licence1:
+      "This project is open source under the MIT licence. Contributions are welcome!",
+    noteImportante: "Important note:",
+    licence2:
+      "This project uses the public AniList and MyAnimeList APIs, plus public profile scraping for Nautiljon. All data comes from public sources and respects each platform's terms of use.",
+  },
+
+  contact: {
+    titre: "Contact",
+    sousTitre:
+      "A question, a suggestion or a bug to report? Get in touch!",
+    discord: "Discord",
+    discordDesc: "Join our Discord server to chat with the community",
+    rejoindre: "Join the Server",
+    github: "GitHub",
+    githubDesc: "Report bugs or suggest improvements on GitHub",
+    voirProjet: "View the Project",
+    informations: "Information",
+    info1:
+      "is an open source project for creating dynamic profile cards for anime platforms.",
+    info2:
+      "The project uses the public AniList and MyAnimeList APIs, plus scraping for Nautiljon. All data comes from public sources.",
+    info3:
+      "If you run into problems or have suggestions, reach out via Discord or GitHub.",
+    suivezNous: "Follow us",
+  },
+
+  auth: {
+    titreAdmin: "Administration",
+    sousTitreAdmin: "Sign in to access the administration features",
+    connexionDiscord: "Sign in with Discord",
+    connexion: "Signing in…",
+    erreurConnexion: "Sign-in failed",
+    noteAcces: "Only authorised Discord accounts can access this section",
+
+    erreurTitre: "Sign-in error",
+    accesRefuse:
+      "Access denied: this Discord account is not among the authorised administrators. Contact the team if you believe this is a mistake.",
+    erreurConfiguration:
+      "The authentication server is misconfigured. Report it to the team: signing in will keep failing until then.",
+    erreurVerification:
+      "Your account could not be verified. Try signing in again; if the error persists, sign out of Discord and start over.",
+    erreurGenerique: "Sign-in did not complete. Try again in a moment.",
+    retourConnexion: "Back to sign-in",
+    retourAccueil: "Back to home",
+  },
+
+  introuvable: {
+    titre: "Oops! Page not found",
+    texte:
+      "Sorry, the page you are looking for seems to have vanished into the digital void. Maybe it went on holiday?",
+    retourAccueil: "Back to Home",
+  },
+
+  meta: {
+    accueilTitre: (site) => `${site} - Create dynamic profile cards`,
+    accueilDescription: (site, pseudo) =>
+      `Create dynamic, elegant profile cards for your favourite anime platforms (AniList, MyAnimeList, Nautiljon). Open source project built by ${pseudo}.`,
+    ogTitre: (site) => `${site} - Anime profile cards`,
+    ogAlt: (site) => `${site} - Profile card generator`,
+    aproposTitre: (site) => `About - ${site}`,
+    aproposDescription: (site) =>
+      `Discover the story and the tech behind ${site}. Open source anime profile card generator for AniList, MyAnimeList and Nautiljon.`,
+    contactTitre: (site) => `Contact - ${site}`,
+    contactDescription: (site) =>
+      `Contact the ${site} team with any question, suggestion or bug report. Join our Discord or GitHub community.`,
+    conditionsTitre: (site) => `Terms of Use - ${site}`,
+    conditionsDescription: (site) =>
+      `Terms of use for ${site} - a free, open source project for the anime community. Read our usage rules and privacy policy.`,
+  },
+
+  suppression: {
+    titre: "Data Deletion",
+    sousTitre: (site) => `Request the deletion of your personal data from ${site}`,
+
+    avertissementTitre: "Before you continue",
+    avertissement1Prefixe: "This action is",
+    avertissement1Gras: "irreversible",
+    avertissement2: "All your generated cards will be deleted",
+    avertissement3: "Your data will no longer be available through our service",
+    avertissement4: "The process takes up to 7 business days",
+
+    formulaireTitre: "Request form",
+    formulaireDesc: "Fill in this form to request the deletion of your data",
+    donneesTest: "Test data",
+
+    labelPlateforme: "Platform concerned",
+    placeholderPlateforme: "Select your platform",
+    toutesPlateformes: "All platforms",
+    labelPseudo: "Username",
+    placeholderPseudo: "Your username on the platform, e.g. Sakura…",
+    labelEmail: "Email address",
+    placeholderEmail: "For example: sakura@example.com",
+    aideEmail: "We will use this address to confirm the deletion",
+    labelRaison: "Reason for deletion",
+    placeholderRaison: "Select a reason",
+    raisonPrivacy: "Privacy protection",
+    raisonInutilise: "I no longer use the service",
+    raisonDonnees: "Incorrect data",
+    raisonLegal: "Legal obligation",
+    raisonAutre: "Other reason",
+    labelDetails: "Additional information",
+    placeholderDetails: "Describe your request in more detail (optional)…",
+
+    erreurPlateforme: "Select the platform concerned.",
+    erreurPseudo: "Enter your username.",
+    erreurEmail: "Enter a contact email address.",
+    erreurRaison: "Select a reason.",
+
+    recaptchaDev: "🚀 Development mode: reCAPTCHA bypassed",
+    recaptchaActif: "🔒 reCAPTCHA protection active",
+    recaptchaAbsent: "reCAPTCHA is not configured. Please contact the administrator.",
+    recaptchaEchec:
+      "The anti-bot check did not complete. Reload the page and try again.",
+    recaptchaInvalide:
+      "Invalid reCAPTCHA configuration. Please contact the administrator.",
+    recaptchaExpire: "The reCAPTCHA expired. Please complete it again.",
+    erreurEnvoi: "The request could not be sent",
+    erreurConnexion: "Connection error. Please try again.",
+
+    envoyer: "Request Deletion",
+    envoiEnCours: "Sending…",
+
+    succesTitre: "Request received",
+    succesDesc: "Your data deletion request has been sent to our team.",
+    prochainesEtapes: "What happens next:",
+    etape1: "We will process your request within 7 business days",
+    etape2: "You will receive a confirmation by email",
+    etape3: "All your data will be removed from our servers",
+    etape4: "Generated cards will be deleted as well",
+    nouvelleDemande: "Submit Another Request",
+
+    droitsTitre: "Your rights",
+    droitsTexte:
+      "Under the GDPR, you have the right to request the deletion of your personal data. This request will be handled within the legal time limits.",
+    droitsContact: "For any question, reach out via",
+    ou: "or",
+  },
+
+  conditions: {
+    titre: "Terms of Use",
+    miseAJour: "Last updated: 7 September 2025",
+
+    s1Titre: "1. Acceptance of terms",
+    s1Texte: (site) =>
+      `By using ${site}, you agree to be bound by these terms of use. If you do not accept them, please do not use this service.`,
+
+    s2Titre: "2. Service description",
+    s2Texte: (site) =>
+      `${site} is a free, open source service that lets users create dynamic profile cards for their accounts on various anime platforms (AniList, MyAnimeList, Nautiljon).`,
+    important: "Important:",
+    s2Note:
+      "This service is entirely free and contains no advertising. No monetisation takes place on this site. It is a community-driven open source project built out of passion for the anime community.",
+
+    s3Titre: "3. Using the service",
+    s3aTitre: "3.1 Permitted use",
+    s3a1: "Creating profile cards for your own accounts",
+    s3a2: "Sharing your cards on social networks",
+    s3a3: "Using the service for personal, non-commercial purposes",
+    s3a4: "Contributing to the open source project on GitHub",
+    s3bTitre: "3.2 Prohibited use",
+    s3b1: "Using the service commercially without permission",
+    s3b2: "Attempting to overload or compromise the servers",
+    s3b3: "Using other users' data without their permission",
+    s3b4:
+      "Breaching the terms of use of third-party platforms (AniList, MyAnimeList, Nautiljon)",
+
+    s4Titre: "4. Data collection and processing",
+    s4aTitre: "4.1 Types of data collected",
+    s4aIntro: (site) =>
+      `${site} collects and processes the following data through public APIs:`,
+    s4aProfil: "Profile data:",
+    s4aProfilTexte: "username, avatar, general statistics",
+    s4aActivite: "Activity data:",
+    s4aActiviteTexte: "anime/manga lists, scores, watch status",
+    s4aMeta: "Metadata:",
+    s4aMetaTexte: "update dates, episode counts, genres",
+    s4aPerf: "Performance data:",
+    s4aPerfTexte: "API response times, fetch errors",
+
+    s4bTitre: "4.2 Data sources",
+    s4bAnilist: "Official GraphQL API",
+    s4bMal: "Unofficial Jikan API",
+    s4bNautiljon: "Public profile scraping only",
+
+    s4cTitre: "4.3 Storage and retention",
+    s4cTexte:
+      "Data is cached temporarily (24 hours maximum) to improve performance. No personal data is stored permanently on our servers.",
+    s4cNote:
+      "We do not store your passwords, private emails, or any other sensitive information. Only data publicly available through the APIs is used.",
+
+    s4dTitre: "4.4 User rights (GDPR)",
+    s4dIntro:
+      "Under the General Data Protection Regulation, you have the following rights:",
+    s4dAcces: "Right of access:",
+    s4dAccesTexte: "See the data we hold about you",
+    s4dRectif: "Right to rectification:",
+    s4dRectifTexte: "Correct inaccurate data",
+    s4dEffacement: "Right to erasure:",
+    s4dEffacementTexte: "Request the deletion of your data",
+    s4dPorta: "Right to portability:",
+    s4dPortaTexte: "Retrieve your data in a structured format",
+    s4dOppo: "Right to object:",
+    s4dOppoTexte: "Object to the processing of your data",
+    s4dExercer: "To exercise these rights, use our",
+    s4dLien: "data deletion form",
+    s4dOuContact: "or contact us directly.",
+
+    s5Titre: "5. Intellectual property",
+    s5Texte1: (site) =>
+      `The source code of ${site} is available under an open source licence on GitHub. You are free to contribute, fork or use the code under the terms of that licence.`,
+    s5Texte2:
+      "The logos and trademarks of the anime platforms (AniList, MyAnimeList, Nautiljon) remain the property of their respective owners.",
+
+    s6Titre: "6. Limitation of liability",
+    s6aTitre: "6.1 Service provided “as is”",
+    s6aTexte: (site) =>
+      `${site} is provided “as is” without warranty of any kind. The service may be temporarily unavailable for maintenance or in the event of a technical problem.`,
+    s6bTitre: "6.2 Third-party APIs",
+    s6bIntro:
+      "Our service depends on third-party APIs (AniList, MyAnimeList, Nautiljon). We are not responsible for:",
+    s6b1: "Changes to or outages of third-party APIs",
+    s6b2: "The availability or reliability of data coming from those APIs",
+    s6b3: "Changes to the terms of use of third-party platforms",
+    s6b4: "Rate limits imposed by external APIs",
+    s6cTitre: "6.3 Data and content",
+    s6cIntro: "We are not responsible for:",
+    s6c1: "The accuracy of data retrieved through the APIs",
+    s6c2: "Content changes on third-party platforms",
+    s6c3: "The deletion or modification of user profiles on external platforms",
+    s6c4: "Synchronisation issues between the various data sources",
+    s6dTitre: "6.4 Damages",
+    s6dTexte:
+      "To the extent permitted by law, we are not liable for any direct, indirect, incidental, special or consequential damages arising from the use of this service.",
+
+    s7Titre: "7. Changes to these terms",
+    s7Texte:
+      "These terms of use may be changed at any time. Significant changes will be announced on the website or the Discord server.",
+
+    s8Titre: "8. Contact",
+    s8Intro: "For any question about these terms of use, you can reach us via:",
+    s8Discord: "Discord server",
+    s8Github: "GitHub repository",
+
+    s9Titre: "9. Credits",
+    s9Texte: "Built with ❤️ by",
+    s9Pour: "for the anime community.",
+    s9Note: "Open source project - No monetisation - No advertising",
+  },
+};

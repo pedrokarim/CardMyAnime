@@ -1,4 +1,5 @@
 import type { CardType } from "@/lib/types";
+import type { Dictionnaire } from "@/lib/i18n";
 
 export interface CardTypeOption {
   value: CardType;
@@ -17,48 +18,51 @@ export interface CardTypeOption {
  *
  * Chaque entrée portait aussi un emoji, qui n'était plus lu nulle part depuis
  * que les vignettes sont dessinées par `CardStyleSvg`. Il est parti avec.
+ *
+ * Fonction du dictionnaire et non constante : seules les dimensions sont
+ * universelles, les libellés changent avec la langue affichée.
  */
-export const CARD_TYPE_OPTIONS: CardTypeOption[] = [
+export const cardTypeOptions = (t: Dictionnaire): CardTypeOption[] => [
   {
     value: "small",
-    label: "Petite",
-    description: "Avatar + pseudo + 3 derniers animes",
+    label: t.formats.small,
+    description: t.formats.smallDesc,
     size: "400×150",
   },
   {
     value: "medium",
-    label: "Moyenne",
-    description: "Avatar + stats + derniers animes/mangas",
+    label: t.formats.medium,
+    description: t.formats.mediumDesc,
     size: "600×300",
   },
   {
     value: "large",
-    label: "Grande",
-    description: "Profil complet avec images",
+    label: t.formats.large,
+    description: t.formats.largeDesc,
     size: "800×500",
   },
   {
     value: "summary",
-    label: "Résumé",
-    description: "Stats détaillées avec derniers animes/mangas",
+    label: t.formats.summary,
+    description: t.formats.summaryDesc,
     size: "800×600",
   },
   {
     value: "neon",
-    label: "Néon",
-    description: "Style cyberpunk avec effets néon lumineux",
+    label: t.formats.neon,
+    description: t.formats.neonDesc,
     size: "600×350",
   },
   {
     value: "minimal",
-    label: "Minimal",
-    description: "Design épuré et élégant sur fond clair",
+    label: t.formats.minimal,
+    description: t.formats.minimalDesc,
     size: "500×250",
   },
   {
     value: "glassmorphism",
-    label: "Glass",
-    description: "Effet verre givré avec fond coloré",
+    label: t.formats.glassmorphism,
+    description: t.formats.glassmorphismDesc,
     size: "700×400",
   },
 ];

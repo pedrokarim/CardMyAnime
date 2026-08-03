@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShieldAlert, X } from "lucide-react";
+import { useTraduction } from "@/lib/i18n/client";
 
 interface AdultContentModalProps {
   open: boolean;
@@ -14,6 +15,7 @@ const FOCUSABLE =
   'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
 export function AdultContentModal({ open, onConfirm, onCancel }: AdultContentModalProps) {
+  const { t } = useTraduction();
   const dialogRef = useRef<HTMLDivElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
 
@@ -104,7 +106,7 @@ export function AdultContentModal({ open, onConfirm, onCancel }: AdultContentMod
               <button
                 type="button"
                 onClick={onCancel}
-                aria-label="Fermer"
+                aria-label={t.commun.fermer}
                 className="absolute top-3 right-3 p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <X aria-hidden="true" className="w-4 h-4" />
@@ -122,14 +124,13 @@ export function AdultContentModal({ open, onConfirm, onCancel }: AdultContentMod
                 id="adult-modal-title"
                 className="text-lg font-bold text-foreground text-center mb-2"
               >
-                Contenu pour adultes
+                {t.tendances.modaleTitre}
               </h3>
               <p
                 id="adult-modal-description"
                 className="text-sm text-muted-foreground text-center mb-6 leading-relaxed"
               >
-                Ce contenu est classifié comme réservé aux adultes (18+).
-                Confirmez-vous avoir au moins 18 ans pour afficher ce contenu ?
+                {t.tendances.modaleTexte}
               </p>
 
               {/* Actions */}
@@ -139,14 +140,14 @@ export function AdultContentModal({ open, onConfirm, onCancel }: AdultContentMod
                   onClick={onCancel}
                   className="flex-1 px-4 py-2.5 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 >
-                  Non, revenir
+                  {t.tendances.modaleRefuser}
                 </button>
                 <button
                   type="button"
                   onClick={onConfirm}
                   className="flex-1 px-4 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 focus-visible:ring-offset-card"
                 >
-                  Oui, j’ai 18 ans
+                  {t.tendances.modaleAccepter}
                 </button>
               </div>
             </div>

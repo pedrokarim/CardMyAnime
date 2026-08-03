@@ -5,6 +5,7 @@ import { History, X } from "lucide-react";
 import { PlatformIcon } from "@/components/ui/platform-icon";
 import type { Platform } from "@/lib/types";
 import type { RecentUsername } from "@/lib/recentUsernames";
+import { useTraduction } from "@/lib/i18n/client";
 
 interface RecentUsernamesProps {
   open: boolean;
@@ -30,6 +31,8 @@ export function RecentUsernames({
   onPick,
   onForget,
 }: RecentUsernamesProps) {
+  const { t } = useTraduction();
+
   return (
     <AnimatePresence>
       {open && entries.length > 0 && (
@@ -48,8 +51,8 @@ export function RecentUsernames({
           className="absolute left-0 right-0 top-[calc(100%+8px)] z-30 max-h-[min(300px,28vh)] origin-top overflow-y-auto overscroll-contain rounded-xl border border-border/70 bg-popover/95 p-1.5 text-left shadow-[0_16px_40px_rgba(0,0,0,.35)] backdrop-blur-xl"
         >
           <p className="flex items-center gap-2 px-2.5 pb-1.5 pt-1 text-[11.5px] font-medium uppercase tracking-wide text-muted-foreground">
-            <History className="h-3.5 w-3.5" />
-            Recherché récemment
+            <History aria-hidden="true" className="h-3.5 w-3.5" />
+            {t.accueil.historiqueTitre}
           </p>
 
           {entries.map((entry) => (
@@ -60,7 +63,7 @@ export function RecentUsernames({
               <button
                 type="button"
                 onClick={() => onPick(entry.username, entry.platform)}
-                className="flex min-w-0 flex-1 items-center gap-2.5 text-left"
+                className="flex min-w-0 flex-1 items-center gap-2.5 rounded-md text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <PlatformIcon
                   platform={entry.platform}
@@ -74,13 +77,13 @@ export function RecentUsernames({
 
               <button
                 type="button"
-                aria-label={`Retirer ${entry.username} de l'historique`}
+                aria-label={t.accueil.historiqueRetirer(entry.username)}
                 onClick={() => onForget(entry.username, entry.platform)}
                 /* Toujours visible au doigt : sans survol, une croix révélée
                    au `group-hover` n'existe simplement pas sur mobile. */
                 className="shrink-0 rounded-md p-1 text-muted-foreground transition-[opacity,color] hover:text-foreground sm:opacity-0 sm:focus-visible:opacity-100 sm:group-hover:opacity-100"
               >
-                <X className="h-3.5 w-3.5" />
+                <X aria-hidden="true" className="h-3.5 w-3.5" />
               </button>
             </div>
           ))}
