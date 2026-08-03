@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils";
 import { Loader2, Heart, Sparkles, Zap, Star } from "lucide-react";
 import { motion } from "framer-motion";
+import { useTraduction } from "@/lib/i18n/client";
 
 export interface LoadingProps {
   /** Taille du loader */
@@ -268,12 +269,17 @@ export function PageLoading({
   );
 }
 
-export function CardLoading({
-  message = "Génération de la carte...",
-}: {
-  message?: string;
-}) {
-  return <Loading size="lg" variant="pulse" message={message} centered />;
+export function CardLoading({ message }: { message?: string }) {
+  const { t } = useTraduction();
+
+  return (
+    <Loading
+      size="lg"
+      variant="pulse"
+      message={message ?? t.carte.generationEnCours}
+      centered
+    />
+  );
 }
 
 export function ButtonLoading({ size = "sm" }: { size?: "xs" | "sm" | "md" }) {

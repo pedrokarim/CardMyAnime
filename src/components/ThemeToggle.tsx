@@ -4,8 +4,10 @@ import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTraduction } from "@/lib/i18n/client";
 
 export function ThemeToggle({ className }: { className?: string }) {
+  const { t } = useTraduction();
   const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -45,7 +47,7 @@ export function ThemeToggle({ className }: { className?: string }) {
           "relative inline-flex h-9 w-9 items-center justify-center rounded-md transition-colors hover:bg-muted",
           className
         )}
-        aria-label="Changer de thème"
+        aria-label={t.commun.changerTheme}
       >
         <span className="h-5 w-5" />
       </button>
@@ -61,8 +63,8 @@ export function ThemeToggle({ className }: { className?: string }) {
         "relative inline-flex h-9 w-9 items-center justify-center rounded-md transition-colors hover:bg-muted cursor-pointer",
         className
       )}
-      aria-label={isDark ? "Passer en mode clair" : "Passer en mode sombre"}
-      title={isDark ? "Mode clair" : "Mode sombre"}
+      aria-label={isDark ? t.commun.modeClair : t.commun.modeSombre}
+      title={isDark ? t.commun.modeClair : t.commun.modeSombre}
     >
       <Sun
         aria-hidden="true"

@@ -1,4 +1,5 @@
 import type { Platform } from "@/lib/types";
+import type { Dictionnaire } from "@/lib/i18n";
 
 /**
  * État de disponibilité de chaque plateforme.
@@ -17,6 +18,21 @@ export interface PlatformStatus {
   reason?: string;
   /** Note courte pour l'interface, sous le nom de la plateforme. */
   shortLabel?: string;
+}
+
+/**
+ * Libellés traduits d'une plateforme suspendue.
+ *
+ * Séparés de `PLATFORM_STATUS`, qui reste une donnée pure consultable côté
+ * serveur sans dictionnaire : seul l'affichage a besoin d'une langue.
+ */
+export function platformStatusLabels(t: Dictionnaire, platform: Platform) {
+  if (!PLATFORM_STATUS[platform].disabled) return null;
+
+  return {
+    shortLabel: t.commun.plateformeSuspendue,
+    reason: t.commun.plateformeSuspendueRaison,
+  };
 }
 
 export const PLATFORM_STATUS: Record<Platform, PlatformStatus> = {

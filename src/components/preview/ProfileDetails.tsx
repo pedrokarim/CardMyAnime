@@ -5,7 +5,7 @@ import type { UserData } from "@/lib/types";
 import { useTraduction } from "@/lib/i18n/client";
 
 /**
- * Détail du profil, replié par défaut.
+ * {t.carte.detailProfil}, replié par défaut.
  *
  * Derniers animes, derniers mangas, favoris, genres, message personnel :
  * c'est ce qui donnait trois hauteurs de fenêtre à l'écran d'aperçu, avant
@@ -37,7 +37,7 @@ export function ProfileDetails({ userData }: { userData: UserData }) {
   return (
     <details className="group mt-4 overflow-hidden rounded-2xl border border-border/60 bg-card/60 backdrop-blur-sm">
       <summary className="flex cursor-pointer list-none items-center gap-2.5 px-5 py-3.5 text-sm font-medium text-foreground transition-colors hover:bg-accent/40 [&::-webkit-details-marker]:hidden">
-        Détail du profil
+        {t.carte.detailProfil}
         <ChevronDown className="ml-auto h-4 w-4 text-muted-foreground transition-transform duration-300 group-open:rotate-180" />
       </summary>
 

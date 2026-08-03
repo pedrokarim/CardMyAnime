@@ -558,11 +558,13 @@ export default function HomePage() {
                     )}
                   </AnimatePresence>
 
-                  {error && (
-                    <div className="rounded-xl border border-destructive/30 bg-destructive/20 p-4">
-                      <p className="text-destructive">{error}</p>
-                    </div>
-                  )}
+                  <div aria-live="polite" className="empty:hidden">
+                    {error && (
+                      <div className="rounded-xl border border-destructive/30 bg-destructive/20 p-4">
+                        <p className="text-destructive">{error}</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <Button
@@ -640,8 +642,8 @@ export default function HomePage() {
         <div className="flex flex-col gap-4 text-sm">
             <div className="flex flex-col gap-2">
               <p>
-                {SITE_CONFIG.site.name} utilise les APIs publiques d'AniList et
-                MyAnimeList, ainsi que le scraping pour Nautiljon.
+                <span translate="no">{SITE_CONFIG.site.name}</span>{" "}
+                {t.accueil.piedSourcesDebut}
               </p>
               <p>
 {t.accueil.piedStockage}

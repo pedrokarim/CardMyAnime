@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useTraduction } from "@/lib/i18n/client";
 
 /**
  * Section « exemples » de l'accueil, cible de l'ancre `#exemples`.
@@ -30,17 +31,18 @@ const SAMPLES = [
 ];
 
 export function Samples() {
+  const { t } = useTraduction();
+
   return (
     <section
       id="exemples"
       className="mx-auto w-[min(1120px,92vw)] scroll-mt-24 pb-[88px] pt-[72px] sm:pb-[110px] sm:pt-[88px]"
     >
       <h2 className="text-[clamp(24px,3vw,32px)] font-bold tracking-[-0.02em] text-foreground">
-        Sept styles, une seule URL
+        {t.accueil.exemplesTitre}
       </h2>
       <p className="mb-[34px] mt-2 max-w-[56ch] text-[15.5px] leading-relaxed text-muted-foreground">
-        Cartes réellement générées par le site. Chacune se met à jour toute
-        seule quand votre liste change.
+        {t.accueil.exemplesSousTitre}
       </p>
 
       {/* Colonnes CSS et non une grille : les sept formats vont du 400 × 150

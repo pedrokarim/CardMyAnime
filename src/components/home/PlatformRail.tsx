@@ -5,11 +5,7 @@ import { PlatformIcon } from "@/components/ui/platform-icon";
 import type { Platform } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useTraduction } from "@/lib/i18n/client";
-import {
-  PLATFORM_STATUS,
-  isPlatformDisabled,
-  platformDisabledReason,
-} from "@/lib/platformStatus";
+import { isPlatformDisabled, platformStatusLabels } from "@/lib/platformStatus";
 
 const PLATFORMS = [
   { value: "anilist", label: "AniList" },
@@ -62,7 +58,7 @@ export function PlatformRail({
       {PLATFORMS.map((platform) => {
         const disabled = isPlatformDisabled(platform.value);
         const active = selected === platform.value;
-        const status = PLATFORM_STATUS[platform.value];
+        const statut = platformStatusLabels(t, platform.value);
 
         return (
           <button
@@ -71,7 +67,7 @@ export function PlatformRail({
             onClick={() => !disabled && !compact && onSelect(platform.value)}
             disabled={disabled || compact}
             aria-pressed={active}
-            title={platformDisabledReason(platform.value)}
+            title={statut?.reason}
             className={cn(
               "relative flex items-center gap-3.5 overflow-hidden rounded-2xl border text-left",
               "bg-card/80 backdrop-blur-md",
@@ -123,7 +119,7 @@ export function PlatformRail({
               )}
             </div>
 
-            {disabled && status.shortLabel && (
+            {disabled && statut && (
               <span
                 className={cn(
                   "rounded-full border border-amber-500/40 px-[7px] py-0.5 text-[10.5px] leading-tight text-amber-500",
@@ -134,7 +130,7 @@ export function PlatformRail({
                     : "absolute right-3 top-2.5"
                 )}
               >
-                {compact ? t.accueil.plateformeIndisponible : status.shortLabel}
+                {compact ? t.accueil.plateformeIndisponible : statut.shortLabel}
               </span>
             )}
 

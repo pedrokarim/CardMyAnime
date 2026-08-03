@@ -17,6 +17,12 @@ export const fr = {
     nouvelOnglet: (libelle: string) => `${libelle} (nouvel onglet)`,
     allerAuContenu: "Aller au contenu principal",
     langue: "Langue",
+    changerTheme: "Changer de thème",
+    modeClair: "Passer en mode clair",
+    modeSombre: "Passer en mode sombre",
+    plateformeSuspendue: "Temporairement indisponible",
+    plateformeSuspendueRaison:
+      "Nautiljon bloque les accès automatisés depuis nos serveurs. La génération de cartes est suspendue le temps de rétablir un accès.",
     choisirLangue: "Choisir la langue",
     francais: "Français",
     anglais: "English",
@@ -114,6 +120,11 @@ export const fr = {
     heroMajBadge: " · mise à jour automatique",
     heroSousTitreCourt:
       "Un pseudo, un style. On génère une carte PNG de vos dernières séries, avec un lien direct à coller où vous voulez.",
+    exemplesTitre: "Sept styles, une seule URL",
+    exemplesSousTitre:
+      "Cartes réellement générées par le site. Chacune se met à jour toute seule quand votre liste change.",
+    exempleSignatures: "signatures de forum",
+    piedSourcesDebut: "utilise les APIs publiques d'AniList et MyAnimeList, ainsi que le scraping pour Nautiljon.",
     exemples: "Exemples",
     voirExemples: "Voir des exemples",
     piedConditions: "Conditions d'utilisation",
@@ -167,6 +178,8 @@ export const fr = {
     etEnsuite: "Et ensuite",
     jaquetteDernierAnime: "La jaquette du dernier anime suivi",
     echecGeneration: "La carte n'a pas pu être générée.",
+    detailProfil: "Détail du profil",
+    generationEnCours: "Génération de la carte…",
     changerFormat: "Changer le format",
     masquerFormats: "Masquer les formats",
     changerFormatCourt: "Changer format",
