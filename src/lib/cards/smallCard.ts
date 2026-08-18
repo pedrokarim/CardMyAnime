@@ -163,7 +163,7 @@ export async function generateSmallCard(
     position: "bottom-right",
     opacity: 1.0,
     size: 24,
-    showText: false, // Pas de texte sur la petite carte pour économiser l'espace
+    showText: true,
   });
 
   return helper.toBuffer();

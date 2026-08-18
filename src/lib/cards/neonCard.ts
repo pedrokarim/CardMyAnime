@@ -338,7 +338,10 @@ export async function generateNeonCard(
     position: "bottom-right",
     opacity: 1.0,
     size: 30,
-    showText: false,
+    showText: true,
+    // Les deux cadres neon courent a 8 et 14 px du bord : avec le retrait par
+    // defaut, le filigrane leur passait dessus. Il se pose a l'interieur.
+    padding: 26,
   });
 
   await addPlatformLogo(helper, platform, {

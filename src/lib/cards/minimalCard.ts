@@ -4,7 +4,12 @@ import {
   CARD_FONT,
   truncateToWidth,
 } from "../utils/serverCanvasHelpers";
-import { addWatermark, addPlatformLogo } from "../utils/watermarkHelper";
+import {
+  addWatermark,
+  addPlatformLogo,
+  watermarkBox,
+  widthAvoidingWatermark,
+} from "../utils/watermarkHelper";
 
 export async function generateMinimalCard(
   userData: UserData,
@@ -247,7 +252,18 @@ export async function generateMinimalCard(
       ctx.fill();
       ctx.restore();
 
-      helper.drawTruncatedText(manga.title, width / 2 + 26, y, 190, 11, "#57534e");
+      helper.drawTruncatedText(
+        manga.title,
+        width / 2 + 26,
+        y,
+        widthAvoidingWatermark(
+          watermarkBox(helper, { size: 25, showText: true }),
+          { x: width / 2 + 26, baseline: y, fontSize: 11 },
+          190
+        ),
+        11,
+        "#57534e"
+      );
     });
   }
 
@@ -256,7 +272,8 @@ export async function generateMinimalCard(
     position: "bottom-right",
     opacity: 0.7,
     size: 25,
-    showText: false,
+    showText: true,
+    textColor: "#6b7280",
   });
 
   await addPlatformLogo(helper, platform, {

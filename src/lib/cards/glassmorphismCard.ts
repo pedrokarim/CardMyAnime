@@ -360,7 +360,7 @@ export async function generateGlassmorphismCard(
     position: "bottom-right",
     opacity: 1.0,
     size: 30,
-    showText: false,
+    showText: true,
   });
 
   await addPlatformLogo(helper, platform, {

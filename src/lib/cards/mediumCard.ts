@@ -1,6 +1,11 @@
 import { UserData } from "../types";
 import { ServerCanvasHelper, CARD_FONT } from "../utils/serverCanvasHelpers";
-import { addWatermark, addPlatformLogo } from "../utils/watermarkHelper";
+import {
+  addWatermark,
+  addPlatformLogo,
+  watermarkBox,
+  widthAvoidingWatermark,
+} from "../utils/watermarkHelper";
 
 export async function generateMediumCard(
   userData: UserData,
@@ -213,12 +218,16 @@ export async function generateMediumCard(
       textAlign: "left",
     });
   } else {
+    // La quatrieme ligne descend jusque dans la bande du filigrane : elle
+    // seule est raccourcie, les trois autres gardent toute leur largeur.
+    const filigrane = watermarkBox(helper, { size: 35, showText: true });
     recentMangas.forEach((manga, index) => {
+      const baseline = mangaY + index * 20;
       helper.drawTruncatedText(
         `${index + 1}. ${manga.title}`,
         320,
-        mangaY + index * 20,
-        250,
+        baseline,
+        widthAvoidingWatermark(filigrane, { x: 320, baseline, fontSize: 16 }, 250),
         16,
         "#e0e0e0"
       );

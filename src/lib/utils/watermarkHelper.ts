@@ -11,6 +11,105 @@ export interface WatermarkOptions {
   opacity?: number;
   size?: number;
   showText?: boolean;
+  /** Couleur du libellé. Les cartes claires ont besoin d'un gris plus sombre. */
+  textColor?: string;
+  /**
+   * Retrait depuis les bords. La carte « néon » a besoin de plus : ses deux
+   * cadres lumineux courent le long du bord, et le filigrane les traversait.
+   */
+  padding?: number;
+}
+
+/** Rectangle réellement occupé par le filigrane, libellé compris. */
+export interface WatermarkBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * Le libellé est proportionné au logo, et non figé à 12 px : à côté d'un logo
+ * de 24 px un texte de 12 écrase le signe, à côté d'un logo de 40 il disparaît.
+ */
+const echelleTexte = (size: number) =>
+  Math.max(9, Math.min(13, Math.round(size * 0.34)));
+
+/** Espace entre le libellé et le signe. */
+const ESPACE = 8;
+/** Retrait depuis les bords de la carte. */
+const MARGE = 5;
+
+/**
+ * Encombrement du filigrane, **mesuré**.
+ *
+ * L'ancienne version réservait 120 px de large pour le libellé, au jugé. Aucune
+ * carte ne s'en servait pour se pousser, et personne ne pouvait le vérifier :
+ * le chiffre ne correspondait à rien de mesurable. Les cartes appellent
+ * maintenant cette fonction pour savoir jusqu'où elles ont le droit d'écrire,
+ * et `addWatermark` s'appuie sur elle aussi — les deux ne peuvent donc plus
+ * diverger.
+ */
+export function watermarkBox(
+  helper: ServerCanvasHelper | any,
+  options: WatermarkOptions = {}
+): WatermarkBox {
+  const {
+    position = "bottom-right",
+    size = 40,
+    showText = true,
+    padding = MARGE,
+  } = options;
+
+  const canvas = (helper as any).canvas;
+  const width = canvas.width;
+  const height = canvas.height;
+
+  const police = echelleTexte(size);
+  const largeurTexte = showText
+    ? helper.measureText("CardMyAnime", police, CARD_FONT) + ESPACE
+    : 0;
+
+  const totalW = largeurTexte + size;
+  const totalH = Math.max(size, police);
+
+  const aDroite = position === "bottom-right" || position === "top-right";
+  const enBas = position === "bottom-right" || position === "bottom-left";
+
+  let x: number;
+  let y: number;
+
+  if (position === "center") {
+    x = (width - totalW) / 2;
+    y = (height - totalH) / 2;
+  } else {
+    x = aDroite ? width - totalW - padding : padding;
+    y = enBas ? height - totalH - padding : padding;
+  }
+
+  return { x, y, width: totalW, height: totalH };
+}
+
+/**
+ * Largeur autorisée pour une ligne de texte, compte tenu du filigrane.
+ *
+ * Ne rogne **que** les lignes dont la bande verticale croise celle du
+ * filigrane : une liste dont seule la dernière ligne descend jusque-là ne perd
+ * pas ses trois premières. C'est ce qui manquait — la largeur réservée était
+ * une constante devinée, et aucune carte ne s'en servait.
+ */
+export function widthAvoidingWatermark(
+  box: WatermarkBox,
+  row: { x: number; baseline: number; fontSize: number },
+  defaultWidth: number,
+  gap = 8
+): number {
+  const haut = row.baseline - row.fontSize;
+  const bas = row.baseline + row.fontSize * 0.3;
+  const croise = bas > box.y && haut < box.y + box.height;
+
+  if (!croise) return defaultWidth;
+  return Math.max(40, Math.min(defaultWidth, box.x - gap - row.x));
 }
 
 export async function addWatermark(
@@ -18,89 +117,51 @@ export async function addWatermark(
   options: WatermarkOptions = {}
 ): Promise<void> {
   const {
-    position = "bottom-right",
     opacity = 1.0,
     size = 40,
     showText = true,
+    textColor = "#8b93a1",
   } = options;
 
-  // Accéder au canvas et au contexte via les propriétés privées
-  const canvas = (helper as any).canvas;
   const ctx = (helper as any).ctx;
-  const width = canvas.width;
-  const height = canvas.height;
+  const boite = watermarkBox(helper, options);
+  const police = echelleTexte(size);
 
-  // Sauvegarder l'état actuel du contexte
   ctx.save();
+  ctx.globalAlpha = opacity;
 
-  // Charger le logo CMA (depuis le cache statique)
   try {
-    const logo = await getStaticAsset("watermark") ?? await canvasLoadImage(
-      process.cwd() + "/public/images/cma-logo-watermark.png"
-    );
+    const logo =
+      (await getStaticAsset("watermark")) ??
+      (await canvasLoadImage(
+        process.cwd() + "/public/images/cma-logo-watermark.png"
+      ));
 
-    // Calculer la position du watermark
-    let x: number, y: number;
-    const logoWidth = size;
-    const logoHeight = size;
-    const textWidth = showText ? 120 : 0;
-    const textHeight = showText ? 16 : 0;
-    const padding = 5; // Réduit de 15 à 5 pour coller plus à droite
-    const totalWidth = logoWidth + (showText ? 10 + textWidth : 0);
+    // Le signe occupe la droite de la boîte, le libellé ce qui reste.
+    const logoX = boite.x + boite.width - size;
+    const logoY = boite.y + (boite.height - size) / 2;
 
-    switch (position) {
-      case "bottom-right":
-        x = width - logoWidth - padding; // Logo complètement à droite
-        y = height - Math.max(logoHeight, textHeight) - padding;
-        break;
-      case "bottom-left":
-        x = padding;
-        y = height - Math.max(logoHeight, textHeight) - padding;
-        break;
-      case "top-right":
-        x = width - logoWidth - padding; // Logo complètement à droite
-        y = padding;
-        break;
-      case "top-left":
-        x = padding;
-        y = padding;
-        break;
-      case "center":
-        x = (width - totalWidth) / 2;
-        y = (height - Math.max(logoHeight, textHeight)) / 2;
-        break;
-      default:
-        x = width - logoWidth - padding; // Logo complètement à droite
-        y = height - Math.max(logoHeight, textHeight) - padding;
-    }
-
-    // Appliquer l'opacité
-    ctx.globalAlpha = opacity;
-
-    // Ajouter le texte si demandé
     if (showText) {
-      ctx.font = `12px ${CARD_FONT}`;
-      ctx.fillStyle = "#888888";
+      ctx.font = `${police}px ${CARD_FONT}`;
+      ctx.fillStyle = textColor;
       ctx.textAlign = "right";
-      // Centrer le texte verticalement par rapport à l'image
-      const textY = y + logoHeight / 2 + 4; // +4 pour centrer visuellement
-      ctx.fillText("CardMyAnime", x - 10, textY);
+      ctx.textBaseline = "middle";
+      ctx.fillText("CardMyAnime", logoX - ESPACE, boite.y + boite.height / 2);
+      // La ligne de base par défaut est alphabétique : sans ce retour, tout ce
+      // qui est dessiné ensuite hérite du centrage vertical.
+      ctx.textBaseline = "alphabetic";
     }
 
-    // Dessiner le logo (à droite du texte)
-    ctx.drawImage(logo, x, y, logoWidth, logoHeight);
+    ctx.drawImage(logo, logoX, logoY, size, size);
   } catch (error) {
     console.error("Erreur lors du chargement du watermark:", error);
 
-    // Fallback : dessiner un watermark simple avec du texte
-    ctx.globalAlpha = opacity;
-    ctx.font = `12px ${CARD_FONT}`;
-    ctx.fillStyle = "#888888";
+    ctx.font = `${police}px ${CARD_FONT}`;
+    ctx.fillStyle = textColor;
     ctx.textAlign = "right";
-    ctx.fillText("CardMyAnime", width - 15, height - 15);
+    ctx.fillText("CardMyAnime", boite.x + boite.width, boite.y + boite.height);
   }
 
-  // Restaurer l'état du contexte
   ctx.restore();
 }
 
