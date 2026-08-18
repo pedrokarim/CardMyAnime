@@ -138,11 +138,12 @@ export function CardPreview({
   const absoluteCardUrl = shareableUrl ? `${siteUrl}${shareableUrl}` : "";
 
   /*
-   * Une date d'inscription absente ou nulle revient du côté serveur en `0`,
-   * que `new Date` traduit fidèlement par le 1er janvier 1970. Affiché tel
-   * quel, ça se lit comme une donnée et non comme un trou : la ligne est
-   * simplement omise sous un plancher de plausibilité — aucune des deux
-   * plateformes n'existait avant 2004.
+   * Garde-fou, désormais en second rideau : la vraie cause du « 1970 » était
+   * qu'AniList renvoyait des secondes epoch là où `new Date` attend des
+   * millisecondes, ce qui est corrigé à la source dans le fournisseur. Le
+   * plancher reste utile pour tout ce qui arriverait encore vide ou aberrant
+   * — aucune des plateformes n'existait avant 2004 — mais il ne masque plus
+   * un bug, il filtre une absence.
    */
   const joinedOn = (() => {
     const raw = userData?.profile?.joinDate;

@@ -33,6 +33,19 @@ interface ListItem {
   score?: number;
 }
 
+/**
+ * Date d'inscription lisible.
+ *
+ * Nautiljon renvoie une date deja redigee en toutes lettres, AniList une date
+ * ISO : on formate ce qui se parse, et on laisse passer le reste tel quel
+ * plutot que d'afficher « Invalid Date ».
+ */
+function formatJoinDate(brut: string): string {
+  const date = new Date(brut);
+  if (isNaN(date.getTime())) return brut;
+  return date.toLocaleDateString("fr-FR");
+}
+
 function formatNumber(value: number): string {
   return value.toLocaleString("fr-FR");
 }
@@ -312,7 +325,7 @@ export async function generateLargeCard(
     helper.drawText({
       x: PAD + 40,
       y: H - 26,
-      text: `Membre depuis ${userData.profile.joinDate}`,
+      text: `Membre depuis ${formatJoinDate(userData.profile.joinDate)}`,
       fontSize: 12,
       fontFamily: CARD_FONT,
       color: "rgba(255,255,255,0.45)",

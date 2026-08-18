@@ -389,7 +389,17 @@ export async function fetchUserData(username: string): Promise<UserData> {
         }))
         .slice(0, 5),
       profile: {
-        joinDate: user.createdAt,
+        /*
+         * AniList renvoie `createdAt` en **secondes** epoch, la` ou le champ
+         * est declare `string`. Stocke tel quel, il ressortait brut sur la
+         * carte Grande (« Membre depuis 1651677352 ») et, passe a `new Date`
+         * qui attend des millisecondes, donnait janvier 1970 sur l'ecran
+         * d'apercu. Deux symptomes, une seule cause : la conversion manquait
+         * ici, a la source.
+         */
+        joinDate: user.createdAt
+          ? new Date(user.createdAt * 1000).toISOString()
+          : undefined,
         lastActive: user.updatedAt,
         bio: user.about,
         website: user.siteUrl,

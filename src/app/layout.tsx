@@ -5,6 +5,7 @@ import { Providers } from "./providers";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { NavbarWrapper } from "@/components/NavbarWrapper";
 import { SarutobiAnalytics } from "@/components/SarutobiAnalytics";
+import { ServiceWorkerRegistration } from "@/components/ServiceWorkerRegistration";
 import { Suspense } from "react";
 import { InlineLoading } from "@/components/ui/loading";
 import { SITE_CONFIG } from "@/lib/constants";
@@ -134,6 +135,7 @@ export default async function RootLayout({
                 {/* Ne rend rien : démarre la mesure d'audience. Monté ici pour
                     couvrir toutes les pages, présentes et à venir. */}
                 <SarutobiAnalytics />
+                <ServiceWorkerRegistration />
                 <NavbarWrapper />
                 <main id="contenu">{children}</main>
               </Providers>
