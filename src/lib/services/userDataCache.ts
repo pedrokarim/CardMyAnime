@@ -53,6 +53,19 @@ export function decideCacheAction(
     : "too-old";
 }
 
+/**
+ * Donnee utilisateur accompagnee de la date de sa derniere recuperation
+ * **reussie**.
+ *
+ * Cette date est ce qui permet a la route carte de poser un ETag : tant
+ * qu'elle n'a pas bouge, le PNG serait identique au bit pres, et une
+ * revalidation peut repondre 304 sans redessiner quoi que ce soit.
+ */
+export interface UserDataWithMeta {
+  data: UserData;
+  lastFetched: Date;
+}
+
 export class StaleDataError extends Error {
   constructor(
     public readonly platform: string,
@@ -80,12 +93,23 @@ export class UserDataCacheService {
   }
 
   /**
-   * Récupère les données utilisateur depuis le cache ou les APIs
+   * Récupère les données utilisateur depuis le cache ou les APIs.
+   *
+   * Conservé tel quel : quatre appelants sur cinq n'ont que faire de la
+   * fraîcheur. Seule la route carte a besoin du détail.
    */
-  async getUserData(
+  async getUserData(platform: Platform, rawUsername: string): Promise<UserData> {
+    const { data } = await this.getUserDataWithMeta(platform, rawUsername);
+    return data;
+  }
+
+  /**
+   * Même chose, en rendant aussi la date de dernière récupération réussie.
+   */
+  async getUserDataWithMeta(
     platform: Platform,
     rawUsername: string
-  ): Promise<UserData> {
+  ): Promise<UserDataWithMeta> {
     const { prisma, executeWithRetry } = await import("../prisma");
 
     // Les trois plateformes ignorent la casse : sans cette normalisation,
@@ -118,7 +142,10 @@ export class UserDataCacheService {
         );
 
         if (decision === "fresh") {
-          return JSON.parse(cachedData.data);
+          return {
+            data: JSON.parse(cachedData.data),
+            lastFetched: cachedData.lastFetched,
+          };
         }
 
         const ageMs = now.getTime() - cachedData.lastFetched.getTime();
@@ -129,7 +156,13 @@ export class UserDataCacheService {
           this.refreshDataInBackground(platform, username, prisma);
 
           if (cachedData.data) {
-            return JSON.parse(cachedData.data);
+            // La date rendue est celle du dernier succès, pas celle de
+            // maintenant : c'est précisément ce qui doit continuer de vieillir
+            // tant que la plateforme ne répond pas.
+            return {
+              data: JSON.parse(cachedData.data),
+              lastFetched: cachedData.lastFetched,
+            };
           }
         } else {
           // Trop vieux pour être servi tel quel. Dernière tentative en direct :
@@ -146,7 +179,7 @@ export class UserDataCacheService {
             console.log(
               `✅ Cache ${platform}:${username} rétabli après ${ageInDays} jours`
             );
-            return recovered;
+            return { data: recovered, lastFetched: new Date() };
           } catch (error) {
             // On refuse d'afficher un profil vieux d'un mois comme s'il était
             // à jour : mieux vaut dire que la donnée est indisponible.
@@ -163,7 +196,7 @@ export class UserDataCacheService {
         await this.saveToCache(platform, username, freshData, prisma);
       });
 
-      return freshData;
+      return { data: freshData, lastFetched: new Date() };
     } catch (error) {
       console.error(
         `❌ Erreur lors de la récupération des données pour ${platform}:${username}:`,

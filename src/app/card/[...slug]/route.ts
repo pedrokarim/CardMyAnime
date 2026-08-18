@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import {
   cardErrorImageResponse,
+  cardNotModifiedResponse,
   cardImageResponse,
   resolveCard,
 } from "@/lib/cards/renderCard";
@@ -44,7 +45,10 @@ export async function GET(
   });
 
   if (result.ok) {
-    return cardImageResponse(result.buffer);
+    if (result.notModified) {
+      return cardNotModifiedResponse(result.etag);
+    }
+    return cardImageResponse(result.buffer, result.etag);
   }
 
   return cardErrorImageResponse({

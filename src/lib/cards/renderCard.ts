@@ -14,6 +14,7 @@ import { prisma, ensurePrismaConnection } from "@/lib/prisma";
 import type { CardType } from "@/lib/types";
 import { platformDisabledReason } from "@/lib/platformStatus";
 import { CARD_TYPES, PLATFORMS } from "./cardTypes";
+import { CARD_CACHE_CONTROL, cardEtag, matchesEtag } from "./cardEtag";
 
 export const cardRequestSchema = z.object({
   platform: z.enum(PLATFORMS),
@@ -30,7 +31,9 @@ export interface CardRequestInput {
 }
 
 export type CardResult =
-  | { ok: true; buffer: Buffer; cardType: CardType }
+  | { ok: true; notModified: false; buffer: Buffer; cardType: CardType; etag: string }
+  /** Le client a déjà cette version : rien à redessiner, rien à renvoyer. */
+  | { ok: true; notModified: true; etag: string }
   | {
       ok: false;
       status: number;
@@ -139,10 +142,25 @@ export async function resolveCard(
       });
     }
 
-    const userData = await userDataCache.getUserData(
-      validPlatform,
-      validUsername
-    );
+    const { data: userData, lastFetched } =
+      await userDataCache.getUserDataWithMeta(validPlatform, validUsername);
+
+    const etag = cardEtag({
+      platform: validPlatform,
+      username: validUsername,
+      cardType: validType,
+      background: useLastAnimeBackground,
+      lastFetched,
+    });
+
+    /*
+     * Court-circuit avant le rendu, et volontairement après le comptage de la
+     * vue : une carte revalidée a bien été affichée quelque part, elle compte.
+     * Ce qu'on économise ici, c'est le dessin — la partie chère.
+     */
+    if (matchesEtag(request.headers.get("if-none-match"), etag)) {
+      return { ok: true, notModified: true, etag };
+    }
 
     let cardBuffer: Buffer;
     switch (validType) {
@@ -203,7 +221,13 @@ export async function resolveCard(
         };
     }
 
-    return { ok: true, buffer: cardBuffer, cardType: validType };
+    return {
+      ok: true,
+      notModified: false,
+      buffer: cardBuffer,
+      cardType: validType,
+      etag,
+    };
   } catch (error) {
     console.error("Erreur lors de la génération de la carte:", error);
 
@@ -229,11 +253,23 @@ export async function resolveCard(
 }
 
 /** Réponse PNG standard pour une carte générée avec succès. */
-export function cardImageResponse(buffer: Buffer): NextResponse {
+export function cardImageResponse(buffer: Buffer, etag?: string): NextResponse {
   return new NextResponse(new Uint8Array(buffer), {
     headers: {
       "Content-Type": "image/png",
-      "Cache-Control": "public, max-age=3600",
+      "Cache-Control": CARD_CACHE_CONTROL,
+      ...(etag ? { ETag: etag } : {}),
+    },
+  });
+}
+
+/** Réponse à une revalidation quand rien n'a changé. */
+export function cardNotModifiedResponse(etag: string): NextResponse {
+  return new NextResponse(null, {
+    status: 304,
+    headers: {
+      "Cache-Control": CARD_CACHE_CONTROL,
+      ETag: etag,
     },
   });
 }

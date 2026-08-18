@@ -3,6 +3,7 @@ import {
   acceptsImage,
   cardErrorImageResponse,
   cardImageResponse,
+  cardNotModifiedResponse,
   resolveCard,
 } from "@/lib/cards/renderCard";
 import { normalizeSearchParams } from "@/lib/cards/cardUrl";
@@ -31,7 +32,10 @@ export async function GET(request: NextRequest) {
   });
 
   if (result.ok) {
-    return cardImageResponse(result.buffer);
+    if (result.notModified) {
+      return cardNotModifiedResponse(result.etag);
+    }
+    return cardImageResponse(result.buffer, result.etag);
   }
 
   if (acceptsImage(request)) {
