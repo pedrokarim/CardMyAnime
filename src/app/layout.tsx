@@ -64,6 +64,24 @@ export async function generateMetadata(): Promise<Metadata> {
     verification: {
       google: "i_GLyVEAubN9keZoMX6Kk8-T8XyldPJ8zXc1atDYv-k",
     },
+    manifest: "/manifest.webmanifest",
+    icons: {
+      icon: [
+        { url: "/icons/favicon-32.png", sizes: "32x32", type: "image/png" },
+        { url: "/icons/favicon-16.png", sizes: "16x16", type: "image/png" },
+      ],
+      apple: "/apple-touch-icon.png",
+    },
+    /*
+     * iOS ne lit pas le manifeste : c'est ce bloc, et lui seul, qui fait que
+     * « Sur l'écran d'accueil » ouvre l'application en plein écran au lieu de
+     * Safari avec sa barre d'adresse.
+     */
+    appleWebApp: {
+      capable: true,
+      title: SITE_CONFIG.site.name,
+      statusBarStyle: "black-translucent",
+    },
   };
 }
 

@@ -274,6 +274,7 @@ export async function generateMinimalCard(
     size: 25,
     showText: true,
     textColor: "#6b7280",
+    variant: "dark",
   });
 
   await addPlatformLogo(helper, platform, {

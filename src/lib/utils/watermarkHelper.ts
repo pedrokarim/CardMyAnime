@@ -14,6 +14,12 @@ export interface WatermarkOptions {
   /** Couleur du libellé. Les cartes claires ont besoin d'un gris plus sombre. */
   textColor?: string;
   /**
+   * Signe clair ou sombre. Le clair convient aux cartes sombres — la grande
+   * majorite — et le sombre aux cartes a fond clair, ou un signe blanc
+   * disparait purement et simplement.
+   */
+  variant?: "light" | "dark";
+  /**
    * Retrait depuis les bords. La carte « néon » a besoin de plus : ses deux
    * cadres lumineux courent le long du bord, et le filigrane les traversait.
    */
@@ -121,6 +127,7 @@ export async function addWatermark(
     size = 40,
     showText = true,
     textColor = "#8b93a1",
+    variant = "light",
   } = options;
 
   const ctx = (helper as any).ctx;
@@ -131,11 +138,13 @@ export async function addWatermark(
   ctx.globalAlpha = opacity;
 
   try {
+    const fichier =
+      variant === "dark"
+        ? "cma-logo-watermark-dark.png"
+        : "cma-logo-watermark.png";
     const logo =
-      (await getStaticAsset("watermark")) ??
-      (await canvasLoadImage(
-        process.cwd() + "/public/images/cma-logo-watermark.png"
-      ));
+      (await getStaticAsset(variant === "dark" ? "watermarkDark" : "watermark")) ??
+      (await canvasLoadImage(process.cwd() + "/public/images/" + fichier));
 
     // Le signe occupe la droite de la boîte, le libellé ce qui reste.
     const logoX = boite.x + boite.width - size;

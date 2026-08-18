@@ -69,6 +69,7 @@ let staticAssetsLoading: Promise<void> | null = null;
 
 const STATIC_ASSETS = {
   watermark: path.join(process.cwd(), "public", "images", "cma-logo-watermark.png"),
+  watermarkDark: path.join(process.cwd(), "public", "images", "cma-logo-watermark-dark.png"),
   background: path.join(process.cwd(), "public", "images", "thumbails-radial.png"),
   avatarFallback: path.join(process.cwd(), "public", "images", "avatar-fallback.png"),
   logoMal: path.join(process.cwd(), "public", "images", "MAL_Favicon_2020.png"),
