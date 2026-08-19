@@ -352,7 +352,16 @@ export async function fetchUserData(username: string): Promise<UserData> {
       stats: {
         animesSeen: user.statistics.anime.count,
         mangasRead: user.statistics.manga.count,
-        avgScore: Math.round(avgScore * 10) / 10,
+        /*
+         * AniList note sur **100**, MyAnimeList sur **10**, et tout
+         * l'affichage — cartes comme écran d'aperçu — suppose une note sur
+         * 10. D'où le « ★ 75 » qui s'affichait sur les cartes AniList.
+         *
+         * La conversion se fait ici, à la source, et non à l'affichage :
+         * autrement chaque endroit qui montre une note devrait savoir de
+         * quelle plateforme elle vient.
+         */
+        avgScore: Math.round(avgScore) / 10,
         totalEpisodes: user.statistics.anime.episodesWatched,
         totalChapters: user.statistics.manga.chaptersRead,
         daysWatched: Math.round(user.statistics.anime.minutesWatched / 1440), // 1440 minutes = 1 jour
