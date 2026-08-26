@@ -67,7 +67,7 @@ export default function TendancesPage() {
   // et se partage par lien. `history: "replace"` évite de polluer le bouton
   // Retour avec chaque bascule.
   const [viewMode, setViewMode] = useQueryState(
-    "vue",
+    "view",
     parseAsStringLiteral(VIEW_MODES).withDefault("grid").withOptions({
       history: "replace",
     })

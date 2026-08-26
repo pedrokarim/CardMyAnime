@@ -4,14 +4,23 @@ import {
   Eye,
   ChevronLeft,
   ChevronRight,
+  Loader2,
   Search,
   TrendingUp,
 } from "lucide-react";
+import { keepPreviousData } from "@tanstack/react-query";
 import { trpc } from "@/lib/trpc/client";
 import { useQueryState, parseAsStringLiteral } from "nuqs";
 import { useState } from "react";
 import Link from "next/link";
 import { PlatformIcon } from "@/components/ui/platform-icon";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { PageLoading } from "@/components/ui/loading";
 import { useDebouncedValue } from "@/lib/hooks/useDebouncedValue";
 import { buildCardPath } from "@/lib/cards/cardUrl";
@@ -27,18 +36,18 @@ type SortKey = (typeof SORT_KEYS)[number];
  * Flèche de pagination. En bout de liste il n'y a nulle part où aller : on
  * rend un élément inerte plutôt qu'un lien désactivé, qui reste cliquable.
  */
-function LienPagination({
+function PaginationLink({
   href,
-  actif,
-  libelle,
+  enabled,
+  label,
   children,
 }: {
   href: string;
-  actif: boolean;
-  libelle: string;
+  enabled: boolean;
+  label: string;
   children: React.ReactNode;
 }) {
-  if (!actif) {
+  if (!enabled) {
     return (
       <span
         aria-hidden="true"
@@ -52,7 +61,7 @@ function LienPagination({
   return (
     <Link
       href={href}
-      aria-label={libelle}
+      aria-label={label}
       className="p-2 rounded-lg border border-border hover:bg-accent transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary"
     >
       {children}
@@ -77,7 +86,7 @@ function generatePaginationRange(currentPage: number, totalPages: number) {
 
 export default function RankingPage() {
   const { t, langue } = useTraduction();
-  const formateurNombre = new Intl.NumberFormat(langue);
+  const numberFormatter = new Intl.NumberFormat(langue);
 
   // Recherche et tri vivent dans l'URL au même titre que la page : un
   // classement filtré doit pouvoir se partager par lien et survivre au
@@ -86,12 +95,12 @@ export default function RankingPage() {
   const [currentPage, setCurrentPage] = useQueryState("page", {
     defaultValue: "1",
   });
-  const [searchTerm, setSearchTerm] = useQueryState("recherche", {
+  const [searchTerm, setSearchTerm] = useQueryState("q", {
     defaultValue: "",
     history: "replace",
   });
   const [sortBy, setSortBy] = useQueryState(
-    "tri",
+    "sort",
     parseAsStringLiteral(SORT_KEYS).withDefault("views").withOptions({
       history: "replace",
     })
@@ -106,12 +115,20 @@ export default function RankingPage() {
   // base) : on n'interroge le serveur qu'une fois la saisie stabilisee.
   const debouncedSearch = useDebouncedValue(searchTerm.trim(), 350);
 
-  const { data, isLoading, error } = trpc.getTopCards.useQuery({
-    page: pageNumber,
-    limit: ITEMS_PER_PAGE,
-    search: debouncedSearch || undefined,
-    sortBy,
-  });
+  // `keepPreviousData` est le vrai correctif du debounce : sans lui, chaque
+  // nouveau terme produit une clé de requête inédite, `isLoading` repasse à
+  // vrai, la page bascule sur l'écran de chargement et le champ de recherche
+  // est démonté – donc vidé de son focus – toutes les 350 ms. On affiche les
+  // résultats précédents pendant que les nouveaux arrivent.
+  const { data, isLoading, isFetching, error } = trpc.getTopCards.useQuery(
+    {
+      page: pageNumber,
+      limit: ITEMS_PER_PAGE,
+      search: debouncedSearch || undefined,
+      sortBy,
+    },
+    { placeholderData: keepPreviousData }
+  );
 
   const displayUsers = data?.users || [];
   const displayTotalCount = data?.totalCount || 0;
@@ -122,11 +139,11 @@ export default function RankingPage() {
    * href, pas un onClick : Ctrl+clic, clic milieu et « ouvrir dans un nouvel
    * onglet » fonctionnent, et l'état est déjà dans l'URL de toute façon.
    */
-  const lienPage = (page: number) => {
+  const pageHref = (page: number) => {
     const params = new URLSearchParams();
     params.set("page", String(page));
-    if (searchTerm) params.set("recherche", searchTerm);
-    if (sortBy !== "views") params.set("tri", sortBy);
+    if (searchTerm) params.set("q", searchTerm);
+    if (sortBy !== "views") params.set("sort", sortBy);
     return `?${params.toString()}`;
   };
 
@@ -145,13 +162,13 @@ export default function RankingPage() {
   // La requête reste debouncée (350 ms) ; seul le retour à la page 1 quitte
   // l'effet. Un effet se déclenche aussi au montage, et ramenait un lien
   // partagé « page 3, filtré » sur la page 1 avant la moindre frappe.
-  const changerRecherche = (valeur: string) => {
-    setSearchTerm(valeur || null);
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value || null);
     if (pageNumber > 1) setCurrentPage("1");
   };
 
-  const changerTri = (valeur: SortKey) => {
-    setSortBy(valeur);
+  const handleSortChange = (value: SortKey) => {
+    setSortBy(value);
     if (pageNumber > 1) setCurrentPage("1");
   };
 
@@ -181,11 +198,14 @@ export default function RankingPage() {
     nautiljon: "Nautiljon",
   };
 
-  if (isLoading) {
+  // Uniquement au tout premier chargement. Ensuite il y a toujours quelque
+  // chose à afficher, et remplacer la page entière ferait disparaître le champ
+  // de recherche sous les doigts de l'utilisateur.
+  if (isLoading && !data) {
     return <PageLoading message={t.classement.chargement} />;
   }
 
-  if (error) {
+  if (error && !data) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-6">
         <div className="text-center max-w-md">
@@ -218,7 +238,7 @@ export default function RankingPage() {
                   : t.classement.titreParVues}{" "}
                 <span className="tabular-nums">
                   {t.classement.nombreProfils(
-                    formateurNombre.format(displayTotalCount)
+                    numberFormatter.format(displayTotalCount)
                   )}
                 </span>
               </h1>
@@ -232,7 +252,7 @@ export default function RankingPage() {
           <div className="flex flex-col gap-4 mb-4">
             {/* Recherche */}
             <div className="relative">
-              <label htmlFor="recherche-pseudo" className="sr-only">
+              <label htmlFor="search-username" className="sr-only">
                 {t.classement.rechercherLabel}
               </label>
               <Search
@@ -240,8 +260,8 @@ export default function RankingPage() {
                 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none"
               />
               <input
-                id="recherche-pseudo"
-                name="recherche"
+                id="search-username"
+                name="q"
                 type="search"
                 // Un pseudo n'est pas un mot : ni correction, ni majuscule
                 // automatique, ni suggestion du gestionnaire de mots de passe.
@@ -251,35 +271,55 @@ export default function RankingPage() {
                 spellCheck={false}
                 placeholder={t.classement.rechercherPlaceholder}
                 value={searchTerm}
-                onChange={(e) => changerRecherche(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-background border border-border rounded-lg text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary"
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="w-full pl-10 pr-10 py-3 bg-background border border-border rounded-lg text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary"
               />
+              {/* La recherche ne coupe plus la page : ce témoin est la seule
+                  chose qui bouge pendant qu'elle tourne. */}
+              {isFetching && (
+                <Loader2
+                  aria-hidden="true"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground"
+                />
+              )}
             </div>
 
             {/* Tri */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-2">
               <label
-                htmlFor="tri-classement"
+                htmlFor="sort-select"
                 className="text-sm text-muted-foreground"
               >
                 {t.classement.trierPar}
               </label>
-              <select
-                id="tri-classement"
-                name="tri"
+              <Select
                 value={sortBy}
-                onChange={(e) => changerTri(e.target.value as SortKey)}
-                // Couleurs explicites : sans elles, le <select> natif garde le
-                // fond blanc du système sur Windows en thème sombre.
-                className="px-3 py-2 bg-background text-foreground border border-border rounded-lg text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary"
+                onValueChange={(value) => handleSortChange(value as SortKey)}
               >
-                <option value="views">{t.classement.triVues}</option>
-                <option value="views24h">{t.classement.triVues24h}</option>
-                <option value="createdAt">{t.classement.triDate}</option>
-              </select>
+                {/* Le déclencheur est un <button>, donc bien un élément
+                    étiquetable : le htmlFor du label ci-dessus reste valide. */}
+                <SelectTrigger id="sort-select" className="w-full sm:w-56">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="views">{t.classement.triVues}</SelectItem>
+                  <SelectItem value="views24h">
+                    {t.classement.triVues24h}
+                  </SelectItem>
+                  <SelectItem value="createdAt">
+                    {t.classement.triDate}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
+
+        {error && (
+          <p role="status" className="mb-4 text-sm text-destructive">
+            {t.classement.erreurTexte}
+          </p>
+        )}
 
         <div className="space-y-2">
           {displayUsers.map((user: any, index: number) => {
@@ -319,7 +359,7 @@ export default function RankingPage() {
                         <div className="flex items-center gap-1">
                           <Eye aria-hidden="true" className="w-3 h-3 text-muted-foreground" />
                           <span className="text-sm font-medium tabular-nums">
-                            {formateurNombre.format(user.totalViews ?? 0)}
+                            {numberFormatter.format(user.totalViews ?? 0)}
                           </span>
                         </div>
                       </div>
@@ -327,7 +367,7 @@ export default function RankingPage() {
                         <div className="flex items-center gap-1">
                           <TrendingUp aria-hidden="true" className="w-3 h-3 text-muted-foreground" />
                           <span className="text-sm font-medium tabular-nums">
-                            {formateurNombre.format(user.totalViews24h ?? 0)}
+                            {numberFormatter.format(user.totalViews24h ?? 0)}
                           </span>
                         </div>
                       </div>
@@ -396,7 +436,7 @@ export default function RankingPage() {
                         <div className="flex items-center gap-1">
                           <Eye aria-hidden="true" className="w-3 h-3 text-muted-foreground" />
                           <span className="text-sm font-medium tabular-nums">
-                            {formateurNombre.format(user.totalViews ?? 0)}
+                            {numberFormatter.format(user.totalViews ?? 0)}
                           </span>
                         </div>
                         <p className="text-xs text-muted-foreground">{t.classement.vues}</p>
@@ -405,7 +445,7 @@ export default function RankingPage() {
                         <div className="flex items-center gap-1">
                           <TrendingUp aria-hidden="true" className="w-3 h-3 text-muted-foreground" />
                           <span className="text-sm font-medium tabular-nums">
-                            {formateurNombre.format(user.totalViews24h ?? 0)}
+                            {numberFormatter.format(user.totalViews24h ?? 0)}
                           </span>
                         </div>
                         <p className="text-xs text-muted-foreground">{t.classement.vues24h}</p>
@@ -449,13 +489,13 @@ export default function RankingPage() {
                             <div className="flex items-center gap-1">
                               <Eye aria-hidden="true" className="w-3 h-3 text-muted-foreground" />
                               <span className="text-xs tabular-nums">
-                                {formateurNombre.format(ct.views ?? 0)}
+                                {numberFormatter.format(ct.views ?? 0)}
                               </span>
                             </div>
                             <div className="flex items-center gap-1">
                               <TrendingUp aria-hidden="true" className="w-3 h-3 text-muted-foreground" />
                               <span className="text-xs tabular-nums">
-                                {formateurNombre.format(ct.views24h ?? 0)}
+                                {numberFormatter.format(ct.views24h ?? 0)}
                               </span>
                             </div>
                             <span className="text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity">
@@ -486,19 +526,19 @@ export default function RankingPage() {
         {displayTotalPages > 1 && (
           <nav aria-label={t.classement.pagination} className="mt-8 flex justify-center">
             <div className="flex items-center gap-2">
-              <LienPagination
-                href={lienPage(pageNumber - 1)}
-                actif={pageNumber > 1}
-                libelle={t.classement.pagePrecedente}
+              <PaginationLink
+                href={pageHref(pageNumber - 1)}
+                enabled={pageNumber > 1}
+                label={t.classement.pagePrecedente}
               >
                 <ChevronLeft aria-hidden="true" className="w-5 h-5" />
-              </LienPagination>
+              </PaginationLink>
 
               {generatePaginationRange(pageNumber, displayTotalPages).map(
                 (page) => (
                   <Link
                     key={page}
-                    href={lienPage(page)}
+                    href={pageHref(page)}
                     aria-label={t.classement.numeroPage(page)}
                     aria-current={page === pageNumber ? "page" : undefined}
                     className={`px-3 py-2 rounded-lg border tabular-nums transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary ${
@@ -512,13 +552,13 @@ export default function RankingPage() {
                 )
               )}
 
-              <LienPagination
-                href={lienPage(pageNumber + 1)}
-                actif={pageNumber < displayTotalPages}
-                libelle={t.classement.pageSuivante}
+              <PaginationLink
+                href={pageHref(pageNumber + 1)}
+                enabled={pageNumber < displayTotalPages}
+                label={t.classement.pageSuivante}
               >
                 <ChevronRight aria-hidden="true" className="w-5 h-5" />
-              </LienPagination>
+              </PaginationLink>
             </div>
           </nav>
         )}
