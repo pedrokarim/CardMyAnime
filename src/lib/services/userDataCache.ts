@@ -332,10 +332,8 @@ export class UserDataCacheService {
         },
       });
 
-      await prisma.$disconnect();
       return result.count;
     } catch (error) {
-      await prisma.$disconnect();
       console.error("❌ Erreur lors du nettoyage du cache:", error);
       return 0;
     }
@@ -410,15 +408,12 @@ export class UserDataCacheService {
         }),
       ]);
 
-      await prisma.$disconnect();
-
       return {
         totalEntries: total,
         expiredEntries: expired,
         validEntries: total - expired,
       };
     } catch (error) {
-      await prisma.$disconnect();
       console.error(
         "❌ Erreur lors de la récupération des stats du cache:",
         error

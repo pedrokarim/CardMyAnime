@@ -20,6 +20,15 @@ const pool =
 
 const adapter = new PrismaPg(pool);
 
+/**
+ * Client unique pour tout le processus, adossé à un pool `pg` lui aussi
+ * unique.
+ *
+ * Corollaire : **jamais** de `$disconnect()` dans le chemin d'une requête. Il
+ * ne libère pas « sa » connexion, il ferme le pool pour tout le monde – les
+ * requêtes concurrentes tombent avec, et les suivantes paient la reconnexion.
+ * Il n'a sa place que dans un script à durée de vie limitée.
+ */
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({

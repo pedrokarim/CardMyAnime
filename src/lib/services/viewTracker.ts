@@ -18,10 +18,12 @@ export class ViewTrackerService {
    * Récupère la vraie IP client derrière Nginx
    */
   private getClientIP(request: NextRequest): string {
+    // `request.ip` a disparu de NextRequest avec Next 15 : la branche ne
+    // valait plus rien, seuls les en-têtes posés par Nginx renseignent
+    // encore l'adresse.
     return (
       request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
       request.headers.get("x-real-ip") ||
-      request.ip ||
       "unknown"
     );
   }

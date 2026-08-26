@@ -12,6 +12,7 @@ import { Platform, CardType } from "@/lib/types";
 import { buildCardPath } from "@/lib/cards/cardUrl";
 import { PLATFORM_STATUS, platformDisabledReason } from "@/lib/platformStatus";
 import { prisma, ensurePrismaConnection } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 
 const platformSchema = z.enum(["anilist", "mal", "nautiljon"]);
 const cardTypeSchema = z.enum(["small", "medium", "large", "summary", "neon", "minimal", "glassmorphism"]);
@@ -246,7 +247,7 @@ export const appRouter = createTRPCRouter({
       try {
         await ensurePrismaConnection();
 
-        let whereClause: any = {};
+        const whereClause: Prisma.CardGenerationWhereInput = {};
 
         // Filtrer par recherche (pseudo)
         if (input.search && input.search.trim()) {
@@ -308,7 +309,7 @@ export const appRouter = createTRPCRouter({
         }
 
         // Convertir en tableau et trier
-        let users = Array.from(grouped.values());
+        const users = Array.from(grouped.values());
 
         switch (input.sortBy) {
           case "views24h":
@@ -335,7 +336,6 @@ export const appRouter = createTRPCRouter({
           currentPage: input.page,
         };
       } catch (error) {
-        await prisma.$disconnect();
         console.error("Erreur lors de la récupération du classement:", error);
         return {
           users: [],

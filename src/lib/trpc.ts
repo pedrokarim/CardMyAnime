@@ -1,5 +1,5 @@
 import { initTRPC } from "@trpc/server";
-import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
+import { type FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
 import { ZodError } from "zod";
 import superjson from "superjson";
 
@@ -13,10 +13,12 @@ const createInnerTRPCContext = (opts: CreateContextOptions) => {
   };
 };
 
-export const createTRPCContext = async (opts: CreateNextContextOptions) => {
-  const { req, res } = opts;
-
-  // TODO: Add session handling when Auth.js is configured
+// L'API est servie par l'App Router (`fetchRequestHandler`) : le contexte
+// doit porter les options de l'adaptateur `fetch`. Typé sur celles du Pages
+// Router, il promettait un `res` que l'adaptateur ne fournit jamais.
+export const createTRPCContext = async (_opts: FetchCreateContextFnOptions) => {
+  // TODO : brancher la session Auth.js le jour où une procédure en aura
+  // besoin. `protectedProcedure` rejette tout tant que ceci vaut null.
   const session = null;
 
   return createInnerTRPCContext({

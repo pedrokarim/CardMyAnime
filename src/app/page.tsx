@@ -27,7 +27,7 @@ const PLATFORM_LABELS: Record<Platform, string> = {
 import { trpc } from "@/lib/trpc/client";
 import { useQueryState } from "nuqs";
 import { PlatformIcon } from "@/components/ui/platform-icon";
-import { ButtonLoading } from "@/components/ui/loading";
+import { ButtonLoading, Loading } from "@/components/ui/loading";
 import { SITE_CONFIG } from "@/lib/constants";
 import Link from "next/link";
 import { captureCarteEchouee, captureCarteGeneree, captureEtape } from "@/lib/analytics";
@@ -153,23 +153,29 @@ export default function HomePage() {
 
   // Récupération automatique des données au chargement de la page
   useEffect(() => {
+    // `!error` ferme la boucle : l'échec repasse `isLoading` à faux sans
+    // produire de `userData`, et l'effet se relancerait indéfiniment sur la
+    // même requête vouée à échouer. Une nouvelle recherche remet l'erreur à
+    // null et rouvre le passage.
     if (
       currentStep === "preview" &&
       platform &&
       username?.trim() &&
       !userData &&
-      !isLoading
+      !isLoading &&
+      !error
     ) {
-      console.log("Récupération automatique des données pour:", {
-        platform,
-        username,
-      });
+      // Sans ce drapeau, rien ne dit que la récupération est en cours : la
+      // garde `!isLoading` ci-dessus ne retient plus rien (un changement de
+      // format relançait une seconde requête par-dessus la première) et
+      // l'étape d'aperçu n'avait aucun moyen d'afficher une attente.
+      setIsLoading(true);
       fetchUserDataMutation.mutate({
         platform: platform as Platform,
         username: username.trim(),
       });
     }
-  }, [currentStep, platform, username, userData, isLoading, cardType]);
+  }, [currentStep, platform, username, userData, isLoading, error, cardType]);
 
   const fetchUserDataMutation = trpc.fetchUserData.useMutation({
     onSuccess: async (result) => {
@@ -573,7 +579,7 @@ export default function HomePage() {
                   className="gap-2 px-8 py-3"
                 >
                   <ArrowLeft className="h-4 w-4" />
-                  Retour
+                  {t.commun.retour}
                 </Button>
               </div>
             )}
@@ -584,6 +590,36 @@ export default function HomePage() {
                 colonne de partage sous le pli. */}
             {currentStep === "preview" && (
               <div>
+                {/* Arriver ici par un lien partagé ou un rechargement lance la
+                    récupération tout seul. Tant qu'elle n'a pas abouti il n'y
+                    a pas de `userData` : sans les deux branches ci-dessous,
+                    l'écran restait vide – et définitivement vide en cas
+                    d'échec, l'erreur n'ayant nulle part où s'afficher. */}
+                {!userData && !error && (
+                  <div className="py-16">
+                    <Loading size="lg" message={t.accueil.recuperation} />
+                  </div>
+                )}
+
+                {!userData && error && (
+                  <div
+                    aria-live="polite"
+                    className="mx-auto flex max-w-xl flex-col items-center gap-4"
+                  >
+                    <div className="w-full rounded-xl border border-destructive/30 bg-destructive/20 p-4 text-center">
+                      <p className="text-destructive">{error}</p>
+                    </div>
+                    <Button
+                      onClick={goToPreviousStep}
+                      variant="outline"
+                      className="gap-2 px-8 py-3"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                      {t.commun.retour}
+                    </Button>
+                  </div>
+                )}
+
                 {userData && (
                   <CardPreview
                     userData={userData}
