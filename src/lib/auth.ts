@@ -1,67 +1,27 @@
-import { PrismaAdapter } from "@auth/prisma-adapter";
-import Discord from "next-auth/providers/discord";
-import type { NextAuthConfig } from "next-auth";
-import NextAuth from "next-auth";
-import { prisma } from "./prisma";
+import "server-only";
 
-// Récupérer la liste des utilisateurs autorisés depuis les variables d'environnement
-const AUTHORIZED_USERS =
-  process.env.AUTHORIZED_USERS?.split(",")
-    .map((id) => id.trim())
-    .filter(Boolean) || [];
+import { cookies } from "next/headers";
+import {
+  ASCENCIA_SESSION_COOKIE,
+  readAscenciaSession,
+} from "@/lib/ascencia/session";
 
-export const authConfig: NextAuthConfig = {
-  adapter: PrismaAdapter(prisma),
-  trustHost: true, // Permettre tous les hôtes (pour le déploiement)
-  providers: [
-    Discord({
-      clientId: process.env.DISCORD_CLIENT_ID!,
-      clientSecret: process.env.DISCORD_CLIENT_SECRET!,
-    }),
-  ],
-  callbacks: {
-    async signIn({ user, account, profile }: any) {
-      // Vérifier si l'utilisateur Discord est autorisé
-      if (account?.provider === "discord" && profile?.id) {
-        const isAuthorized = AUTHORIZED_USERS.includes(profile.id as string);
+/** Session serveur minimale, compatible avec les gardes admin existantes. */
+export async function auth() {
+  const cookieStore = await cookies();
+  const current = await readAscenciaSession(
+    cookieStore.get(ASCENCIA_SESSION_COOKIE)?.value,
+  );
+  if (!current) return null;
 
-        if (!isAuthorized) {
-          console.log(
-            `🔒 Tentative de connexion non autorisée: ${profile.id} (${user.name})`
-          );
-          return false; // Refuser la connexion
-        }
-
-        console.log(`✅ Connexion autorisée: ${profile.id} (${user.name})`);
-        return true;
-      }
-
-      return false; // Refuser les autres providers
+  return {
+    user: {
+      id: current.user.id,
+      name: current.user.display_name,
+      email: current.user.email,
+      image: current.user.avatar_url,
+      roles: current.claims.roles ?? [],
+      platformRoles: current.claims.prole ?? [],
     },
-    async jwt({ token, user, account, profile }: any) {
-      // Ajouter l'ID utilisateur et l'avatar au token lors de la première connexion
-      if (account?.provider === "discord" && profile?.id) {
-        token.id = profile.id;
-        token.avatar = profile.avatar_url || user.image;
-      }
-      return token;
-    },
-    async session({ session, token }: any) {
-      // Ajouter l'ID utilisateur et l'avatar à la session depuis le token
-      if (session.user && token.id) {
-        session.user.id = token.id as string;
-        session.user.image = token.avatar as string;
-      }
-      return session;
-    },
-  },
-  pages: {
-    signIn: "/auth/signin",
-    error: "/auth/error",
-  },
-  session: {
-    strategy: "jwt" as const,
-  },
-};
-
-export const { auth, handlers } = NextAuth(authConfig);
+  };
+}

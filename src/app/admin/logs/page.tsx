@@ -1,6 +1,6 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { useAscenciaSession as useSession } from "@/lib/ascencia/client";
 import { useState, useEffect } from "react";
 import { Trash2, RefreshCw, Eye, Database } from "lucide-react";
 import { ButtonLoading, InlineLoading } from "@/components/ui/loading";

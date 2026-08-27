@@ -1,6 +1,6 @@
 "use client";
 
-import { useSession, signOut } from "next-auth/react";
+import { signOut, useAscenciaSession as useSession } from "@/lib/ascencia/client";
 import { usePathname } from "next/navigation";
 import {
   Sidebar,
@@ -43,7 +43,7 @@ export function AdminSidebar() {
   const pathname = usePathname();
 
   const handleSignOut = () => {
-    signOut({ callbackUrl: "/" });
+    signOut(true);
   };
 
   const navItems = [

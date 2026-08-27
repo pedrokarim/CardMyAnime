@@ -133,16 +133,14 @@ DATABASE_URL="file:./dev.db"  # SQLite
 DATABASE_URL="postgresql://user:password@localhost:5432/cardmyanime"  # PostgreSQL
 DIRECT_URL="postgresql://user:password@localhost:5432/cardmyanime"    # For Prisma migrations
 
-# NextAuth
-NEXTAUTH_SECRET="your-secret-key"
-NEXTAUTH_URL="http://localhost:3000"
-
-# Discord OAuth
-DISCORD_CLIENT_ID="your-discord-client-id"
-DISCORD_CLIENT_SECRET="your-discord-client-secret"
-
-# Authorized admin users (comma-separated Discord IDs)
-AUTHORIZED_USERS="123456789012345678"
+# Ascencia ID (widget, confidential client, encrypted local session)
+ASCENCIA_ISSUER="https://id.ascencia.re"
+ASCENCIA_CLIENT_ID="asc_cid_..."
+ASCENCIA_CLIENT_SECRET="asc_cs_..."
+ASCENCIA_SESSION_SECRET="a-secure-random-key"
+NEXT_PUBLIC_ASCENCIA_ISSUER="https://id.ascencia.re"
+NEXT_PUBLIC_ASCENCIA_CLIENT_ID="asc_cid_..."
+NEXT_PUBLIC_ASCENCIA_REDIRECT_URI="http://localhost:3000/auth/callback"
 
 # reCAPTCHA
 NEXT_PUBLIC_RECAPTCHA_SITE_KEY="your-site-key"
@@ -169,7 +167,7 @@ See the [full documentation](docs/) for more details:
 - [API](docs/API.en.md) - Complete endpoint reference
 - [Database](docs/DATABASE.en.md) - Prisma schema, SQLite/PostgreSQL setup
 - [Deployment](docs/DEPLOYMENT.en.md) - Docker, environment variables
-- [Authentication](docs/AUTHENTICATION.en.md) - Discord OAuth setup
+- [Authentication](docs/AUTHENTICATION.en.md) - Ascencia ID setup
 
 ## 🏗️ Architecture
 
@@ -343,7 +341,7 @@ The `deploy.sh` script provides convenient commands:
 | **State** | tRPC + React Query, Nuqs (URL state) |
 | **Backend** | Next.js API Routes, tRPC |
 | **Database** | Prisma 7.1, PostgreSQL 17 / SQLite |
-| **Auth** | NextAuth 5 (Discord OAuth) |
+| **Auth** | Ascencia ID widget, OpenID Connect + PKCE, encrypted server session |
 | **Security** | reCAPTCHA v2, fingerprinting |
 | **Testing** | Vitest |
 | **DevOps** | Docker, Bun, Turbopack, ESLint |

@@ -1,48 +1,56 @@
 "use client";
 
-import { signIn, getSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { ShieldCheck } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
+import Script from "next/script";
+import { useEffect, useState } from "react";
+import { useAscenciaSession } from "@/lib/ascencia/client";
+import { ascenciaWidgetProps } from "@/lib/ascencia/widget";
 import { SITE_CONFIG } from "@/lib/constants";
-import { DiscordIcon } from "@/components/ui/discord-icon";
 import { useTraduction } from "@/lib/i18n/client";
 
 export default function SignInPage() {
   const { t } = useTraduction();
-  const [isLoading, setIsLoading] = useState(false);
+  const { status, refresh } = useAscenciaSession();
+  const [isWidgetReady, setIsWidgetReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    // Vérifier si l'utilisateur est déjà connecté
-    getSession().then((session: any) => {
-      if (session) {
-        router.push("/admin");
-      }
+    if (status === "authenticated") router.replace("/admin");
+  }, [router, status]);
+
+  useEffect(() => {
+    if (!isWidgetReady || !window.AscenciaID) return;
+
+    const unsubscribeSignIn = window.AscenciaID.on("signin", () => {
+      void refresh().then(() => router.replace("/admin"));
     });
-  }, [router]);
-
-  const handleDiscordSignIn = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      await signIn("discord", {
-        callbackUrl: "/admin",
-      });
-    } catch (error) {
+    const unsubscribeError = window.AscenciaID.on("error", () => {
       setError(t.auth.erreurConnexion);
-      setIsLoading(false);
-    }
-  };
+    });
+
+    return () => {
+      unsubscribeSignIn();
+      unsubscribeError();
+    };
+  }, [isWidgetReady, refresh, router, t.auth.erreurConnexion]);
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
+      <Script
+        {...ascenciaWidgetProps}
+        strategy="afterInteractive"
+        onReady={() => setIsWidgetReady(true)}
+        onError={() => setError(t.auth.erreurChargementWidget)}
+      />
+
       <div className="w-full max-w-md">
         <div className="bg-card border border-border rounded-lg p-8">
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
-              <img
+              <Image
                 src={SITE_CONFIG.site.logo}
                 alt=""
                 width={64}
@@ -68,19 +76,17 @@ export default function SignInPage() {
           </div>
 
           <button
-            onClick={handleDiscordSignIn}
-            disabled={isLoading}
-            aria-busy={isLoading}
-            className="w-full flex items-center justify-center gap-3 bg-[#5865F2] hover:bg-[#4752C4] disabled:opacity-50 text-white font-medium py-3 px-4 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            type="button"
+            data-ascencia-login=""
+            disabled={!isWidgetReady}
+            className="w-full flex items-center justify-center gap-3 bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground font-medium py-3 px-4 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
-            <DiscordIcon aria-hidden="true" className="w-5 h-5" />
-            {isLoading ? t.auth.connexion : t.auth.connexionDiscord}
+            <ShieldCheck aria-hidden="true" className="w-5 h-5" />
+            {isWidgetReady ? t.auth.connexionAscencia : t.auth.chargementWidget}
           </button>
 
           <div className="mt-6 text-center">
-            <p className="text-xs text-muted-foreground">
-              {t.auth.noteAcces}
-            </p>
+            <p className="text-xs text-muted-foreground">{t.auth.noteAcces}</p>
           </div>
         </div>
       </div>

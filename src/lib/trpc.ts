@@ -17,7 +17,7 @@ const createInnerTRPCContext = (opts: CreateContextOptions) => {
 // doit porter les options de l'adaptateur `fetch`. Typé sur celles du Pages
 // Router, il promettait un `res` que l'adaptateur ne fournit jamais.
 export const createTRPCContext = async (_opts: FetchCreateContextFnOptions) => {
-  // TODO : brancher la session Auth.js le jour où une procédure en aura
+  // TODO : brancher la session Ascencia le jour où une procédure en aura
   // besoin. `protectedProcedure` rejette tout tant que ceci vaut null.
   const session = null;
 

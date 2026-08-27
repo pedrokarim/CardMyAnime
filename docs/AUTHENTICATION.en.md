@@ -1,87 +1,80 @@
 # Authentication
 
-> 🇫🇷 [Version francaise](AUTHENTICATION.md)
+> 🇫🇷 [Version française](AUTHENTICATION.md)
 
-Authentication uses **NextAuth v5** (Auth.js) with the **Discord OAuth** provider and a **JWT** strategy (no database sessions).
+The administration area uses the **Ascencia ID widget** directly. The former
+Discord/Auth.js flow is no longer executed. The public website remains
+available without an account; only `/admin` pages and administration APIs
+require a session.
 
-## How It Works
+## How it works
 
-1. The user signs in via Discord OAuth at `/auth/signin`
-2. The `signIn` callback verifies the Discord ID is in the `AUTHORIZED_USERS` list
-3. If authorized: a JWT token is created with the Discord ID and avatar
-4. If unauthorized: sign-in is rejected (`return false`)
+1. The widget opens Ascencia ID in a popup and falls back to a full-page
+   redirect when the popup is blocked.
+2. Ascencia ID evaluates the CardMyAnime application access policy.
+3. The widget sends the code and PKCE verifier to `/api/auth/exchange`.
+4. The CardMyAnime server exchanges the code with its client secret, verifies
+   the token signature, then loads the OIDC profile.
+5. Tokens are encrypted with AES-256-GCM in `AscenciaSession`. The browser only
+   receives a random session identifier in an `HttpOnly`, `SameSite=Lax`
+   cookie that is also `Secure` in production.
 
-Only users whose Discord ID is listed in `AUTHORIZED_USERS` can access the admin panel.
+The client secret and OAuth tokens are therefore never exposed to interface
+JavaScript.
+
+## Access policy
+
+The `AUTHORIZED_USERS` allowlist is gone. The application lives in Ascencia
+ID's `platform` realm with a `role_gated` policy:
+
+- the CardMyAnime member role admits approved users;
+- `platform:superadmin` admits platform superadmins;
+- an approved request grants the default member role;
+- a denial or ban always takes precedence.
+
+Access can therefore be managed in Ascencia ID without redeploying
+CardMyAnime.
 
 ## Configuration
 
-### 1. Create a Discord Application
+The Ascencia ID client is a confidential `web` client. Its redirect URIs are:
 
-1. Go to [Discord Developer Portal](https://discord.com/developers/applications)
-2. **New Application** → name it (e.g., "CardMyAnime Admin")
-3. **OAuth2** section → copy **Client ID** and **Client Secret**
-4. **OAuth2 → Redirects** → add:
-   - Dev: `http://localhost:3000/api/auth/callback/discord`
-   - Prod: `https://cma.ascencia.re/api/auth/callback/discord`
+- development: `http://localhost:3000/auth/callback`;
+- production: `https://cma.ascencia.re/auth/callback`.
 
-### 2. Environment Variables
+Popup mode internally uses `https://id.ascencia.re/embed/callback`. The
+`https://cma.ascencia.re` origin must also be allowed.
 
 ```env
-NEXTAUTH_URL="http://localhost:3000"
-NEXTAUTH_SECRET="a-secure-random-key"
-DISCORD_CLIENT_ID="your-client-id"
-DISCORD_CLIENT_SECRET="your-client-secret"
-AUTHORIZED_USERS="123456789012345678,987654321098765432"
+ASCENCIA_ISSUER="https://id.ascencia.re"
+ASCENCIA_CLIENT_ID="asc_cid_..."
+ASCENCIA_CLIENT_SECRET="asc_cs_..."
+ASCENCIA_SESSION_SECRET="a-secure-random-key"
+NEXT_PUBLIC_ASCENCIA_ISSUER="https://id.ascencia.re"
+NEXT_PUBLIC_ASCENCIA_CLIENT_ID="asc_cid_..."
+NEXT_PUBLIC_ASCENCIA_REDIRECT_URI="http://localhost:3000/auth/callback"
 ```
 
-- `NEXTAUTH_SECRET`: random string to sign JWTs. Generate with `openssl rand -base64 32`.
-- `AUTHORIZED_USERS`: comma-separated Discord IDs, no spaces.
+Generate `ASCENCIA_SESSION_SECRET` with `openssl rand -base64 32`. Never commit
+either secret.
 
-### 3. Get a Discord ID
+## Routes
 
-1. Discord → Settings → Advanced → **Developer Mode** (enable)
-2. Right-click a user → **Copy ID**
-
-## Source Code
-
-Configuration is in `src/lib/auth.ts`:
-
-```typescript
-// Authorized IDs list from .env
-const AUTHORIZED_USERS = process.env.AUTHORIZED_USERS?.split(",")
-  .map((id) => id.trim())
-  .filter(Boolean) || [];
-
-// signIn callback: Discord ID verification
-async signIn({ account, profile }) {
-  if (account?.provider === "discord" && profile?.id) {
-    return AUTHORIZED_USERS.includes(profile.id as string);
-  }
-  return false;
-}
-```
-
-Auth routes are exposed via `src/app/api/auth/[...nextauth]/route.ts`.
-
-## Pages
-
-| URL | Description |
-|-----|-------------|
-| `/auth/signin` | Sign-in page (Discord button) |
-| `/auth/error` | Authentication error page |
-| `/admin` | Admin panel (protected) |
-
-## Security
-
-- The **Client Secret** must never be committed to the repo
-- **NEXTAUTH_SECRET** must be unique per environment
-- The **AUTHORIZED_USERS** list must not be publicly exposed
-- JWT strategy avoids storing sessions in the database
+| URL                  | Description                                                 |
+| -------------------- | ----------------------------------------------------------- |
+| `/auth/signin`       | Loads the widget and starts sign-in                         |
+| `/auth/callback`     | Completes the redirect fallback                             |
+| `/api/auth/exchange` | Exchanges the code server-side and creates the cookie       |
+| `/api/auth/session`  | Returns the current minimal session state                   |
+| `/api/auth/signout`  | Deletes the local session and optionally signs out from SSO |
+| `/admin`             | Protected administration area                               |
 
 ## Troubleshooting
 
-| Issue | Solution |
-|-------|----------|
-| "Unauthorized access" | Verify the Discord ID is in `AUTHORIZED_USERS` (no spaces) |
-| Redirect error | Verify the callback URL is configured in Discord portal |
-| Invalid token | Verify `NEXTAUTH_SECRET` and `NEXTAUTH_URL` |
+| Issue                            | Check                                                                           |
+| -------------------------------- | ------------------------------------------------------------------------------- |
+| Access denied by Ascencia ID     | Check the CardMyAnime role or `platform:superadmin`                             |
+| `redirect_uri_mismatch`          | Check the exact `/auth/callback` URI and allowed origin                         |
+| Widget remains in loading state  | Check all three `NEXT_PUBLIC_ASCENCIA_*` variables at build time                |
+| Exchange returns 401             | Check `ASCENCIA_CLIENT_SECRET` and Ascencia ID logs                             |
+| Session disappears after restart | Check the `AscenciaSession` migration and keep `ASCENCIA_SESSION_SECRET` stable |

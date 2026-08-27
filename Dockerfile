@@ -37,8 +37,7 @@ COPY prisma.config.ts ./
 # Copie le schéma Prisma pour le postinstall
 COPY prisma/ ./prisma/
 
-# Installe les dépendances (dev incluses pour build)
-# Utilise --legacy-peer-deps pour résoudre le conflit entre Next.js 15 et @auth/nextjs
+# Installe les dépendances de développement nécessaires à la construction.
 RUN npm install --legacy-peer-deps
 
 # Copie le reste du code source

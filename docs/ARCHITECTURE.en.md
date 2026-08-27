@@ -208,7 +208,7 @@ interface UserData {
 | **Card rendering** | node-canvas, Sharp (WebP conversion) |
 | **Backend** | Next.js 15 App Router, tRPC |
 | **Database** | Prisma 7.1 + pg.Pool (PostgreSQL adapter) |
-| **Auth** | NextAuth v5 / Auth.js (Discord, JWT) |
+| **Auth** | Ascencia ID widget, OIDC + PKCE, encrypted server session |
 | **Security** | reCAPTCHA v3, SHA-256 fingerprinting |
 | **Scheduler** | Internal cron polling with EventEmitter (SSE) |
 | **Build** | Bun (runtime), Turbopack (bundler), Docker multi-stage |
