@@ -9,21 +9,35 @@ on:
 jobs:
   build-test:
     runs-on: ubuntu-latest
-    
+
+    env:
+      DATABASE_URL: postgresql://cardmyanime:cardmyanime@127.0.0.1:5432/cardmyanime
+      DIRECT_URL: postgresql://cardmyanime:cardmyanime@127.0.0.1:5432/cardmyanime
+      ASCENCIA_ISSUER: https://id.ascencia.re
+      ASCENCIA_CLIENT_ID: asc_cid_ci
+      ASCENCIA_CLIENT_SECRET: asc_cs_ci
+      ASCENCIA_SESSION_SECRET: ci-only-session-secret
+      NEXT_PUBLIC_ASCENCIA_ISSUER: https://id.ascencia.re
+      NEXT_PUBLIC_ASCENCIA_CLIENT_ID: asc_cid_ci
+      NEXT_PUBLIC_ASCENCIA_REDIRECT_URI: http://localhost:3000/auth/callback
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Bun
-      uses: oven-sh/setup-bun@v1
-      with:
-        bun-version: latest
-        
-    - name: Install dependencies
-      run: bun install
-      
-    - name: Test build
-      run: bun run build
-      
-    - name: Build success
-      run: echo "✅ Build successful!"
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck
+        run: bun x tsc --noEmit
+
+      - name: Tests
+        run: bun run test
+
+      - name: Test build
+        run: bun run build
