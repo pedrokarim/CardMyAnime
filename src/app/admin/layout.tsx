@@ -7,7 +7,8 @@ import { Menu } from "lucide-react";
 import { AdminBreadcrumbs } from "./partials/admin-breadcrumbs";
 import { AdminSidebar } from "./partials/admin-sidebar";
 import { AdminAuthWrapper } from "./partials/admin-auth-wrapper";
-import { Separator } from "@/components/ui/separator";
+import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 export const metadata = {
   title: "Administration - CardMyAnime",
@@ -18,11 +19,14 @@ export const metadata = {
   },
 };
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await auth();
+  if (!session) redirect("/auth/signin");
+
   return (
     <AdminAuthWrapper>
       <SidebarProvider>

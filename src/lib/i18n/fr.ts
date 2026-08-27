@@ -377,19 +377,25 @@ export const fr = {
     titreAdmin: "Administration",
     sousTitreAdmin:
       "Connexion requise pour accéder aux fonctionnalités d'administration",
-    connexionDiscord: "Se connecter avec Discord",
+    connexionAscencia: "Se connecter avec Ascencia ID",
     connexion: "Connexion…",
+    chargementWidget: "Chargement d’Ascencia ID…",
+    erreurChargementWidget:
+      "Ascencia ID n’a pas pu être chargé. Vérifiez votre connexion puis réessayez.",
+    verificationConnexion: "Vérification de la connexion",
+    verificationConnexionDetail:
+      "Ascencia ID termine la connexion et prépare votre espace d’administration.",
     erreurConnexion: "Erreur lors de la connexion",
     noteAcces:
-      "Seuls les utilisateurs Discord autorisés peuvent accéder à cette section",
+      "Seuls les comptes autorisés dans Ascencia ID peuvent accéder à cette section",
 
     erreurTitre: "Erreur de connexion",
     accesRefuse:
-      "Accès refusé : ce compte Discord ne fait pas partie des administrateurs autorisés. Contactez l'équipe si vous pensez que c'est une erreur.",
+      "Accès refusé : ce compte n'est pas autorisé pour CardMyAnime. Demandez l'accès dans Ascencia ID si vous pensez que c'est une erreur.",
     erreurConfiguration:
       "Le serveur d'authentification est mal configuré. Signalez-le à l'équipe : la connexion restera impossible d'ici là.",
     erreurVerification:
-      "La vérification de votre compte a échoué. Réessayez la connexion ; si l'erreur revient, déconnectez-vous de Discord puis recommencez.",
+      "La vérification de votre compte a échoué. Réessayez la connexion ; si l'erreur revient, déconnectez-vous d'Ascencia ID puis recommencez.",
     erreurGenerique: "La connexion n'a pas abouti. Réessayez dans un instant.",
     retourConnexion: "Retour à la connexion",
     retourAccueil: "Retour à l'accueil",

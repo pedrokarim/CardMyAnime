@@ -356,18 +356,24 @@ export const en: Dictionnaire = {
   auth: {
     titreAdmin: "Administration",
     sousTitreAdmin: "Sign in to access the administration features",
-    connexionDiscord: "Sign in with Discord",
+    connexionAscencia: "Sign in with Ascencia ID",
     connexion: "Signing in…",
+    chargementWidget: "Loading Ascencia ID…",
+    erreurChargementWidget:
+      "Ascencia ID could not be loaded. Check your connection and try again.",
+    verificationConnexion: "Checking your sign-in",
+    verificationConnexionDetail:
+      "Ascencia ID is completing the sign-in and preparing your administration area.",
     erreurConnexion: "Sign-in failed",
-    noteAcces: "Only authorised Discord accounts can access this section",
+    noteAcces: "Only accounts authorised in Ascencia ID can access this section",
 
     erreurTitre: "Sign-in error",
     accesRefuse:
-      "Access denied: this Discord account is not among the authorised administrators. Contact the team if you believe this is a mistake.",
+      "Access denied: this account is not authorised for CardMyAnime. Request access in Ascencia ID if you believe this is a mistake.",
     erreurConfiguration:
       "The authentication server is misconfigured. Report it to the team: signing in will keep failing until then.",
     erreurVerification:
-      "Your account could not be verified. Try signing in again; if the error persists, sign out of Discord and start over.",
+      "Your account could not be verified. Try signing in again; if the error persists, sign out of Ascencia ID and start over.",
     erreurGenerique: "Sign-in did not complete. Try again in a moment.",
     retourConnexion: "Back to sign-in",
     retourAccueil: "Back to home",

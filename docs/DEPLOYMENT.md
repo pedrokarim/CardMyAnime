@@ -10,11 +10,13 @@
 |----------|-------------|---------|
 | `DATABASE_URL` | URL de connexion PostgreSQL ou SQLite | `postgresql://user:pass@host:5432/db?schema=public` |
 | `DIRECT_URL` | URL directe PostgreSQL (pour les migrations Prisma) | Meme valeur que `DATABASE_URL` |
-| `NEXTAUTH_URL` | URL publique de l'application | `https://cma.ascencia.re` |
-| `NEXTAUTH_SECRET` | Cle secrete pour les JWT | `openssl rand -base64 32` |
-| `DISCORD_CLIENT_ID` | Client ID de l'app Discord OAuth | — |
-| `DISCORD_CLIENT_SECRET` | Client Secret Discord | — |
-| `AUTHORIZED_USERS` | IDs Discord autorises (virgule) | `"id1,id2"` |
+| `ASCENCIA_ISSUER` | Issuer OpenID Connect | `https://id.ascencia.re` |
+| `ASCENCIA_CLIENT_ID` | Identifiant du client CardMyAnime | `asc_cid_...` |
+| `ASCENCIA_CLIENT_SECRET` | Secret du client confidentiel | `asc_cs_...` |
+| `ASCENCIA_SESSION_SECRET` | Clé de chiffrement des jetons en base | `openssl rand -base64 32` |
+| `NEXT_PUBLIC_ASCENCIA_ISSUER` | Issuer injecté dans le widget | `https://id.ascencia.re` |
+| `NEXT_PUBLIC_ASCENCIA_CLIENT_ID` | Identifiant public injecté dans le widget | `asc_cid_...` |
+| `NEXT_PUBLIC_ASCENCIA_REDIRECT_URI` | Retour public de connexion | `https://cma.ascencia.re/auth/callback` |
 
 ### Optionnelles
 

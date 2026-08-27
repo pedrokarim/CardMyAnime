@@ -6,7 +6,7 @@ import { useState } from "react";
 import { MotionConfig } from "framer-motion";
 import { trpc } from "@/lib/trpc/client";
 import superjson from "superjson";
-import { SessionProvider } from "next-auth/react";
+import { AscenciaSessionProvider } from "@/lib/ascencia/client";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -23,7 +23,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <SessionProvider>
+    <AscenciaSessionProvider>
       <trpc.Provider client={trpcClient} queryClient={queryClient}>
         <QueryClientProvider client={queryClient}>
           <ThemeProvider
@@ -39,6 +39,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
           </ThemeProvider>
         </QueryClientProvider>
       </trpc.Provider>
-    </SessionProvider>
+    </AscenciaSessionProvider>
   );
 }
