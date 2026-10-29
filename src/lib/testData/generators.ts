@@ -12,7 +12,7 @@ export interface TestCard {
 
 // Configuration des données de test
 const TEST_CONFIG = {
-  platforms: ["anilist", "mal", "kitsu", "nautiljon"] as const,
+  platforms: ["anilist", "mal", "kitsu", "shikimori", "bangumi", "nautiljon"] as const,
   cardTypes: ["small", "medium", "large", "summary", "neon", "minimal", "glassmorphism"] as const,
   usernames: [
     "PedroKarim64",

@@ -196,6 +196,8 @@ export default function RankingPage() {
     anilist: "AniList",
     mal: "MyAnimeList",
     kitsu: "Kitsu",
+    shikimori: "Shikimori",
+    bangumi: "Bangumi",
     nautiljon: "Nautiljon",
   };
 

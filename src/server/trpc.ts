@@ -234,6 +234,8 @@ export const appRouter = createTRPCRouter({
       { value: "anilist", label: "AniList" },
       { value: "mal", label: "MyAnimeList" },
       { value: "kitsu", label: "Kitsu" },
+      { value: "shikimori", label: "Shikimori" },
+      { value: "bangumi", label: "Bangumi" },
       { value: "nautiljon", label: "Nautiljon" },
     ].map((platform) => ({
       ...platform,

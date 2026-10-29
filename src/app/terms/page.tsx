@@ -98,6 +98,9 @@ export default async function TermsPage() {
             <li>
               <strong>{t.conditions.s4aPerf}</strong> {t.conditions.s4aPerfTexte}
             </li>
+            <li>
+              <strong>{t.conditions.s4aVisits}</strong> {t.conditions.s4aVisitsText}
+            </li>
           </ul>
 
           <h3 className="text-xl font-medium mb-3 scroll-mt-24">
@@ -141,8 +144,35 @@ export default async function TermsPage() {
               </a>
             </li>
             <li>
+              <strong translate="no">Shikimori :</strong>{" "}
+              {t.conditions.s4bShikimori}{" "}
+              <a
+                href="https://shikimori.io/api/doc"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                shikimori.io
+              </a>
+            </li>
+            <li>
+              <strong translate="no">Bangumi :</strong>{" "}
+              {t.conditions.s4bBangumi}{" "}
+              <a
+                href="https://bangumi.github.io/api/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                bgm.tv
+              </a>
+            </li>
+            <li>
               <strong translate="no">Nautiljon :</strong>{" "}
               {t.conditions.s4bNautiljon}
+            </li>
+            <li>
+              <strong>{t.conditions.s4bWorks}</strong> {t.conditions.s4bWorksText}
             </li>
           </ul>
 

@@ -1,7 +1,7 @@
 export const metadata = {
   title: "Classement des cartes - CardMyAnime",
   description:
-    "Découvrez les cartes de profil anime les plus populaires. Classement par vues, vues 24h et date de création sur AniList, MyAnimeList, Kitsu et Nautiljon.",
+    "Découvrez les cartes de profil anime les plus populaires. Classement par vues, vues 24h et date de création sur AniList, MyAnimeList, Kitsu, Shikimori, Bangumi et Nautiljon.",
   keywords: [
     "classement",
     "cartes anime",

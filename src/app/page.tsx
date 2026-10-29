@@ -24,6 +24,8 @@ const PLATFORM_LABELS: Record<Platform, string> = {
   anilist: "AniList",
   mal: "MyAnimeList",
   kitsu: "Kitsu",
+  shikimori: "Shikimori",
+  bangumi: "Bangumi",
   nautiljon: "Nautiljon",
 };
 import { trpc } from "@/lib/trpc/client";

@@ -2,8 +2,20 @@ import { NextRequest } from "next/server";
 import { createHash } from "crypto";
 import { prisma, ensurePrismaConnection } from "@/lib/prisma";
 
+/**
+ * Écart minimal entre deux nettoyages des journaux de vues expirés.
+ *
+ * Chaque journal garde l'IP et le navigateur d'un visiteur pendant une heure,
+ * le temps de ne compter qu'une vue par personne. Le nettoyage n'existait
+ * qu'en bouton dans l'administration : en production, des journaux de mars
+ * étaient encore là en octobre. Il est donc déclenché par le comptage
+ * lui-même, sans planification à configurer.
+ */
+const CLEANUP_INTERVAL_MS = 10 * 60 * 1000;
+
 export class ViewTrackerService {
   private static instance: ViewTrackerService;
+  private lastCleanup = 0;
 
   private constructor() {}
 
@@ -54,6 +66,13 @@ export class ViewTrackerService {
   ): Promise<boolean> {
     try {
       await ensurePrismaConnection();
+
+      if (Date.now() - this.lastCleanup > CLEANUP_INTERVAL_MS) {
+        this.lastCleanup = Date.now();
+        // Sans attendre : la réponse de la carte ne dépend pas du ménage.
+        void this.cleanupExpiredViews();
+      }
+
       const clientIP = this.getClientIP(request);
       const fingerprint = this.createFingerprint(request);
       const now = new Date();

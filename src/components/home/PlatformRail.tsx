@@ -11,6 +11,8 @@ const PLATFORMS = [
   { value: "anilist", label: "AniList" },
   { value: "mal", label: "MyAnimeList" },
   { value: "kitsu", label: "Kitsu" },
+  { value: "shikimori", label: "Shikimori" },
+  { value: "bangumi", label: "Bangumi" },
   { value: "nautiljon", label: "Nautiljon" },
 ] as const;
 
@@ -34,6 +36,10 @@ interface PlatformRailProps {
  * description à droite, 78 px de haut. Trois grandes cartes centrées
  * mangeaient la moitié de la hauteur utile de la hero pour trois lignes de
  * texte.
+ *
+ * Six plateformes : deux colonnes sur mobile, trois sur grand écran. Sur
+ * mobile la tuile perd sa description et rétrécit son logo – six bandes
+ * empilées poussaient le bouton « Continuer » sous le pli.
  */
 export function PlatformRail({
   selected,
@@ -46,6 +52,8 @@ export function PlatformRail({
     anilist: t.accueil.plateformeAnilist,
     mal: t.accueil.plateformeMal,
     kitsu: t.accueil.kitsuDescription,
+    shikimori: t.accueil.shikimoriDescription,
+    bangumi: t.accueil.bangumiDescription,
     nautiljon: t.accueil.plateformeNautiljon,
   };
 
@@ -53,11 +61,12 @@ export function PlatformRail({
     <div
       style={{ viewTransitionName: "rail" }}
       className={cn(
-        // Quatre plateformes : deux par ligne jusqu'au grand écran, quatre
-        // de front ensuite. Trois puis une seule orpheline sur la seconde
-        // ligne aurait déséquilibré la bande.
-        "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4",
-        compact ? "mx-auto max-w-[860px] gap-2.5" : "gap-3"
+        // Repliée, la bande ne rappelle que la plateforme retenue : six
+        // rappels côte à côte au-dessus du stepper, ce n'est plus un rappel,
+        // c'est un second menu.
+        compact
+          ? "mx-auto grid max-w-[300px] grid-cols-1"
+          : "grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-3"
       )}
     >
       {PLATFORMS.map((platform) => {
@@ -74,15 +83,14 @@ export function PlatformRail({
             aria-pressed={active}
             title={statut?.reason}
             className={cn(
-              "relative flex items-center gap-3.5 overflow-hidden rounded-2xl border text-left",
+              "relative flex min-w-0 items-center overflow-hidden rounded-2xl border text-left",
               "bg-card/80 backdrop-blur-md",
               "outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
               "transition-[transform,border-color,background-color,padding] duration-200",
-              compact ? "px-3.5 py-[11px]" : "p-[18px]",
-              // Repliée sur mobile, la bande ne garde que la plateforme
-              // retenue : trois rappels empilés au-dessus du stepper, ce
-              // n'est plus un rappel, c'est un second menu.
-              compact && !active && "hidden lg:flex",
+              compact
+                ? "gap-3.5 px-3.5 py-[11px]"
+                : "gap-2.5 p-3 sm:gap-3.5 sm:p-[18px]",
+              compact && !active && "hidden",
               active
                 ? "border-primary/65 bg-primary/12"
                 : "border-border/70",
@@ -102,7 +110,9 @@ export function PlatformRail({
               size={42}
               className={cn(
                 "shrink-0 rounded-[11px] object-cover transition-[width,height] duration-200",
-                compact && "!h-7 !w-7 rounded-lg",
+                compact
+                  ? "!h-7 !w-7 rounded-lg"
+                  : "!h-8 !w-8 rounded-[9px] sm:!h-[42px] sm:!w-[42px] sm:rounded-[11px]",
                 disabled && "opacity-45"
               )}
             />
@@ -112,10 +122,11 @@ export function PlatformRail({
             <div className="min-w-0">
               <div
                 translate="no"
+                title={platform.label}
                 className={cn(
-                  "font-semibold leading-[1.25] text-foreground",
+                  "truncate font-semibold leading-[1.25] text-foreground",
                   disabled && "opacity-45",
-                  compact ? "text-[13.5px]" : "text-[15.5px]"
+                  compact ? "text-[13.5px]" : "text-[14px] sm:text-[15.5px]"
                 )}
               >
                 {platform.label}
@@ -126,7 +137,10 @@ export function PlatformRail({
               {!compact && (
                 <div
                   className={cn(
-                    "text-[12.5px]",
+                    "text-[12px] leading-snug sm:text-[12.5px]",
+                    // L'état d'une plateforme suspendue reste visible sur
+                    // mobile ; la description, elle, n'y a pas la place.
+                    !(disabled && statut) && "hidden sm:block",
                     disabled && statut
                       ? "text-amber-700 dark:text-amber-400"
                       : "text-muted-foreground"
@@ -137,24 +151,11 @@ export function PlatformRail({
               )}
             </div>
 
-            {disabled && statut && compact && (
-              <span
-                className={cn(
-                  "rounded-full border border-amber-500/40 px-[7px] py-0.5 text-[10.5px] leading-tight text-amber-500",
-                  // Sur la tuile repliée, le badge en absolu passait par-dessus
-                  // le nom : il reprend sa place dans le flux.
-                  "ml-auto shrink-0 text-[10px]"
-                )}
-              >
-                {t.accueil.plateformeIndisponible}
-              </span>
-            )}
-
             {!disabled && (
               <Check
                 aria-hidden
                 className={cn(
-                  "ml-auto h-[17px] w-[17px] shrink-0 text-primary transition-opacity duration-200",
+                  "ml-auto hidden h-[17px] w-[17px] shrink-0 text-primary transition-opacity duration-200 sm:block",
                   active ? "opacity-100" : "opacity-0"
                 )}
                 strokeWidth={3}

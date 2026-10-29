@@ -209,7 +209,13 @@ export async function addPlatformLogo(
 
   // Déterminer le logo selon la plateforme (depuis le cache statique)
   const platformStr = String(platform || "").toLowerCase();
-  let cacheKey: "logoMal" | "logoAnilist" | "logoKitsu" | "logoNautiljon";
+  let cacheKey:
+    | "logoMal"
+    | "logoAnilist"
+    | "logoKitsu"
+    | "logoShikimori"
+    | "logoBangumi"
+    | "logoNautiljon";
   let fallbackPath: string;
   switch (platformStr) {
     case "mal":
@@ -223,6 +229,14 @@ export async function addPlatformLogo(
     case "kitsu":
       cacheKey = "logoKitsu";
       fallbackPath = process.cwd() + "/public/images/kitsu-logo.png";
+      break;
+    case "shikimori":
+      cacheKey = "logoShikimori";
+      fallbackPath = process.cwd() + "/public/images/shikimori-logo.png";
+      break;
+    case "bangumi":
+      cacheKey = "logoBangumi";
+      fallbackPath = process.cwd() + "/public/images/bangumi-logo.png";
       break;
     case "nautiljon":
       cacheKey = "logoNautiljon";

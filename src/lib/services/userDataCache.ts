@@ -243,6 +243,18 @@ export class UserDataCacheService {
         );
         return await fetchKitsuData(username);
 
+      case "shikimori":
+        const { fetchUserData: fetchShikimoriData } = await import(
+          "../providers/shikimori"
+        );
+        return await fetchShikimoriData(username);
+
+      case "bangumi":
+        const { fetchUserData: fetchBangumiData } = await import(
+          "../providers/bangumi"
+        );
+        return await fetchBangumiData(username);
+
       case "nautiljon":
         const { fetchUserData: fetchNautiljonData } = await import(
           "../providers/nautiljon"

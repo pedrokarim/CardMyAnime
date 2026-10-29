@@ -20,6 +20,10 @@ export function PlatformIcon({
         return "/images/MAL_Favicon_2020.png";
       case "kitsu":
         return "/images/kitsu-logo.png";
+      case "shikimori":
+        return "/images/shikimori-logo.png";
+      case "bangumi":
+        return "/images/bangumi-logo.png";
       case "nautiljon":
         return "/images/nautiljon-logo.jpg";
       default:

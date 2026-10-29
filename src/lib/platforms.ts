@@ -5,6 +5,8 @@ export const PLATFORM_NAMES: Record<Platform, string> = {
   anilist: "AniList",
   mal: "MyAnimeList",
   kitsu: "Kitsu",
+  shikimori: "Shikimori",
+  bangumi: "Bangumi",
   nautiljon: "Nautiljon",
 };
 
@@ -18,6 +20,10 @@ export function platformProfileUrl(platform: Platform, username: string): string
       return `https://myanimelist.net/profile/${name}`;
     case "kitsu":
       return `https://kitsu.app/users/${name}`;
+    case "shikimori":
+      return `https://shikimori.io/${name}`;
+    case "bangumi":
+      return `https://bgm.tv/user/${name}`;
     case "nautiljon":
       return `https://www.nautiljon.com/membre/profil,${name}.html`;
   }

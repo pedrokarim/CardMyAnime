@@ -9,6 +9,8 @@ export const PLATFORMS = [
   "anilist",
   "mal",
   "kitsu",
+  "shikimori",
+  "bangumi",
   "nautiljon",
 ] as const satisfies readonly Platform[];
 

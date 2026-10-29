@@ -5,6 +5,13 @@ import { parseAsInteger, parseAsStringLiteral, useQueryState } from "nuqs";
 import { Check, Loader2, Minus, Plus } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { PlatformIcon } from "@/components/ui/platform-icon";
 import { SharePanel } from "@/components/preview/SharePanel";
 import { trpc } from "@/lib/trpc/client";
@@ -26,20 +33,15 @@ import {
  * Nautiljon n'y figure pas : la plateforme est suspendue, et ses profils
  * n'exposent de toute façon qu'un top 5 sans notes.
  */
-const TOP_PLATFORMS = ["anilist", "mal", "kitsu"] as const;
+const TOP_PLATFORMS = ["anilist", "mal", "kitsu", "shikimori", "bangumi"] as const;
 type TopPlatform = (typeof TOP_PLATFORMS)[number];
 
 const PLATFORM_LABELS: Record<TopPlatform, string> = {
   anilist: "AniList",
   mal: "MyAnimeList",
   kitsu: "Kitsu",
-};
-
-/** Trois de front dans 300 px : « MyAnimeList » n'y tient pas. */
-const PLATFORM_SHORT_LABELS: Record<TopPlatform, string> = {
-  anilist: "AniList",
-  mal: "MAL",
-  kitsu: "Kitsu",
+  shikimori: "Shikimori",
+  bangumi: "Bangumi",
 };
 
 interface PreparedProfile {
@@ -229,23 +231,22 @@ export default function TopsPage() {
           className="flex min-w-0 flex-col gap-5 rounded-2xl border border-border/60 bg-card/60 p-5 backdrop-blur-sm lg:col-start-1 lg:row-start-1"
         >
           <div>
-            <FieldLabel>{t.tops.platformLabel}</FieldLabel>
-            <Segmented
-              label={t.tops.platformLabel}
-              value={platform}
-              onChange={changePlatform}
-              options={TOP_PLATFORMS.map((value) => ({
-                value,
-                label: (
-                  <>
+            {/* Liste déroulante et non boutons : cinq plateformes de front
+                ne tiennent pas dans les 300 px du formulaire. */}
+            <FieldLabel htmlFor="top-platform">{t.tops.platformLabel}</FieldLabel>
+            <Select value={platform} onValueChange={(value) => changePlatform(value as TopPlatform)}>
+              <SelectTrigger id="top-platform" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {TOP_PLATFORMS.map((value) => (
+                  <SelectItem key={value} value={value}>
                     <PlatformIcon platform={value} size={18} className="shrink-0 rounded" />
-                    <span className="truncate" title={PLATFORM_LABELS[value]}>
-                      {PLATFORM_SHORT_LABELS[value]}
-                    </span>
-                  </>
-                ),
-              }))}
-            />
+                    {PLATFORM_LABELS[value]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div>

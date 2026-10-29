@@ -23,6 +23,8 @@ export async function GET(requete: NextRequest) {
   let anilistBase64 = "";
   let malBase64 = "";
   let kitsuBase64 = "";
+  let shikimoriBase64 = "";
+  let bangumiBase64 = "";
   let nautiljonBase64 = "";
 
   try {
@@ -40,6 +42,8 @@ export async function GET(requete: NextRequest) {
       "MAL_Favicon_2020.png"
     );
     const kitsuPath = join(process.cwd(), "public", "images", "kitsu-logo.png");
+    const shikimoriPath = join(process.cwd(), "public", "images", "shikimori-logo.png");
+    const bangumiPath = join(process.cwd(), "public", "images", "bangumi-logo.png");
     const nautiljonPath = join(
       process.cwd(),
       "public",
@@ -47,12 +51,22 @@ export async function GET(requete: NextRequest) {
       "nautiljon-logo.jpg"
     );
 
-    const [logoBuffer, anilistBuffer, malBuffer, kitsuBuffer, nautiljonBuffer] =
+    const [
+      logoBuffer,
+      anilistBuffer,
+      malBuffer,
+      kitsuBuffer,
+      shikimoriBuffer,
+      bangumiBuffer,
+      nautiljonBuffer,
+    ] =
       await Promise.all([
         readFile(logoPath),
         readFile(anilistPath),
         readFile(malPath),
         readFile(kitsuPath),
+        readFile(shikimoriPath),
+        readFile(bangumiPath),
         readFile(nautiljonPath),
       ]);
 
@@ -60,6 +74,8 @@ export async function GET(requete: NextRequest) {
     anilistBase64 = `data:image/png;base64,${anilistBuffer.toString("base64")}`;
     malBase64 = `data:image/png;base64,${malBuffer.toString("base64")}`;
     kitsuBase64 = `data:image/png;base64,${kitsuBuffer.toString("base64")}`;
+    shikimoriBase64 = `data:image/png;base64,${shikimoriBuffer.toString("base64")}`;
+    bangumiBase64 = `data:image/png;base64,${bangumiBuffer.toString("base64")}`;
     nautiljonBase64 = `data:image/jpeg;base64,${nautiljonBuffer.toString(
       "base64"
     )}`;
@@ -183,7 +199,7 @@ export async function GET(requete: NextRequest) {
               lineHeight: "1.3",
             }}
           >
-            AniList • MyAnimeList • Kitsu • Nautiljon
+            AniList • MyAnimeList • Kitsu • Shikimori • Bangumi • Nautiljon
           </p>
         </div>
 
@@ -274,6 +290,24 @@ export async function GET(requete: NextRequest) {
               KT
             </div>
           )}
+          {shikimoriBase64 ? (
+            <img
+              src={shikimoriBase64}
+              alt="Shikimori"
+              width="60"
+              height="60"
+              style={{ borderRadius: "12px" }}
+            />
+          ) : null}
+          {bangumiBase64 ? (
+            <img
+              src={bangumiBase64}
+              alt="Bangumi"
+              width="60"
+              height="60"
+              style={{ borderRadius: "12px" }}
+            />
+          ) : null}
           {nautiljonBase64 ? (
             <img
               src={nautiljonBase64}

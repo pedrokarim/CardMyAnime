@@ -136,7 +136,7 @@ export default async function AboutPage() {
             <h2 className="text-3xl font-bold text-foreground mb-6">
               {t.apropos.plateformesSupportees}
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               <div className="text-center space-y-4">
                 <div className="flex justify-center">
                   <PlatformIcon
@@ -182,6 +182,38 @@ export default async function AboutPage() {
                 </h3>
                 <p className="text-sm text-muted-foreground">
                   {t.apropos.kitsuDesc}
+                </p>
+              </div>
+
+              <div className="text-center space-y-4">
+                <div className="flex justify-center">
+                  <PlatformIcon
+                    platform="shikimori"
+                    size={64}
+                    className="rounded-lg"
+                  />
+                </div>
+                <h3 className="text-xl font-semibold text-foreground">
+                  Shikimori
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {t.apropos.shikimoriDesc}
+                </p>
+              </div>
+
+              <div className="text-center space-y-4">
+                <div className="flex justify-center">
+                  <PlatformIcon
+                    platform="bangumi"
+                    size={64}
+                    className="rounded-lg"
+                  />
+                </div>
+                <h3 className="text-xl font-semibold text-foreground">
+                  Bangumi
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {t.apropos.bangumiDesc}
                 </p>
               </div>
 
@@ -246,7 +278,8 @@ export default async function AboutPage() {
                 </h3>
                 <div className="text-sm text-muted-foreground space-y-1">
                   <p>AniList GraphQL</p>
-                  <p>Jikan API (MAL)</p>
+                  <p>MyAnimeList API v2</p>
+                  <p>Kitsu, Shikimori, Bangumi</p>
                   <p>Web Scraping</p>
                   <p>Canvas API</p>
                   <p>nuqs (URL State)</p>

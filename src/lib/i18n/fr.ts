@@ -60,6 +60,8 @@ export const fr = {
     plateformeAnilist: "API GraphQL officielle",
     plateformeMal: "API officielle",
     kitsuDescription: "API publique",
+    shikimoriDescription: "API publique, communauté russophone",
+    bangumiDescription: "API publique, communauté sinophone",
     plateformeNautiljon: "Scraping de profils publics",
     versFormat: "Choisir le format",
 
@@ -96,7 +98,7 @@ export const fr = {
       "Connexion au serveur impossible. Vérifiez votre réseau puis réessayez.",
 
     piedSources:
-      "utilise les APIs publiques d'AniList, MyAnimeList et Kitsu, ainsi que le scraping pour Nautiljon.",
+      "utilise les APIs publiques d'AniList, MyAnimeList, Kitsu, Shikimori et Bangumi, ainsi que le scraping pour Nautiljon.",
     piedStockage:
       "Les cartes sont générées côté serveur et stockées temporairement.",
 
@@ -112,7 +114,6 @@ export const fr = {
     heroSousTitre:
       "Un pseudo, un style. On génère une carte PNG de vos dernières séries, prête à coller sur un forum, un README ou un profil.",
     continuer: "Continuer",
-    plateformeIndisponible: "Indispo.",
     titreStyle: "Choisissez le style de carte",
     fondDescription:
       "La jaquette de la dernière série suivie sert de fond à la carte.",
@@ -127,7 +128,7 @@ export const fr = {
     exemplesSousTitre:
       "Cartes réellement générées par le site. Chacune se met à jour toute seule quand votre liste change.",
     exempleSignatures: "signatures de forum",
-    piedSourcesDebut: "utilise les APIs publiques d'AniList, MyAnimeList et Kitsu, ainsi que le scraping pour Nautiljon.",
+    piedSourcesDebut: "utilise les APIs publiques d'AniList, MyAnimeList, Kitsu, Shikimori et Bangumi, ainsi que le scraping pour Nautiljon.",
     exemples: "Exemples",
     voirExemples: "Voir des exemples",
     piedConditions: "Conditions d'utilisation",
@@ -241,7 +242,7 @@ export const fr = {
   tops: {
     metaTitle: (site: string) => `Top anime et manga en une image – ${site}`,
     metaDescription:
-      "Créez le top 3, 5, 7 ou 10 de vos animes et mangas les mieux notés sur AniList, MyAnimeList ou Kitsu. Une image partageable qui se met à jour avec votre liste.",
+      "Créez le top 3, 5, 7 ou 10 de vos animes et mangas les mieux notés sur AniList, MyAnimeList, Kitsu, Shikimori ou Bangumi. Une image partageable qui se met à jour avec votre liste.",
     title: "Votre top, toujours à jour",
     subtitle:
       "Vos œuvres les mieux notées, en une image. Elle suit votre liste : changez une note, le top change avec.",
@@ -381,13 +382,13 @@ export const fr = {
       `Découvrez l'histoire et les technologies derrière ${site}`,
     quEstCe: (site: string) => `Qu'est-ce que ${site} ?`,
     presentation1:
-      "est un générateur de cartes de profil dynamiques pour les passionnés d'anime et de manga. Créez des cartes personnalisées à partir de vos profils sur AniList, MyAnimeList, Kitsu ou Nautiljon.",
+      "est un générateur de cartes de profil dynamiques pour les passionnés d'anime et de manga. Créez des cartes personnalisées à partir de vos profils sur AniList, MyAnimeList, Kitsu, Shikimori, Bangumi ou Nautiljon.",
     presentation2:
       "Le projet est né de l'envie de créer quelque chose d'utile pour la communauté anime, en permettant aux utilisateurs de partager facilement leurs goûts et leurs statistiques de manière visuelle et attrayante.",
     fonctionnalites: "Fonctionnalités",
     multiPlateformes: "Multi-plateformes",
     multiPlateformesDesc:
-      "Support d'AniList, MyAnimeList, Kitsu et Nautiljon avec récupération automatique des données",
+      "Support d'AniList, MyAnimeList, Kitsu, Shikimori, Bangumi et Nautiljon avec récupération automatique des données",
     septFormats: "7 formats de cartes",
     septFormatsDesc:
       "Petite, moyenne, grande, résumé, néon, minimal et glass pour s'adapter à tous les besoins",
@@ -404,6 +405,10 @@ export const fr = {
       "API officielle de MyAnimeList pour les listes publiques, complétée par la page de profil publique pour l'avatar et les statistiques.",
     kitsuDesc:
       "API publique de Kitsu pour le profil, les statistiques, la liste et les notes, sans compte.",
+    shikimoriDesc:
+      "API publique de Shikimori, la référence russophone : profil, répartition des notes et liste complète.",
+    bangumiDesc:
+      "API publique de Bangumi (bgm.tv), la référence sinophone : collections, notes et titres d'origine.",
     nautiljonDesc:
       "Scraping de profils publics pour récupérer les données depuis la plateforme française Nautiljon.",
     technologies: "Technologies utilisées",
@@ -418,7 +423,7 @@ export const fr = {
       "Ce projet est open-source et disponible sous licence MIT. Les contributions sont les bienvenues !",
     noteImportante: "Note importante :",
     licence2:
-      "Ce projet utilise les APIs publiques d'AniList, MyAnimeList et Kitsu, ainsi que le scraping de profils publics pour Nautiljon. Toutes les données sont récupérées depuis des sources publiques et respectent les conditions d'utilisation de chaque plateforme.",
+      "Ce projet utilise les APIs publiques d'AniList, MyAnimeList, Kitsu, Shikimori et Bangumi, ainsi que le scraping de profils publics pour Nautiljon. Toutes les données sont récupérées depuis des sources publiques et respectent les conditions d'utilisation de chaque plateforme.",
   },
 
   contact: {
@@ -436,7 +441,7 @@ export const fr = {
     info1:
       "est un projet open-source qui permet de créer des cartes de profil dynamiques pour les plateformes d'anime.",
     info2:
-      "Le projet utilise les APIs publiques d'AniList, MyAnimeList et Kitsu, ainsi que le scraping pour Nautiljon. Toutes les données sont récupérées depuis des sources publiques.",
+      "Le projet utilise les APIs publiques d'AniList, MyAnimeList, Kitsu, Shikimori et Bangumi, ainsi que le scraping pour Nautiljon. Toutes les données sont récupérées depuis des sources publiques.",
     info3:
       "Si vous rencontrez des problèmes ou avez des suggestions, n'hésitez pas à nous contacter via Discord ou GitHub.",
     suivezNous: "Suivez-nous",
@@ -481,12 +486,12 @@ export const fr = {
     accueilTitre: (site: string) =>
       `${site} - Créez des cartes de profil dynamiques`,
     accueilDescription: (site: string, pseudo: string) =>
-      `Créez des cartes de profil dynamiques et élégantes pour vos plateformes d'anime préférées (AniList, MyAnimeList, Kitsu, Nautiljon). Projet open source développé par ${pseudo}.`,
+      `Créez des cartes de profil dynamiques et élégantes pour vos plateformes d'anime préférées (AniList, MyAnimeList, Kitsu, Shikimori, Bangumi, Nautiljon). Projet open source développé par ${pseudo}.`,
     ogTitre: (site: string) => `${site} - Cartes de profil d'anime`,
     ogAlt: (site: string) => `${site} - Générateur de cartes de profil`,
     aproposTitre: (site: string) => `À propos - ${site}`,
     aproposDescription: (site: string) =>
-      `Découvrez l'histoire et les technologies derrière ${site}. Générateur de cartes de profil anime open source pour AniList, MyAnimeList, Kitsu et Nautiljon.`,
+      `Découvrez l'histoire et les technologies derrière ${site}. Générateur de cartes de profil anime open source pour AniList, MyAnimeList, Kitsu, Shikimori, Bangumi et Nautiljon.`,
     contactTitre: (site: string) => `Contact - ${site}`,
     contactDescription: (site: string) =>
       `Contactez l'équipe ${site} pour toute question, suggestion ou signalement de bug. Rejoignez notre communauté Discord ou GitHub.`,
@@ -569,7 +574,7 @@ export const fr = {
 
   conditions: {
     titre: "Conditions d'utilisation",
-    miseAJour: "Dernière mise à jour : 07 septembre 2025",
+    miseAJour: "Dernière mise à jour : 29 octobre 2026",
 
     s1Titre: "1. Acceptation des conditions",
     s1Texte: (site: string) =>
@@ -577,7 +582,7 @@ export const fr = {
 
     s2Titre: "2. Description du service",
     s2Texte: (site: string) =>
-      `${site} est un service gratuit et open source qui permet aux utilisateurs de créer des cartes de profil dynamiques pour leurs comptes sur différentes plateformes d'anime (AniList, MyAnimeList, Kitsu, Nautiljon).`,
+      `${site} est un service gratuit et open source qui permet aux utilisateurs de créer des cartes de profil et des tops dynamiques pour leurs comptes sur différentes plateformes d'anime (AniList, MyAnimeList, Kitsu, Shikimori, Bangumi, Nautiljon).`,
     important: "Important :",
     s2Note:
       "Ce service est entièrement gratuit et ne contient aucune publicité. Aucune monétisation n'est effectuée sur ce site. Il s'agit d'un projet communautaire open source développé par passion pour la communauté anime.",
@@ -593,12 +598,12 @@ export const fr = {
     s3b2: "Tenter de surcharger ou de compromettre les serveurs",
     s3b3: "Utiliser des données d'autres utilisateurs sans permission",
     s3b4:
-      "Violer les conditions d'utilisation des plateformes tierces (AniList, MyAnimeList, Kitsu, Nautiljon)",
+      "Violer les conditions d'utilisation des plateformes tierces (AniList, MyAnimeList, Kitsu, Shikimori, Bangumi, Nautiljon)",
 
     s4Titre: "4. Collecte et traitement des données",
     s4aTitre: "4.1 Types de données collectées",
     s4aIntro: (site: string) =>
-      `${site} collecte et traite les données suivantes via les APIs publiques :`,
+      `${site} collecte et traite les données suivantes, via les APIs publiques des plateformes et les pages de profil publiques :`,
     s4aProfil: "Données de profil :",
     s4aProfilTexte: "nom d'utilisateur, avatar, statistiques générales",
     s4aActivite: "Données d'activité :",
@@ -607,16 +612,24 @@ export const fr = {
     s4aMetaTexte: "dates de mise à jour, nombre d'épisodes, genres",
     s4aPerf: "Données de performance :",
     s4aPerfTexte: "temps de réponse des APIs, erreurs de récupération",
+    s4aVisits: "Données de consultation :",
+    s4aVisitsText:
+      "adresse IP et navigateur de la personne qui affiche une carte, conservés une heure pour ne compter qu'une vue par visiteur, puis supprimés automatiquement",
 
     s4bTitre: "4.2 Sources de données",
     s4bAnilist: "API GraphQL officielle",
     s4bMal: "API officielle et page de profil publique",
     s4bKitsu: "API publique",
-    s4bNautiljon: "Scraping de profils publics uniquement",
+    s4bShikimori: "API publique",
+    s4bBangumi: "API publique",
+    s4bNautiljon: "Scraping de profils publics uniquement (suspendu)",
+    s4bWorks: "Fiches d'œuvres :",
+    s4bWorksText:
+      "API GraphQL d'AniList, pour la page Tendances et les jaquettes de l'accueil, sans lien avec un profil",
 
     s4cTitre: "4.3 Stockage et conservation",
     s4cTexte:
-      "Les données sont mises en cache temporairement (maximum 24 heures) pour améliorer les performances. Aucune donnée personnelle n'est stockée de manière permanente sur nos serveurs.",
+      "Les données de profil sont mises en cache et renouvelées toutes les 24 heures. Si une plateforme ne répond plus, la dernière version récupérée reste affichée 7 jours au plus, puis n'est plus servie. Le pseudo, la plateforme et le format de chaque carte générée sont conservés pour le classement public et le comptage des vues, jusqu'à une demande de suppression.",
     s4cNote:
       "Nous ne stockons pas vos mots de passe, emails privés, ou toute autre information sensible. Seules les données publiquement accessibles via les APIs sont utilisées.",
 
@@ -641,7 +654,7 @@ export const fr = {
     s5Texte1: (site: string) =>
       `Le code source de ${site} est disponible sous licence open source sur GitHub. Vous êtes libre de contribuer, forker ou utiliser le code selon les termes de la licence.`,
     s5Texte2:
-      "Les logos et marques des plateformes d'anime (AniList, MyAnimeList, Kitsu, Nautiljon) restent la propriété de leurs détenteurs respectifs.",
+      "Les logos et marques des plateformes d'anime (AniList, MyAnimeList, Kitsu, Shikimori, Bangumi, Nautiljon) restent la propriété de leurs détenteurs respectifs.",
 
     s6Titre: "6. Limitation de responsabilité",
     s6aTitre: "6.1 Service fourni « tel quel »",
@@ -649,7 +662,7 @@ export const fr = {
       `${site} est fourni « tel quel » sans garantie d'aucune sorte. Le service peut être temporairement indisponible pour maintenance ou en cas de problème technique.`,
     s6bTitre: "6.2 APIs tierces",
     s6bIntro:
-      "Notre service dépend d'APIs tierces (AniList, MyAnimeList, Kitsu, Nautiljon). Nous ne sommes pas responsables :",
+      "Notre service dépend d'APIs tierces (AniList, MyAnimeList, Kitsu, Shikimori, Bangumi, Nautiljon). Nous ne sommes pas responsables :",
     s6b1: "Des modifications ou interruptions des APIs tierces",
     s6b2:
       "De la disponibilité ou de la fiabilité des données provenant de ces APIs",

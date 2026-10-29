@@ -75,6 +75,8 @@ const STATIC_ASSETS = {
   logoMal: path.join(process.cwd(), "public", "images", "MAL_Favicon_2020.png"),
   logoAnilist: path.join(process.cwd(), "public", "images", "anilist-android-chrome-512x512.png"),
   logoKitsu: path.join(process.cwd(), "public", "images", "kitsu-logo.png"),
+  logoShikimori: path.join(process.cwd(), "public", "images", "shikimori-logo.png"),
+  logoBangumi: path.join(process.cwd(), "public", "images", "bangumi-logo.png"),
   logoNautiljon: path.join(process.cwd(), "public", "images", "nautiljon-logo.jpg"),
 } as const;
 

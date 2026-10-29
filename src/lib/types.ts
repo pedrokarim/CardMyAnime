@@ -94,7 +94,13 @@ export interface RankedMedia {
   score: number;
 }
 
-export type Platform = "anilist" | "mal" | "kitsu" | "nautiljon";
+export type Platform =
+  | "anilist"
+  | "mal"
+  | "kitsu"
+  | "shikimori"
+  | "bangumi"
+  | "nautiljon";
 export type CardType = "small" | "medium" | "large" | "summary" | "neon" | "minimal" | "glassmorphism";
 
 export interface CardGenerationRequest {
