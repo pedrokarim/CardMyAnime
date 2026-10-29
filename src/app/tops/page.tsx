@@ -26,12 +26,20 @@ import {
  * Nautiljon n'y figure pas : la plateforme est suspendue, et ses profils
  * n'exposent de toute façon qu'un top 5 sans notes.
  */
-const TOP_PLATFORMS = ["anilist", "mal"] as const;
+const TOP_PLATFORMS = ["anilist", "mal", "kitsu"] as const;
 type TopPlatform = (typeof TOP_PLATFORMS)[number];
 
 const PLATFORM_LABELS: Record<TopPlatform, string> = {
   anilist: "AniList",
   mal: "MyAnimeList",
+  kitsu: "Kitsu",
+};
+
+/** Trois de front dans 300 px : « MyAnimeList » n'y tient pas. */
+const PLATFORM_SHORT_LABELS: Record<TopPlatform, string> = {
+  anilist: "AniList",
+  mal: "MAL",
+  kitsu: "Kitsu",
 };
 
 interface PreparedProfile {
@@ -231,7 +239,9 @@ export default function TopsPage() {
                 label: (
                   <>
                     <PlatformIcon platform={value} size={18} className="shrink-0 rounded" />
-                    <span className="truncate">{PLATFORM_LABELS[value]}</span>
+                    <span className="truncate" title={PLATFORM_LABELS[value]}>
+                      {PLATFORM_SHORT_LABELS[value]}
+                    </span>
                   </>
                 ),
               }))}

@@ -3,7 +3,7 @@ import { SITE_CONFIG } from "@/lib/constants";
 export const metadata = {
   title: "CardMyAnime - Créez des cartes de profil dynamiques",
   description:
-    "Créez des cartes de profil dynamiques et élégantes pour vos plateformes d'anime préférées (AniList, MyAnimeList, Nautiljon). Projet open source développé par PedroKarim64.",
+    "Créez des cartes de profil dynamiques et élégantes pour vos plateformes d'anime préférées (AniList, MyAnimeList, Kitsu, Nautiljon). Projet open source développé par PedroKarim64.",
   keywords: [
     "anime",
     "cartes",

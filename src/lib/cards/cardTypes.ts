@@ -8,6 +8,7 @@ import type { CardType, Platform } from "@/lib/types";
 export const PLATFORMS = [
   "anilist",
   "mal",
+  "kitsu",
   "nautiljon",
 ] as const satisfies readonly Platform[];
 

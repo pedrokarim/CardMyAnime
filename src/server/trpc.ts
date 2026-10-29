@@ -10,19 +10,20 @@ import { generateMinimalCard } from "@/lib/cards/minimalCard";
 import { generateGlassmorphismCard } from "@/lib/cards/glassmorphismCard";
 import { Platform, CardType } from "@/lib/types";
 import { buildCardPath } from "@/lib/cards/cardUrl";
+import { PLATFORMS } from "@/lib/cards/cardTypes";
 import { PLATFORM_STATUS, platformDisabledReason } from "@/lib/platformStatus";
 import { prisma, ensurePrismaConnection } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import { hasTopLists, topEntries } from "@/lib/tops/renderTop";
 
-const platformSchema = z.enum(["anilist", "mal", "nautiljon"]);
+const platformSchema = z.enum(PLATFORMS);
 const cardTypeSchema = z.enum(["small", "medium", "large", "summary", "neon", "minimal", "glassmorphism"]);
 
 export const appRouter = createTRPCRouter({
   fetchUserData: publicProcedure
     .input(
       z.object({
-        platform: z.enum(["anilist", "mal", "nautiljon"]),
+        platform: platformSchema,
         username: z.string().min(1),
       })
     )
@@ -232,6 +233,7 @@ export const appRouter = createTRPCRouter({
     return [
       { value: "anilist", label: "AniList" },
       { value: "mal", label: "MyAnimeList" },
+      { value: "kitsu", label: "Kitsu" },
       { value: "nautiljon", label: "Nautiljon" },
     ].map((platform) => ({
       ...platform,

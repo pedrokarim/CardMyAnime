@@ -232,6 +232,7 @@ export default function DataDeletionPage() {
             <SelectItem value="all">Toutes plateformes</SelectItem>
             <SelectItem value="anilist">AniList</SelectItem>
             <SelectItem value="mal">MyAnimeList</SelectItem>
+            <SelectItem value="kitsu">Kitsu</SelectItem>
             <SelectItem value="nautiljon">Nautiljon</SelectItem>
           </SelectContent>
         </Select>

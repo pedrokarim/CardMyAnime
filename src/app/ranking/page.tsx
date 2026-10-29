@@ -195,6 +195,7 @@ export default function RankingPage() {
   const platformLabels: Record<string, string> = {
     anilist: "AniList",
     mal: "MyAnimeList",
+    kitsu: "Kitsu",
     nautiljon: "Nautiljon",
   };
 

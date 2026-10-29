@@ -10,6 +10,7 @@ import { isPlatformDisabled, platformStatusLabels } from "@/lib/platformStatus";
 const PLATFORMS = [
   { value: "anilist", label: "AniList" },
   { value: "mal", label: "MyAnimeList" },
+  { value: "kitsu", label: "Kitsu" },
   { value: "nautiljon", label: "Nautiljon" },
 ] as const;
 
@@ -44,6 +45,7 @@ export function PlatformRail({
   const descriptions: Record<string, string> = {
     anilist: t.accueil.plateformeAnilist,
     mal: t.accueil.plateformeMal,
+    kitsu: t.accueil.kitsuDescription,
     nautiljon: t.accueil.plateformeNautiljon,
   };
 
@@ -51,8 +53,11 @@ export function PlatformRail({
     <div
       style={{ viewTransitionName: "rail" }}
       className={cn(
-        "grid grid-cols-1 min-[900px]:grid-cols-3",
-        compact ? "mx-auto max-w-[660px] gap-2.5" : "gap-3.5"
+        // Quatre plateformes : deux par ligne jusqu'au grand écran, quatre
+        // de front ensuite. Trois puis une seule orpheline sur la seconde
+        // ligne aurait déséquilibré la bande.
+        "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4",
+        compact ? "mx-auto max-w-[860px] gap-2.5" : "gap-3"
       )}
     >
       {PLATFORMS.map((platform) => {
@@ -77,7 +82,7 @@ export function PlatformRail({
               // Repliée sur mobile, la bande ne garde que la plateforme
               // retenue : trois rappels empilés au-dessus du stepper, ce
               // n'est plus un rappel, c'est un second menu.
-              compact && !active && "hidden min-[900px]:flex",
+              compact && !active && "hidden lg:flex",
               active
                 ? "border-primary/65 bg-primary/12"
                 : "border-border/70",
@@ -102,35 +107,46 @@ export function PlatformRail({
               )}
             />
 
-            <div className={cn("min-w-0", disabled && "opacity-45")}>
+            {/* L'opacité réduite éteint le nom, pas l'état : lui doit rester
+                lisible, c'est la seule chose qu'on ait à apprendre ici. */}
+            <div className="min-w-0">
               <div
                 translate="no"
                 className={cn(
                   "font-semibold leading-[1.25] text-foreground",
+                  disabled && "opacity-45",
                   compact ? "text-[13.5px]" : "text-[15.5px]"
                 )}
               >
                 {platform.label}
               </div>
+              {/* Une plateforme suspendue dit son état à la place de sa
+                  description. En badge posé dans le coin, il chevauchait le
+                  nom dès que la tuile rétrécissait à quatre de front. */}
               {!compact && (
-                <div className="text-[12.5px] text-muted-foreground">
-                  {descriptions[platform.value]}
+                <div
+                  className={cn(
+                    "text-[12.5px]",
+                    disabled && statut
+                      ? "text-amber-700 dark:text-amber-400"
+                      : "text-muted-foreground"
+                  )}
+                >
+                  {disabled && statut ? statut.shortLabel : descriptions[platform.value]}
                 </div>
               )}
             </div>
 
-            {disabled && statut && (
+            {disabled && statut && compact && (
               <span
                 className={cn(
                   "rounded-full border border-amber-500/40 px-[7px] py-0.5 text-[10.5px] leading-tight text-amber-500",
                   // Sur la tuile repliée, le badge en absolu passait par-dessus
                   // le nom : il reprend sa place dans le flux.
-                  compact
-                    ? "ml-auto shrink-0 text-[10px]"
-                    : "absolute right-3 top-2.5"
+                  "ml-auto shrink-0 text-[10px]"
                 )}
               >
-                {compact ? t.accueil.plateformeIndisponible : statut.shortLabel}
+                {t.accueil.plateformeIndisponible}
               </span>
             )}
 

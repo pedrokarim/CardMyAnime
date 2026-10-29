@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { CardPreview } from "@/components/CardPreview";
 import { Platform, CardType, UserData } from "@/lib/types";
 import { isPlatformDisabled } from "@/lib/platformStatus";
+import { isPlatform } from "@/lib/cards/cardTypes";
 import { CoverWall, CoverWallVeils } from "@/components/home/CoverWall";
 import { PlatformRail } from "@/components/home/PlatformRail";
 import { StepIndicator } from "@/components/home/StepIndicator";
@@ -22,6 +23,7 @@ import { useTraduction } from "@/lib/i18n/client";
 const PLATFORM_LABELS: Record<Platform, string> = {
   anilist: "AniList",
   mal: "MyAnimeList",
+  kitsu: "Kitsu",
   nautiljon: "Nautiljon",
 };
 import { trpc } from "@/lib/trpc/client";
@@ -98,7 +100,7 @@ export default function HomePage() {
     parse: (value): Platform => {
       // Une plateforme suspendue est ignorée : arriver par une vieille URL
       // ?platform=… ne doit pas lancer un parcours qui échouera plus loin.
-      if (["anilist", "mal", "nautiljon"].includes(value) && !isPlatformDisabled(value)) {
+      if (isPlatform(value) && !isPlatformDisabled(value)) {
         return value as Platform;
       }
       return "anilist";

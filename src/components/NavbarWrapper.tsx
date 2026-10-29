@@ -4,13 +4,14 @@ import { useQueryState } from "nuqs";
 import { usePathname } from "next/navigation";
 import { Navbar } from "./Navbar";
 import { Platform } from "@/lib/types";
+import { isPlatform } from "@/lib/cards/cardTypes";
 
 export function NavbarWrapper() {
   const pathname = usePathname();
   const [platform] = useQueryState<Platform>("platform", {
     defaultValue: "anilist",
     parse: (value): Platform => {
-      if (["anilist", "mal", "nautiljon"].includes(value)) {
+      if (isPlatform(value)) {
         return value as Platform;
       }
       return "anilist";

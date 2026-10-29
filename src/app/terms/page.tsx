@@ -120,12 +120,24 @@ export default async function TermsPage() {
               <strong translate="no">MyAnimeList :</strong>{" "}
               {t.conditions.s4bMal}{" "}
               <a
-                href="https://jikan.moe/"
+                href="https://myanimelist.net/apiconfig/references/api/v2"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-primary hover:underline"
               >
-                jikan.moe
+                myanimelist.net
+              </a>
+            </li>
+            <li>
+              <strong translate="no">Kitsu :</strong>{" "}
+              {t.conditions.s4bKitsu}{" "}
+              <a
+                href="https://kitsu.docs.apiary.io/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                kitsu.app
               </a>
             </li>
             <li>

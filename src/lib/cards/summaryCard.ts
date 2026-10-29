@@ -172,13 +172,26 @@ export async function generateSummaryCard(
         ? `${userData.stats.totalChapters} chapitres`
         : "chapitres",
     },
-    {
-      label: "Note Moy.",
-      value: userData.stats.avgScore || 0,
-      color: "#ffd700",
-      icon: "SCORE",
-      subtitle: "points",
-    },
+    /*
+     * Kitsu et Nautiljon ne fournissent pas de note moyenne : la carte
+     * affichait « 0 Note Moy. », comme si le membre notait tout à zéro. La
+     * colonne montre alors le temps passé, que ces profils ont bien.
+     */
+    userData.stats.avgScore > 0
+      ? {
+          label: "Note Moy.",
+          value: userData.stats.avgScore,
+          color: "#ffd700",
+          icon: "SCORE",
+          subtitle: "points",
+        }
+      : {
+          label: "Jours",
+          value: userData.stats.daysWatched || 0,
+          color: "#ffd700",
+          icon: "SCORE",
+          subtitle: "de visionnage",
+        },
   ];
 
   // Stats principales - espacement simplifié et fixe

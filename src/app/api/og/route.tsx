@@ -22,6 +22,7 @@ export async function GET(requete: NextRequest) {
   let logoBase64 = "";
   let anilistBase64 = "";
   let malBase64 = "";
+  let kitsuBase64 = "";
   let nautiljonBase64 = "";
 
   try {
@@ -38,6 +39,7 @@ export async function GET(requete: NextRequest) {
       "images",
       "MAL_Favicon_2020.png"
     );
+    const kitsuPath = join(process.cwd(), "public", "images", "kitsu-logo.png");
     const nautiljonPath = join(
       process.cwd(),
       "public",
@@ -45,17 +47,19 @@ export async function GET(requete: NextRequest) {
       "nautiljon-logo.jpg"
     );
 
-    const [logoBuffer, anilistBuffer, malBuffer, nautiljonBuffer] =
+    const [logoBuffer, anilistBuffer, malBuffer, kitsuBuffer, nautiljonBuffer] =
       await Promise.all([
         readFile(logoPath),
         readFile(anilistPath),
         readFile(malPath),
+        readFile(kitsuPath),
         readFile(nautiljonPath),
       ]);
 
     logoBase64 = `data:image/png;base64,${logoBuffer.toString("base64")}`;
     anilistBase64 = `data:image/png;base64,${anilistBuffer.toString("base64")}`;
     malBase64 = `data:image/png;base64,${malBuffer.toString("base64")}`;
+    kitsuBase64 = `data:image/png;base64,${kitsuBuffer.toString("base64")}`;
     nautiljonBase64 = `data:image/jpeg;base64,${nautiljonBuffer.toString(
       "base64"
     )}`;
@@ -179,7 +183,7 @@ export async function GET(requete: NextRequest) {
               lineHeight: "1.3",
             }}
           >
-            AniList • MyAnimeList • Nautiljon
+            AniList • MyAnimeList • Kitsu • Nautiljon
           </p>
         </div>
 
@@ -242,6 +246,32 @@ export async function GET(requete: NextRequest) {
               }}
             >
               MAL
+            </div>
+          )}
+          {kitsuBase64 ? (
+            <img
+              src={kitsuBase64}
+              alt="Kitsu"
+              width="60"
+              height="60"
+              style={{ borderRadius: "12px" }}
+            />
+          ) : (
+            <div
+              style={{
+                width: "60px",
+                height: "60px",
+                backgroundColor: "#f75239",
+                borderRadius: "12px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "16px",
+                fontWeight: "bold",
+                color: "#ffffff",
+              }}
+            >
+              KT
             </div>
           )}
           {nautiljonBase64 ? (

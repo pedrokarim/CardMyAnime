@@ -38,6 +38,7 @@ export function platformStatusLabels(t: Dictionnaire, platform: Platform) {
 export const PLATFORM_STATUS: Record<Platform, PlatformStatus> = {
   anilist: { disabled: false },
   mal: { disabled: false },
+  kitsu: { disabled: false },
   nautiljon: {
     disabled: true,
     shortLabel: "Temporairement indisponible",

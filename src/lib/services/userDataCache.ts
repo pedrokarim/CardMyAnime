@@ -237,6 +237,12 @@ export class UserDataCacheService {
         );
         return await fetchMALData(username);
 
+      case "kitsu":
+        const { fetchUserData: fetchKitsuData } = await import(
+          "../providers/kitsu"
+        );
+        return await fetchKitsuData(username);
+
       case "nautiljon":
         const { fetchUserData: fetchNautiljonData } = await import(
           "../providers/nautiljon"

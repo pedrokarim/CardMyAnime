@@ -37,6 +37,7 @@ export const SITE_CONFIG = {
     platforms: {
       anilist: "/images/anilist-android-chrome-512x512.png",
       mal: "/images/MAL_Favicon_2020.png",
+      kitsu: "/images/kitsu-logo.png",
       nautiljon: "/images/nautiljon-logo.jpg",
     },
   },
@@ -48,6 +49,7 @@ export const SITE_CONFIG = {
     "profil",
     "anilist",
     "myanimelist",
+    "kitsu",
     "nautiljon",
     "générateur",
     "open source",

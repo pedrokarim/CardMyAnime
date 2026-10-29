@@ -18,6 +18,8 @@ export function PlatformIcon({
         return "/images/anilist-android-chrome-512x512.png";
       case "mal":
         return "/images/MAL_Favicon_2020.png";
+      case "kitsu":
+        return "/images/kitsu-logo.png";
       case "nautiljon":
         return "/images/nautiljon-logo.jpg";
       default:

@@ -173,7 +173,7 @@ export default function DataDeletionPage() {
 
   // Fonction pour générer des données de test avec Faker
   const generateTestData = () => {
-    const platforms = ["anilist", "mal", "nautiljon", "all"];
+    const platforms = ["anilist", "mal", "kitsu", "nautiljon", "all"];
     const reasons = [
       "privacy",
       "no-longer-use",
@@ -350,6 +350,7 @@ export default function DataDeletionPage() {
                   <SelectContent>
                     <SelectItem value="anilist">AniList</SelectItem>
                     <SelectItem value="mal">MyAnimeList</SelectItem>
+                    <SelectItem value="kitsu">Kitsu</SelectItem>
                     <SelectItem value="nautiljon">Nautiljon</SelectItem>
                     <SelectItem value="all">
                       {t.suppression.toutesPlateformes}

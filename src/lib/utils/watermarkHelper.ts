@@ -209,7 +209,7 @@ export async function addPlatformLogo(
 
   // Déterminer le logo selon la plateforme (depuis le cache statique)
   const platformStr = String(platform || "").toLowerCase();
-  let cacheKey: "logoMal" | "logoAnilist" | "logoNautiljon";
+  let cacheKey: "logoMal" | "logoAnilist" | "logoKitsu" | "logoNautiljon";
   let fallbackPath: string;
   switch (platformStr) {
     case "mal":
@@ -219,6 +219,10 @@ export async function addPlatformLogo(
     case "anilist":
       cacheKey = "logoAnilist";
       fallbackPath = process.cwd() + "/public/images/anilist-android-chrome-512x512.png";
+      break;
+    case "kitsu":
+      cacheKey = "logoKitsu";
+      fallbackPath = process.cwd() + "/public/images/kitsu-logo.png";
       break;
     case "nautiljon":
       cacheKey = "logoNautiljon";
