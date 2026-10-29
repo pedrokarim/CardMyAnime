@@ -1,5 +1,6 @@
 import { JSDOM } from "jsdom";
-import { UserData } from "../types";
+import { RankedMedia, UserData } from "../types";
+import { TOP_MAX_SIZE } from "../tops/topConfig";
 
 /**
  * Provider MyAnimeList.
@@ -50,18 +51,20 @@ function clientId(): string {
 }
 
 /**
- * Récupère une liste publique, triée par date de mise à jour décroissante.
+ * Récupère une liste publique, triée par date de mise à jour décroissante
+ * ou par note décroissante (`list_score`, pour les tops).
  * Renvoie un tableau vide si la liste est privée — l'API répond alors 200
  * avec `data: []`, sans erreur.
  */
 async function fetchList(
   kind: "animelist" | "mangalist",
   username: string,
-  limit: number
+  limit: number,
+  sort: "list_updated_at" | "list_score" = "list_updated_at"
 ): Promise<MalListEntry[]> {
   const url =
     `${MAL_API_URL}/users/${encodeURIComponent(username)}/${kind}` +
-    `?limit=${limit}&sort=list_updated_at&fields=list_status,main_picture`;
+    `?limit=${limit}&sort=${sort}&fields=list_status,main_picture`;
 
   const response = await fetch(url, {
     headers: { "X-MAL-CLIENT-ID": clientId() },
@@ -191,16 +194,31 @@ function toCardEntries(entries: MalListEntry[], kind: "anime" | "manga") {
   }));
 }
 
+/** Les œuvres notées seulement : une note à 0 veut dire « pas notée ». */
+function toRankedMedia(entries: MalListEntry[]): RankedMedia[] {
+  return entries
+    .filter((entry) => (entry.list_status?.score ?? 0) > 0)
+    .map((entry) => ({
+      title: entry.node.title,
+      coverUrl:
+        entry.node.main_picture?.large || entry.node.main_picture?.medium || "",
+      score: entry.list_status!.score!,
+    }));
+}
+
 export async function fetchUserData(username: string): Promise<UserData> {
   try {
     console.log("MyAnimeList: récupération des données pour", username);
 
-    // Les trois appels sont indépendants : on les mène de front.
-    const [profile, animeEntries, mangaEntries] = await Promise.all([
-      fetchProfile(username),
-      fetchList("animelist", username, 6),
-      fetchList("mangalist", username, 6),
-    ]);
+    // Les cinq appels sont indépendants : on les mène de front.
+    const [profile, animeEntries, mangaEntries, topAnimeEntries, topMangaEntries] =
+      await Promise.all([
+        fetchProfile(username),
+        fetchList("animelist", username, 6),
+        fetchList("mangalist", username, 6),
+        fetchList("animelist", username, TOP_MAX_SIZE, "list_score"),
+        fetchList("mangalist", username, TOP_MAX_SIZE, "list_score"),
+      ]);
 
     const listIsPrivate = animeEntries.length === 0 && mangaEntries.length === 0;
     if (listIsPrivate) {
@@ -228,6 +246,8 @@ export async function fetchUserData(username: string): Promise<UserData> {
       },
       lastAnimes: toCardEntries(animeEntries, "anime"),
       lastMangas: toCardEntries(mangaEntries, "manga"),
+      topAnimes: toRankedMedia(topAnimeEntries),
+      topMangas: toRankedMedia(topMangaEntries),
     };
   } catch (error) {
     console.error(

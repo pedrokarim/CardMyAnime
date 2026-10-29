@@ -1,4 +1,5 @@
-import { UserData } from "../types";
+import { RankedMedia, UserData } from "../types";
+import { TOP_MAX_SIZE } from "../tops/topConfig";
 
 const ANILIST_API_URL = "https://graphql.anilist.co";
 
@@ -215,6 +216,88 @@ const FAVORITES_QUERY = `
   }
 `;
 
+/*
+ * Les deux tops en une requête, par alias. La note est demandée directement
+ * sur 10 (`POINT_10_DECIMAL`) : AniList laisse chaque membre choisir son
+ * barème – sur 100, sur 10, cinq étoiles, trois smileys – et la conversion
+ * à la source évite à l'affichage de devoir le savoir.
+ *
+ * À note égale, la plus récemment mise à jour passe devant.
+ */
+const TOP_LISTS_QUERY = `
+  query ($userId: Int, $perPage: Int) {
+    anime: Page(perPage: $perPage) {
+      mediaList(userId: $userId, type: ANIME, sort: [SCORE_DESC, UPDATED_TIME_DESC]) {
+        score(format: POINT_10_DECIMAL)
+        media { title { userPreferred } coverImage { large } }
+      }
+    }
+    manga: Page(perPage: $perPage) {
+      mediaList(userId: $userId, type: MANGA, sort: [SCORE_DESC, UPDATED_TIME_DESC]) {
+        score(format: POINT_10_DECIMAL)
+        media { title { userPreferred } coverImage { large } }
+      }
+    }
+  }
+`;
+
+interface AniListTopEntry {
+  score: number;
+  media: { title: { userPreferred: string }; coverImage: { large: string } } | null;
+}
+
+function toRankedMedia(entries: AniListTopEntry[] | undefined): RankedMedia[] {
+  return (entries ?? []).flatMap((entry) =>
+    entry.media && entry.score > 0
+      ? [
+          {
+            title: entry.media.title.userPreferred,
+            coverUrl: entry.media.coverImage.large,
+            score: entry.score,
+          },
+        ]
+      : []
+  );
+}
+
+/**
+ * Tops anime et manga. Un échec ne fait pas échouer le profil : les cartes
+ * n'en ont pas besoin. Les champs restent alors absents, et c'est la route
+ * des tops qui redemandera.
+ */
+async function fetchTopLists(
+  userId: number
+): Promise<{ topAnimes?: RankedMedia[]; topMangas?: RankedMedia[] }> {
+  try {
+    const response = await fetch(ANILIST_API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: TOP_LISTS_QUERY,
+        variables: { userId, perPage: TOP_MAX_SIZE },
+      }),
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const payload = await response.json();
+    if (!payload.data) {
+      throw new Error(JSON.stringify(payload.errors ?? payload));
+    }
+
+    return {
+      topAnimes: toRankedMedia(payload.data.anime?.mediaList),
+      topMangas: toRankedMedia(payload.data.manga?.mediaList),
+    };
+  } catch (error) {
+    console.error("AniList : tops indisponibles", error);
+    return {};
+  }
+}
+
 export async function fetchUserData(username: string): Promise<UserData> {
   try {
     // Fetch user data
@@ -300,6 +383,8 @@ export async function fetchUserData(username: string): Promise<UserData> {
     if (favoritesResponse.ok) {
       favoritesData = await favoritesResponse.json();
     }
+
+    const topLists = await fetchTopLists(userId);
 
     // Calculate average score
     const animeScore = user.statistics.anime.meanScore || 0;
@@ -397,6 +482,7 @@ export async function fetchUserData(username: string): Promise<UserData> {
           totalChapters: item.media.chapters,
         }))
         .slice(0, 5),
+      ...topLists,
       profile: {
         /*
          * AniList renvoie `createdAt` en **secondes** epoch, la` ou le champ

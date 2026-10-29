@@ -16,6 +16,10 @@ interface SharePanelProps {
   cardType: string;
   onDownload: () => void;
   disabled?: boolean;
+  /** Titre du panneau ; « Partager votre carte » par défaut. */
+  title?: string;
+  /** Texte joint aux partages sur les réseaux. */
+  shareText?: string;
 }
 
 /**
@@ -100,6 +104,8 @@ export function SharePanel({
   cardType,
   onDownload,
   disabled = false,
+  title,
+  shareText,
 }: SharePanelProps) {
   const { t } = useTraduction();
   const [copied, setCopied] = useState<string | null>(null);
@@ -151,12 +157,12 @@ export function SharePanel({
   ];
 
   const encodedUrl = encodeURIComponent(cardUrl);
-  const encodedText = encodeURIComponent(t.partage.messageSocial);
+  const encodedText = encodeURIComponent(shareText ?? t.partage.messageSocial);
 
   return (
     <div className="rounded-2xl border border-border/60 bg-card/60 p-4 backdrop-blur-sm">
       <h3 className="mb-3 text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground">
-        {t.partage.titre}
+        {title ?? t.partage.titre}
       </h3>
 
       {/* Le passage d'une icône « copier » à une coche est le seul retour de

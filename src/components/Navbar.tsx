@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Home, Trophy, TrendingUp, Mail, Info, Github, Twitter, Menu, X } from "lucide-react";
+import { Home, Trophy, TrendingUp, Mail, Info, Github, Twitter, Menu, ListOrdered } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useValeurClient } from "@/lib/hooks/useValeurClient";
@@ -15,6 +15,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SelecteurLangue } from "@/components/SelecteurLangue";
+import { NavMoreMenu } from "@/components/NavMoreMenu";
 import { useTraduction } from "@/lib/i18n/client";
 
 interface NavbarProps {
@@ -39,12 +40,18 @@ export function Navbar({ currentPlatform }: NavbarProps) {
   // rendu serveur mais absent à l'hydratation casse React.
   const isTendancesNew = useValeurClient(estTendancesRecent, false);
 
+  // Pages de la barre. Contact et À propos passent dans le menu « Plus » sur
+  // grand écran : on y va une fois, elles n'ont pas à occuper la barre.
   const navLinks = [
-    { href: "/", label: t.nav.accueil, isNew: false },
-    { href: "/ranking", label: t.nav.classement, isNew: false },
-    { href: "/tendances", label: t.nav.tendances, isNew: isTendancesNew },
-    { href: "/contact", label: t.nav.contact, isNew: false },
-    { href: "/about", label: t.nav.apropos, isNew: false },
+    { href: "/", label: t.nav.accueil, icon: Home, isNew: false },
+    { href: "/tops", label: t.nav.tops, icon: ListOrdered, isNew: false },
+    { href: "/ranking", label: t.nav.classement, icon: Trophy, isNew: false },
+    { href: "/tendances", label: t.nav.tendances, icon: TrendingUp, isNew: isTendancesNew },
+  ];
+
+  const secondaryLinks = [
+    { href: "/contact", label: t.nav.contact, icon: Mail },
+    { href: "/about", label: t.nav.apropos, icon: Info },
   ];
 
   const socialLinks = [
@@ -121,17 +128,17 @@ export function Navbar({ currentPlatform }: NavbarProps) {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-6">
-            {navLinks.map((link, index) => {
+          <div className="hidden md:flex items-center gap-1">
+            {navLinks.map((link) => {
               const isActive = pathname === link.href;
 
               return (
                 <Link
-                  key={index}
+                  key={link.href}
                   href={link.href}
                   aria-current={isActive ? "page" : undefined}
                   className={cn(
-                    "relative text-[16px] font-medium transition-colors px-4 py-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    "relative text-[15px] font-medium transition-colors px-3 py-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:px-4 lg:text-[16px]",
                     isActive
                       ? "text-foreground"
                       : "text-muted-foreground hover:text-foreground"
@@ -147,31 +154,14 @@ export function Navbar({ currentPlatform }: NavbarProps) {
               );
             })}
 
-            {socialLinks.map((link, index) => {
-              const Icon = link.icon;
-
-              return (
-                <a
-                  key={index}
-                  href={link.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={t.commun.nouvelOnglet(link.label)}
-                  className="text-muted-foreground hover:text-foreground transition-colors rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  title={link.label}
-                >
-                  <Icon aria-hidden="true" className="w-5 h-5" />
-                </a>
-              );
-            })}
-
-            <SelecteurLangue />
-            <ThemeToggle className="text-muted-foreground hover:text-foreground" />
+            <div className="ml-3 flex items-center gap-0.5">
+              <ThemeToggle className="text-muted-foreground hover:text-foreground" />
+              <NavMoreMenu pages={secondaryLinks} socials={socialLinks} />
+            </div>
           </div>
 
-          {/* Mobile: Language + Theme Toggle + Menu Button */}
+          {/* Mobile : thème et menu. La langue est dans le menu. */}
           <div className="flex md:hidden items-center gap-1">
-            <SelecteurLangue />
             <ThemeToggle className="text-muted-foreground hover:text-foreground" />
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
@@ -206,14 +196,16 @@ export function Navbar({ currentPlatform }: NavbarProps) {
 
               {/* Mobile Navigation Links */}
               <div className="space-y-2">
-                {navLinks.map((link, index) => {
+                {[
+                  ...navLinks,
+                  ...secondaryLinks.map((link) => ({ ...link, isNew: false })),
+                ].map((link) => {
                   const isActive = pathname === link.href;
-                  const mobileIcons = [Home, Trophy, TrendingUp, Mail, Info];
-                  const IconComponent = mobileIcons[index] || Info;
+                  const IconComponent = link.icon;
 
                   return (
                     <Link
-                      key={index}
+                      key={link.href}
                       href={link.href}
                       onClick={() => setMobileMenuOpen(false)}
                       aria-current={isActive ? "page" : undefined}
@@ -260,6 +252,13 @@ export function Navbar({ currentPlatform }: NavbarProps) {
                     );
                   })}
                 </div>
+              </div>
+
+              <div className="mt-8 flex items-center justify-between border-t border-border px-4 pt-6">
+                <span className="text-sm font-medium text-muted-foreground">
+                  {t.commun.langue}
+                </span>
+                <SelecteurLangue />
               </div>
             </SheetContent>
           </Sheet>

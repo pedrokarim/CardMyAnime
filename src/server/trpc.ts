@@ -13,6 +13,7 @@ import { buildCardPath } from "@/lib/cards/cardUrl";
 import { PLATFORM_STATUS, platformDisabledReason } from "@/lib/platformStatus";
 import { prisma, ensurePrismaConnection } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
+import { hasTopLists, topEntries } from "@/lib/tops/renderTop";
 
 const platformSchema = z.enum(["anilist", "mal", "nautiljon"]);
 const cardTypeSchema = z.enum(["small", "medium", "large", "summary", "neon", "minimal", "glassmorphism"]);
@@ -177,6 +178,51 @@ export const appRouter = createTRPCRouter({
         console.error("Erreur lors de la génération de la carte:", error);
         return {
           success: false,
+          error: error instanceof Error ? error.message : "Erreur inconnue",
+        };
+      }
+    }),
+
+  /**
+   * Prépare un top : vérifie que le profil existe et garnit le cache, dont
+   * l'image du top se servira ensuite. Ne renvoie que ce que la page
+   * affiche – la casse canonique du pseudo et le nombre d'œuvres notées –,
+   * l'image elle-même étant servie par `/top/…`.
+   */
+  prepareTop: publicProcedure
+    .input(
+      z.object({
+        platform: platformSchema,
+        username: z.string().trim().min(1),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const disabledReason = platformDisabledReason(input.platform);
+      if (disabledReason) {
+        return { success: false as const, error: disabledReason };
+      }
+
+      try {
+        await ensurePrismaConnection();
+        const { data } = await userDataCache.getUserDataWithMeta(
+          input.platform as Platform,
+          input.username,
+          { accept: hasTopLists }
+        );
+
+        return {
+          success: true as const,
+          username: data.username || input.username,
+          avatarUrl: data.avatarUrl,
+          ratedCount: {
+            anime: topEntries(data, "anime").length,
+            manga: topEntries(data, "manga").length,
+          },
+        };
+      } catch (error) {
+        console.error("Erreur lors de la préparation du top:", error);
+        return {
+          success: false as const,
           error: error instanceof Error ? error.message : "Erreur inconnue",
         };
       }

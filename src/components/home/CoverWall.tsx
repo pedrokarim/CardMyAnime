@@ -35,7 +35,33 @@ import { cn } from "@/lib/utils";
  * mesurent plus que 1072 px, le mur cesse d'atteindre les bords et laisse à
  * droite une bande de fond nu qui se lit comme un bloc opaque. D'où des
  * valeurs figées plutôt que responsives.
+ *
+ * Au-delà de 1440, les 8 colonnes ne suffisent plus : le mur s'arrêtait avant
+ * les bords. Des colonnes de renfort, prises dans les mêmes jaquettes, sont
+ * ajoutées de part et d'autre ; elles ne coûtent aucun téléchargement de plus
+ * puisque ce sont les mêmes fichiers. `justify-center` fait déborder le
+ * surplus à parts égales des deux côtés : le mur reste centré.
  */
+/** Colonnes de renfort ajoutées de chaque côté pour les écrans larges. */
+const EXTRA_COLUMNS_PER_SIDE = 3;
+
+/**
+ * Encadre les colonnes du manifeste de copies prises à l'autre bout de la
+ * liste, pour ne jamais placer côte à côte deux colonnes identiques. Les
+ * copies sont marquées : seuls les écrans larges les affichent.
+ */
+function withExtraColumns(columns: string[][]) {
+  const count = Math.min(EXTRA_COLUMNS_PER_SIDE, Math.floor(columns.length / 2));
+  const left = columns.slice(columns.length - count);
+  const right = columns.slice(0, count);
+
+  return [
+    ...left.map((column) => ({ column, extra: true, position: -1 })),
+    ...columns.map((column, position) => ({ column, extra: false, position })),
+    ...right.map((column) => ({ column, extra: true, position: -1 })),
+  ];
+}
+
 export function CoverWall({ dimmed = false }: { dimmed?: boolean }) {
   const [columns, setColumns] = useState<string[][]>([]);
 
@@ -68,14 +94,15 @@ export function CoverWall({ dimmed = false }: { dimmed?: boolean }) {
           : "opacity-50 saturate-[.9]"
       )}
     >
-      {columns.map((column, index) => (
+      {withExtraColumns(columns).map(({ column, extra, position }, index) => (
         <div
           key={index}
           className={cn(
             "flex h-max shrink-0 flex-col gap-[18px] will-change-transform",
             // Au-dela de 4 colonnes, un telephone n'en voit rien : on evite de
             // telecharger les jaquettes correspondantes.
-            index >= 4 && "hidden lg:flex",
+            position >= 4 && "hidden lg:flex",
+            extra && "hidden min-[1500px]:flex",
             index % 2 === 0 ? "animate-wall-up" : "animate-wall-down",
             index % 3 === 1 && "[animation-duration:74s]",
             index % 3 === 2 && "[animation-duration:88s]"
@@ -119,14 +146,18 @@ const bg = (percent: number) =>
   `color-mix(in srgb, var(--background) ${percent}%, transparent)`;
 
 /**
- * Voile latéral. Il remonte volontairement à 58 % au bord droit au lieu de
- * finir à zéro : sans cette remontée le mur vient buter en pleine lumière
- * contre le bord de l'écran, et la hero se termine sur une arête au lieu d'un
- * fond diffus.
+ * Voile latéral, symétrique. Il couvrait la gauche (99 %) pour protéger une
+ * accroche alignée à gauche et découvrait la droite (34 %) : le mur ne se
+ * voyait que d'un côté et la page penchait. L'accroche est désormais
+ * centrée, le voile aussi : mêmes opacités, posées en miroir autour du
+ * centre.
  *
- * La version mobile est plus couvrante et plus verticale : le texte y occupe
- * toute la largeur, il n'a plus la colonne de gauche protégée dont il dispose
- * sur grand écran.
+ * Il remonte volontairement à 58 % aux deux bords au lieu de finir au plus
+ * bas : sans cette remontée le mur vient buter en pleine lumière contre le
+ * bord de l'écran, et la hero se termine sur une arête au lieu d'un fond
+ * diffus.
+ *
+ * La version mobile est plus couvrante : le texte y occupe toute la largeur.
  */
 export function CoverWallVeils({ dimmed = false }: { dimmed?: boolean }) {
   return (
@@ -138,7 +169,7 @@ export function CoverWallVeils({ dimmed = false }: { dimmed?: boolean }) {
           dimmed ? "opacity-35" : "opacity-100"
         )}
         style={veil(
-          `118deg, ${bg(98)} 0%, ${bg(90)} 32%, ${bg(70)} 62%, ${bg(62)} 100%`
+          `90deg, ${bg(62)} 0%, ${bg(70)} 18%, ${bg(90)} 38%, ${bg(98)} 50%, ${bg(90)} 62%, ${bg(70)} 82%, ${bg(62)} 100%`
         )}
       />
       <div
@@ -148,7 +179,7 @@ export function CoverWallVeils({ dimmed = false }: { dimmed?: boolean }) {
           dimmed ? "opacity-35" : "opacity-100"
         )}
         style={veil(
-          `100deg, ${bg(99)} 0%, ${bg(96)} 30%, ${bg(66)} 52%, ${bg(34)} 76%, ${bg(58)} 100%`
+          `90deg, ${bg(58)} 0%, ${bg(34)} 12%, ${bg(66)} 26%, ${bg(96)} 38%, ${bg(99)} 50%, ${bg(96)} 62%, ${bg(66)} 74%, ${bg(34)} 88%, ${bg(58)} 100%`
         )}
       />
       <div

@@ -72,11 +72,26 @@ export interface UserData {
     total: number;
     hasNotifications: boolean;
   };
+  /**
+   * Œuvres les mieux notées de la liste, de la meilleure à la moins bonne,
+   * note ramenée sur 10. Seules les œuvres notées y figurent. Absent des
+   * lignes de cache écrites avant l'arrivée des tops.
+   */
+  topAnimes?: RankedMedia[];
+  topMangas?: RankedMedia[];
   // Nautiljon-specific data
   collections?: any;
   nautiliste?: any;
   watchlist?: any;
   detailedStats?: any;
+}
+
+/** Une ligne de top : une œuvre et la note que l'utilisateur lui a donnée. */
+export interface RankedMedia {
+  title: string;
+  coverUrl: string;
+  /** Sur 10, décimale comprise. */
+  score: number;
 }
 
 export type Platform = "anilist" | "mal" | "nautiljon";

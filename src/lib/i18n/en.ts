@@ -38,6 +38,8 @@ export const en: Dictionnaire = {
     ouvrirMenu: "Open menu",
     suivezNous: "Follow us",
     via: "via",
+    tops: "Tops",
+    more: "More",
   },
 
   accueil: {
@@ -96,7 +98,8 @@ export const en: Dictionnaire = {
     etiquetteStyle: "Style",
     etiquettePseudo: "Username",
     etiquetteApercu: "Preview",
-    argumentSansCompte: "No account · 7 styles",
+    // Arguments affichés sous les boutons de la hero.
+    heroFacts: ["No account", "7 styles", "Updates automatically"],
     heroTitre: "Your anime profile,",
     heroTitreAccent: "as one image",
     heroSousTitre:
@@ -110,7 +113,6 @@ export const en: Dictionnaire = {
       "This is taking longer than usual. Hang on a moment, it is on its way.",
     historiqueTitre: "Recently searched",
     historiqueRetirer: (pseudo) => `Remove ${pseudo} from history`,
-    heroMajBadge: " · updates automatically",
     heroSousTitreCourt:
       "A username, a style. We generate a PNG card of your latest series, with a direct link to paste anywhere.",
     exemplesTitre: "Seven styles, one URL",
@@ -217,6 +219,49 @@ export const en: Dictionnaire = {
     conseil: "Tip:",
     conseilTexte:
       "Use Markdown for GitHub, Discord or forums. BB Code for forums that support it. HTML for websites. The image links back to the site!",
+  },
+
+  tops: {
+    metaTitle: (site: string) => `Anime and manga top in one image — ${site}`,
+    metaDescription:
+      "Make a top 3, 5, 7 or 10 of your highest-rated anime and manga on AniList or MyAnimeList. A shareable image that updates with your list.",
+    title: "Your top, always up to date",
+    subtitle:
+      "Your highest-rated titles in one image. It follows your list: change a score and the top changes with it.",
+    platformLabel: "Platform",
+    usernameLabel: "Username",
+    usernamePlaceholder: "Your username",
+    mediaLabel: "Content",
+    anime: "Anime",
+    manga: "Manga",
+    sizeLabel: "Size",
+    topOf: (size: number) => `Top ${size}`,
+    custom: "Custom",
+    customRange: (min: number, max: number) => `From ${min} to ${max} titles`,
+    decrease: "One fewer",
+    increase: "One more",
+    submit: "Create my top",
+    loading: "Reading your list…",
+    changeProfile: "Change profile",
+    previewAlt: (size: number, media: string, username: string) =>
+      `${username}'s top ${size} ${media}`,
+    previewEmpty:
+      "Pick a platform and a username: your top will show up here.",
+    fewerRated: (count: number, size: number) =>
+      count === 0
+        ? "No rated titles yet. The top will fill itself as soon as you rate something."
+        : `${count} rated title${count > 1 ? "s" : ""} out of the ${size} requested: the top will fill itself in.`,
+    error:
+      "Profile not found, private list or platform unreachable. Check the username and the platform.",
+    shareTitle: "Share your top",
+    shareText: "My anime top in one image",
+    imageError: "The top image could not be loaded. Try again in a moment.",
+    howTitle: "How it works",
+    howItWorks: [
+      "The ranking follows your scores, from best to worst.",
+      "The image updates itself, within 24 hours at most.",
+      "One URL to paste on a forum, a README or a profile.",
+    ],
   },
 
   classement: {

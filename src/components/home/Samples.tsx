@@ -15,6 +15,19 @@ import { useTraduction } from "@/lib/i18n/client";
  * aller-retour par le serveur. Même raisonnement que pour le mur de jaquettes.
  */
 
+/*
+ * L'ordre n'est pas celui des tailles, et c'est voulu. Rangées de la plus
+ * petite à la plus grande, les cartes remplissaient les colonnes dans cet
+ * ordre : la première ne contenait que des cartes basses, la troisième que
+ * les deux plus hautes – trois colonnes de densités sans rapport.
+ *
+ * Chaque colonne associe ici une carte basse et une carte haute, pour des
+ * hauteurs quasi égales (rapport hauteur / largeur entre parenthèses) :
+ *   petite (0,38) + résumé (0,75)  = 1,13
+ *   grande (0,63) + moyenne (0,50) = 1,13
+ *   néon   (0,58) + glass   (0,57) = 1,15
+ * En deux colonnes, l'équilibre tient encore à 1,75 contre 1,65.
+ */
 const SAMPLES = [
   {
     file: "small",
@@ -23,11 +36,11 @@ const SAMPLES = [
     width: 400,
     height: 150,
   },
+  { file: "summary", label: "Résumé", meta: "800 × 600", width: 760, height: 570 },
+  { file: "large", label: "Grande", meta: "800 × 500", width: 760, height: 475 },
   { file: "medium", label: "Moyenne", meta: "600 × 300", width: 600, height: 300 },
   { file: "neon", label: "Néon", meta: "600 × 350", width: 600, height: 350 },
   { file: "glass", label: "Glass", meta: "700 × 400", width: 700, height: 400 },
-  { file: "large", label: "Grande", meta: "800 × 500", width: 760, height: 475 },
-  { file: "summary", label: "Résumé", meta: "800 × 600", width: 760, height: 570 },
 ];
 
 export function Samples() {

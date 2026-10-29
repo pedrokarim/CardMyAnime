@@ -39,6 +39,8 @@ export const fr = {
     ouvrirMenu: "Ouvrir le menu",
     suivezNous: "Suivez-nous",
     via: "via",
+    tops: "Tops",
+    more: "Plus",
   },
 
   accueil: {
@@ -102,7 +104,8 @@ export const fr = {
     etiquetteStyle: "Style",
     etiquettePseudo: "Pseudo",
     etiquetteApercu: "Aperçu",
-    argumentSansCompte: "Sans compte · 7 styles",
+    // Arguments affichés sous les boutons de la hero.
+    heroFacts: ["Sans compte", "7 styles", "Mise à jour automatique"],
     heroTitre: "Votre profil anime,",
     heroTitreAccent: "en une image",
     heroSousTitre:
@@ -117,7 +120,6 @@ export const fr = {
     historiqueTitre: "Recherché récemment",
     historiqueRetirer: (pseudo: string) =>
       `Retirer ${pseudo} de l'historique`,
-    heroMajBadge: " · mise à jour automatique",
     heroSousTitreCourt:
       "Un pseudo, un style. On génère une carte PNG de vos dernières séries, avec un lien direct à coller où vous voulez.",
     exemplesTitre: "Sept styles, une seule URL",
@@ -228,6 +230,49 @@ export const fr = {
     conseil: "Conseil :",
     conseilTexte:
       "Utilisez Markdown pour GitHub, Discord, ou les forums. BB Code pour les forums qui le supportent. HTML pour les sites web. L'image sera cliquable et redirigera vers le site !",
+  },
+
+  tops: {
+    metaTitle: (site: string) => `Top anime et manga en une image – ${site}`,
+    metaDescription:
+      "Créez le top 3, 5, 7 ou 10 de vos animes et mangas les mieux notés sur AniList ou MyAnimeList. Une image partageable qui se met à jour avec votre liste.",
+    title: "Votre top, toujours à jour",
+    subtitle:
+      "Vos œuvres les mieux notées, en une image. Elle suit votre liste : changez une note, le top change avec.",
+    platformLabel: "Plateforme",
+    usernameLabel: "Pseudo",
+    usernamePlaceholder: "Votre pseudo",
+    mediaLabel: "Contenu",
+    anime: "Anime",
+    manga: "Manga",
+    sizeLabel: "Taille",
+    topOf: (size: number) => `Top ${size}`,
+    custom: "Sur mesure",
+    customRange: (min: number, max: number) => `De ${min} à ${max} œuvres`,
+    decrease: "Une place de moins",
+    increase: "Une place de plus",
+    submit: "Créer mon top",
+    loading: "Lecture de la liste…",
+    changeProfile: "Changer de profil",
+    previewAlt: (size: number, media: string, username: string) =>
+      `Top ${size} ${media} de ${username}`,
+    previewEmpty:
+      "Choisissez une plateforme et un pseudo : l'aperçu de votre top s'affichera ici.",
+    fewerRated: (count: number, size: number) =>
+      count === 0
+        ? "Aucune œuvre notée pour l'instant. Le top se remplira tout seul dès vos premières notes."
+        : `${count} œuvre${count > 1 ? "s" : ""} notée${count > 1 ? "s" : ""} sur les ${size} demandées : le top se complétera tout seul.`,
+    error:
+      "Profil introuvable, liste privée ou plateforme injoignable. Vérifiez le pseudo et la plateforme.",
+    shareTitle: "Partager votre top",
+    shareText: "Mon top anime en une image",
+    imageError: "L'image du top n'a pas pu être chargée. Réessayez dans un instant.",
+    howTitle: "Comment ça marche",
+    howItWorks: [
+      "Le classement suit vos notes, de la meilleure à la moins bonne.",
+      "L'image se met à jour d'elle-même, au plus tard sous 24 h.",
+      "Une seule URL, à coller sur un forum, un README ou un profil.",
+    ],
   },
 
   classement: {

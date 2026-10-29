@@ -105,10 +105,16 @@ export class UserDataCacheService {
 
   /**
    * Même chose, en rendant aussi la date de dernière récupération réussie.
+   *
+   * `accept` permet à l'appelant d'exiger un champ que les lignes de cache
+   * les plus anciennes n'ont pas encore – les tops, ajoutés après coup. Une
+   * ligne refusée est traitée comme absente : on récupère en direct, une
+   * seule fois, et la ligne renouvelée passe ensuite le contrôle.
    */
   async getUserDataWithMeta(
     platform: Platform,
-    rawUsername: string
+    rawUsername: string,
+    options: { accept?: (data: UserData) => boolean } = {}
   ): Promise<UserDataWithMeta> {
     const { prisma, executeWithRetry } = await import("../prisma");
 
@@ -132,9 +138,14 @@ export class UserDataCacheService {
 
       const now = new Date();
 
+      const accepted =
+        !cachedData ||
+        !options.accept ||
+        options.accept(JSON.parse(cachedData.data));
+
       // `lastFetched` ne bouge que sur une récupération réussie : son âge dit
       // donc depuis combien de temps la plateforme ne répond plus.
-      if (cachedData) {
+      if (cachedData && accepted) {
         const decision = decideCacheAction(
           cachedData.expiresAt,
           cachedData.lastFetched,

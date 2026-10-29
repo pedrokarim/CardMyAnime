@@ -31,7 +31,7 @@ import { ButtonLoading, Loading } from "@/components/ui/loading";
 import { SITE_CONFIG } from "@/lib/constants";
 import Link from "next/link";
 import { captureCarteEchouee, captureCarteGeneree, captureEtape } from "@/lib/analytics";
-import { ArrowLeft, ArrowRight, ChevronDown, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, ChevronDown, Loader2 } from "lucide-react";
 
 type Step = "platform" | "cardType" | "username" | "preview";
 
@@ -370,38 +370,22 @@ export default function HomePage() {
           {/* Accroche. Elle disparaît entièrement dès qu'on entre dans
               l'assistant : la place qu'elle libère est exactement celle dont
               le stepper et le panneau ont besoin. */}
+          {/* Accroche centrée, comme le voile du mur : alignée à gauche, elle
+              réclamait un voile asymétrique, et le mur ne se voyait plus
+              qu'à droite. */}
           {isHero && (
-            <>
-              <div className="hero-rise">
-                <span className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/60 px-3.5 py-1.5 text-[12.5px] font-medium text-muted-foreground backdrop-blur-md">
-                  <span className="relative flex h-1.5 w-1.5">
-                    <span className="absolute inline-flex h-full w-full rounded-full bg-primary opacity-75 motion-safe:animate-ping" />
-                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary" />
-                  </span>
-                  {/* Un seul enfant de flex, sinon le `gap` du conteneur
-                      s'insère aussi entre les fragments de la phrase. */}
-                  <span>
-                    {t.accueil.argumentSansCompte}
-                    <span className="hidden sm:inline">
-                      {t.accueil.heroMajBadge}
-                    </span>
-                  </span>
+            <div className="hero-rise text-center">
+              <h1 className="text-[clamp(36px,5vw,58px)] font-bold leading-[1.04] tracking-[-0.025em] text-foreground">
+                {t.accueil.heroTitre}
+                <br />
+                <span className="bg-gradient-to-r from-primary to-cyan-400 bg-clip-text text-transparent">
+                  {t.accueil.heroTitreAccent}
                 </span>
-              </div>
-
-              <div className="hero-rise mt-6 [--rise-delay:80ms] sm:mt-7">
-                <h1 className="text-[clamp(36px,5vw,58px)] font-bold leading-[1.04] tracking-[-0.025em] text-foreground">
-                  {t.accueil.heroTitre}
-                  <br />
-                  <span className="bg-gradient-to-r from-primary to-cyan-400 bg-clip-text text-transparent">
-                    {t.accueil.heroTitreAccent}
-                  </span>
-                </h1>
-                <p className="mt-[18px] max-w-[52ch] text-[16.5px] leading-[1.55] text-muted-foreground">
-{t.accueil.heroSousTitreCourt}
-                </p>
-              </div>
-            </>
+              </h1>
+              <p className="mx-auto mt-[18px] max-w-[52ch] text-[16.5px] leading-[1.55] text-muted-foreground">
+                {t.accueil.heroSousTitreCourt}
+              </p>
+            </div>
           )}
 
           {/* Pivot de la page : la bande existe dans les deux états. Elle ne
@@ -409,7 +393,7 @@ export default function HomePage() {
               se recentrer au-dessus du stepper. */}
           <div
             className={cn(
-              isHero ? "hero-rise mt-8 [--rise-delay:160ms]" : "mb-[26px]"
+              isHero ? "hero-rise mt-8 [--rise-delay:80ms]" : "mb-[26px]"
             )}
           >
             <PlatformRail
@@ -420,7 +404,8 @@ export default function HomePage() {
           </div>
 
           {isHero ? (
-            <div className="hero-rise mt-[30px] flex items-center gap-3 [--rise-delay:240ms]">
+            <div className="hero-rise mt-[30px] [--rise-delay:160ms]">
+            <div className="flex items-center justify-center gap-3">
               <button
                 type="button"
                 onClick={goToNextStep}
@@ -447,6 +432,20 @@ export default function HomePage() {
                 <span className="hidden sm:inline">{t.accueil.voirExemples}</span>
                 <ChevronDown className="h-[17px] w-[17px] transition-transform duration-200 group-hover:translate-y-[2px]" />
               </a>
+            </div>
+
+            {/* Les trois arguments qui tenaient dans un badge au-dessus du
+                titre. Posés sous les boutons, ils répondent à la question
+                qu'on se pose au moment de cliquer – « il faut un compte ? »
+                – au lieu de passer avant le titre. */}
+            <ul className="mt-5 flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 text-[13.5px] text-muted-foreground">
+              {t.accueil.heroFacts.map((fact) => (
+                <li key={fact} className="inline-flex items-center gap-1.5">
+                  <Check aria-hidden="true" className="h-3.5 w-3.5 text-primary" />
+                  {fact}
+                </li>
+              ))}
+            </ul>
             </div>
           ) : (
             <StepIndicator current={currentStep as Step} />
