@@ -216,6 +216,11 @@ export const en: Dictionnaire = {
     copieCourt: "Copied",
     partagerReseau: (reseau) => `Share on ${reseau}`,
     copierPourDiscord: "Copy the link for Discord",
+    copyImage: "Copy image",
+    copyImageHint:
+      "Copies the image itself: paste it into a post to send it as a real image.",
+    copyImageError:
+      "This browser cannot copy images. Download it instead.",
     conseil: "Tip:",
     conseilTexte:
       "Use Markdown for GitHub, Discord or forums. BB Code for forums that support it. HTML for websites. The image links back to the site!",
@@ -262,6 +267,22 @@ export const en: Dictionnaire = {
       "The image updates itself, within 24 hours at most.",
       "One URL to paste on a forum, a README or a profile.",
     ],
+  },
+
+  sharePage: {
+    topTitle: (size: number, media: string, username: string) =>
+      `${username}'s top ${size} ${media}`,
+    topDescription: (username: string, platform: string) =>
+      `${username}'s highest-rated titles on ${platform}, kept in sync with their list.`,
+    cardTitle: (format: string, username: string) =>
+      `${username}'s ${format} card`,
+    cardDescription: (username: string, platform: string) =>
+      `${username}'s anime profile on ${platform}, in one image that updates itself.`,
+    makeYourTop: "Make my top",
+    makeYourCard: "Make my card",
+    viewProfile: (platform: string) => `View profile on ${platform}`,
+    updatedNote:
+      "This image follows its author's list: it changes when their scores change.",
   },
 
   classement: {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Code2, Copy, Download } from "lucide-react";
+import { Check, Code2, Copy, Download, ImageIcon } from "lucide-react";
 import { BrandIcon, type BrandName } from "@/components/preview/BrandIcons";
 import { capturePartage } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
@@ -20,6 +20,12 @@ interface SharePanelProps {
   title?: string;
   /** Texte joint aux partages sur les réseaux. */
   shareText?: string;
+  /**
+   * Page de partage, absolue. C'est elle qui part sur les réseaux : elle porte
+   * les balises Open Graph, là où un lien vers le PNG ne donne qu'un lien nu.
+   * Les codes d'intégration, eux, gardent l'image.
+   */
+  sharePageUrl?: string;
 }
 
 /**
@@ -106,6 +112,7 @@ export function SharePanel({
   disabled = false,
   title,
   shareText,
+  sharePageUrl,
 }: SharePanelProps) {
   const { t } = useTraduction();
   const [copied, setCopied] = useState<string | null>(null);
@@ -135,6 +142,34 @@ export function SharePanel({
     }
   };
 
+  /*
+   * Copier l'image elle-même, et non son lien : collée dans un message, elle
+   * part comme un vrai média, ce qu'aucune URL de partage ne permet.
+   *
+   * La promesse est confiée telle quelle à `ClipboardItem` : Safari exige que
+   * l'écriture parte dans le geste de l'utilisateur, avant tout `await`.
+   */
+  const copyImage = async () => {
+    try {
+      if (typeof ClipboardItem === "undefined" || !navigator.clipboard?.write) {
+        throw new Error("Copie d'image non prise en charge");
+      }
+      const blob = fetch(cardUrl).then((response) => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.blob();
+      });
+      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+      setCopied("image");
+      setCopyError(null);
+      setTimeout(() => setCopied((current) => (current === "image" ? null : current)), 2000);
+      capturePartage("image", cardType);
+    } catch (error) {
+      console.error("Erreur lors de la copie de l'image:", error);
+      setCopied(null);
+      setCopyError(t.partage.copyImageError);
+    }
+  };
+
   const embeds = [
     {
       type: "bbcode",
@@ -156,7 +191,8 @@ export function SharePanel({
     },
   ];
 
-  const encodedUrl = encodeURIComponent(cardUrl);
+  const socialUrl = sharePageUrl ?? cardUrl;
+  const encodedUrl = encodeURIComponent(socialUrl);
   const encodedText = encodeURIComponent(shareText ?? t.partage.messageSocial);
 
   return (
@@ -203,21 +239,38 @@ export function SharePanel({
         </button>
       </div>
 
-      <button
-        type="button"
-        onClick={onDownload}
-        disabled={disabled}
-        className="mt-2.5 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-transform disabled:pointer-events-none disabled:opacity-50 motion-safe:hover:-translate-y-0.5"
-        style={{
-          background:
-            "linear-gradient(92deg, var(--primary), color-mix(in srgb, var(--primary) 62%, white))",
-          boxShadow:
-            "0 8px 22px color-mix(in srgb, var(--primary) 30%, transparent)",
-        }}
-      >
-        <Download aria-hidden="true" className="h-4 w-4" />
-        {t.partage.telecharger}
-      </button>
+      <div className="mt-2.5 grid grid-cols-[minmax(0,1fr)_auto] gap-2">
+        <button
+          type="button"
+          onClick={onDownload}
+          disabled={disabled}
+          title={t.partage.telecharger}
+          className="inline-flex min-w-0 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold text-primary-foreground transition-transform disabled:pointer-events-none disabled:opacity-50 motion-safe:hover:-translate-y-0.5"
+          style={{
+            background:
+              "linear-gradient(92deg, var(--primary), color-mix(in srgb, var(--primary) 62%, white))",
+            boxShadow:
+              "0 8px 22px color-mix(in srgb, var(--primary) 30%, transparent)",
+          }}
+        >
+          <Download aria-hidden="true" className="h-4 w-4 shrink-0" />
+          <span className="truncate">{t.partage.telecharger}</span>
+        </button>
+        <button
+          type="button"
+          onClick={copyImage}
+          disabled={disabled}
+          title={t.partage.copyImageHint}
+          className="inline-flex items-center justify-center gap-2 rounded-xl border border-border/70 px-3 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-accent/60 disabled:pointer-events-none disabled:opacity-50 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          {copied === "image" ? (
+            <Check aria-hidden="true" className="h-4 w-4 text-primary" />
+          ) : (
+            <ImageIcon aria-hidden="true" className="h-4 w-4" />
+          )}
+          {copied === "image" ? t.partage.copieCourt : t.partage.copyImage}
+        </button>
+      </div>
 
       {/* « Partager » recouvre trois gestes très différents — récupérer le
           fichier, coller du code, publier. Sans ces intitulés, les onze
@@ -271,7 +324,7 @@ export function SharePanel({
                 type="button"
                 title={libelle}
                 aria-label={libelle}
-                onClick={() => copy(cardUrl, social.name)}
+                onClick={() => copy(socialUrl, social.name)}
                 className={className}
               >
                 {copied === social.name ? (

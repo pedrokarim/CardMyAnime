@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   buildTopPath,
+  buildTopSharePath,
+  buildTopSocialImagePath,
   clampTopSize,
   isValidTopSize,
   parseTopSlug,
@@ -61,5 +63,16 @@ describe("buildTopPath", () => {
       media: "manga",
       size: 3,
     });
+  });
+});
+
+describe("chemins de partage", () => {
+  it("page sans extension, image sociale en PNG", () => {
+    expect(buildTopSharePath("mal", "a b", "manga", 10)).toBe(
+      "/share/top/mal/a%20b/manga-10"
+    );
+    expect(buildTopSocialImagePath("mal", "a b", "manga", 10)).toBe(
+      "/og/top/mal/a%20b/manga-10.png"
+    );
   });
 });

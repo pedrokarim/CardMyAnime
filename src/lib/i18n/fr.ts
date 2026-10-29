@@ -227,6 +227,11 @@ export const fr = {
     copieCourt: "Copié",
     partagerReseau: (reseau: string) => `Partager sur ${reseau}`,
     copierPourDiscord: "Copier le lien pour Discord",
+    copyImage: "Copier l'image",
+    copyImageHint:
+      "Copie l'image elle-même : collez-la dans un message pour l'envoyer comme une vraie image.",
+    copyImageError:
+      "Ce navigateur ne permet pas de copier une image. Téléchargez-la plutôt.",
     conseil: "Conseil :",
     conseilTexte:
       "Utilisez Markdown pour GitHub, Discord, ou les forums. BB Code pour les forums qui le supportent. HTML pour les sites web. L'image sera cliquable et redirigera vers le site !",
@@ -273,6 +278,22 @@ export const fr = {
       "L'image se met à jour d'elle-même, au plus tard sous 24 h.",
       "Une seule URL, à coller sur un forum, un README ou un profil.",
     ],
+  },
+
+  sharePage: {
+    topTitle: (size: number, media: string, username: string) =>
+      `Top ${size} ${media} de ${username}`,
+    topDescription: (username: string, platform: string) =>
+      `Les œuvres les mieux notées de ${username} sur ${platform}, mises à jour avec sa liste.`,
+    cardTitle: (format: string, username: string) =>
+      `Carte ${format} de ${username}`,
+    cardDescription: (username: string, platform: string) =>
+      `Le profil anime de ${username} sur ${platform}, en une image qui se met à jour toute seule.`,
+    makeYourTop: "Créer mon top",
+    makeYourCard: "Créer ma carte",
+    viewProfile: (platform: string) => `Voir le profil sur ${platform}`,
+    updatedNote:
+      "Cette image suit la liste de son auteur : elle change quand ses notes changent.",
   },
 
   classement: {

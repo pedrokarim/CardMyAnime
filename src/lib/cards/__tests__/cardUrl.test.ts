@@ -3,6 +3,8 @@ import {
   buildCardPath,
   normalizeSearchParams,
   parseCardSlug,
+  buildCardSharePath,
+  buildCardSocialImagePath,
 } from "../cardUrl";
 
 describe("normalizeSearchParams", () => {
@@ -122,5 +124,16 @@ describe("buildCardPath", () => {
       type: "large",
       useBackground: false,
     });
+  });
+});
+
+describe("chemins de partage des cartes", () => {
+  it("garde le suffixe -nobg et retire l'extension de la page", () => {
+    expect(buildCardSharePath("anilist", "User", "neon", false)).toBe(
+      "/share/card/anilist/User/neon-nobg"
+    );
+    expect(buildCardSocialImagePath("anilist", "User", "neon")).toBe(
+      "/og/card/anilist/User/neon.png"
+    );
   });
 });

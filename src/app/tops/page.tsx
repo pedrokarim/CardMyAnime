@@ -17,6 +17,7 @@ import {
   TOP_MIN_SIZE,
   TOP_PRESET_SIZES,
   buildTopPath,
+  buildTopSharePath,
   clampTopSize,
   type TopMediaType,
 } from "@/lib/tops/topConfig";
@@ -413,6 +414,12 @@ export default function TopsPage() {
               title={t.tops.shareTitle}
               shareText={t.tops.shareText}
               cardUrl={`${origin}${topPath}`}
+              sharePageUrl={`${origin}${buildTopSharePath(
+                prepared.platform,
+                prepared.username,
+                media,
+                size
+              )}`}
               siteUrl={`${origin}/tops`}
               username={prepared.username}
               cardType={`top-${media}-${size}`}

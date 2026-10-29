@@ -54,7 +54,12 @@ export type CardResult =
  */
 export async function resolveCard(
   request: NextRequest,
-  input: CardRequestInput
+  input: CardRequestInput,
+  /**
+   * `false` pour toujours produire l'image : l'aperçu social redessine la
+   * carte et l'empreinte que son client renvoie n'est pas celle de la carte.
+   */
+  options: { revalidate?: boolean } = {}
 ): Promise<CardResult> {
   try {
     await ensurePrismaConnection();
@@ -158,7 +163,10 @@ export async function resolveCard(
      * vue : une carte revalidée a bien été affichée quelque part, elle compte.
      * Ce qu'on économise ici, c'est le dessin — la partie chère.
      */
-    if (matchesEtag(request.headers.get("if-none-match"), etag)) {
+    if (
+      options.revalidate !== false &&
+      matchesEtag(request.headers.get("if-none-match"), etag)
+    ) {
       return { ok: true, notModified: true, etag };
     }
 

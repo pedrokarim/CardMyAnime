@@ -72,3 +72,32 @@ export function buildCardPath(
     useBackground ? "" : "-nobg"
   }.png`;
 }
+
+/**
+ * Page de partage d'une carte : c'est elle, et non le PNG, qu'on donne aux
+ * réseaux. Un lien vers une image nue n'a pas de balises Open Graph, et X
+ * comme Facebook n'en tirent alors qu'un lien sans aperçu.
+ */
+export function buildCardSharePath(
+  platform: string,
+  username: string,
+  cardType: string,
+  useBackground: boolean = true
+): string {
+  return buildCardPath(platform, username, cardType, useBackground)
+    .replace(/^\/card\//, "/share/card/")
+    .replace(/\.png$/, "");
+}
+
+/** Version 1200 × 630 de la carte, pour l'aperçu des réseaux. */
+export function buildCardSocialImagePath(
+  platform: string,
+  username: string,
+  cardType: string,
+  useBackground: boolean = true
+): string {
+  return buildCardPath(platform, username, cardType, useBackground).replace(
+    /^\/card\//,
+    "/og/card/"
+  );
+}

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, RotateCcw } from "lucide-react";
 import { UserData, CardType, Platform } from "@/lib/types";
 import { CARD_DIMENSIONS } from "@/lib/cards/cardTypes";
+import { buildCardSharePath } from "@/lib/cards/cardUrl";
 import { cardTypeOptions } from "@/lib/cardTypeOptions";
 import { trpc } from "@/lib/trpc/client";
 import { PlatformIcon } from "@/components/ui/platform-icon";
@@ -300,6 +301,12 @@ export function CardPreview({
             siteUrl={siteUrl}
             username={userData.username}
             cardType={cardType}
+            sharePageUrl={`${siteUrl}${buildCardSharePath(
+              platform,
+              userData.username,
+              cardType,
+              useLastAnimeBackground
+            )}`}
             onDownload={downloadCard}
             disabled={busy || !generatedCardUrl}
           />

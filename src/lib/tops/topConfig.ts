@@ -76,3 +76,25 @@ export function buildTopPath(
 ): string {
   return `/top/${platform}/${encodeURIComponent(username)}/${media}-${size}.png`;
 }
+
+/** Page de partage d'un top, porteuse des balises Open Graph. */
+export function buildTopSharePath(
+  platform: string,
+  username: string,
+  media: TopMediaType,
+  size: number
+): string {
+  return buildTopPath(platform, username, media, size)
+    .replace(/^\/top\//, "/share/top/")
+    .replace(/\.png$/, "");
+}
+
+/** Version 1200 × 630 du top, pour l'aperçu des réseaux. */
+export function buildTopSocialImagePath(
+  platform: string,
+  username: string,
+  media: TopMediaType,
+  size: number
+): string {
+  return buildTopPath(platform, username, media, size).replace(/^\/top\//, "/og/top/");
+}
