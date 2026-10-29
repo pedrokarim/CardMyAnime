@@ -44,6 +44,24 @@ const PLATFORM_LABELS: Record<TopPlatform, string> = {
   bangumi: "Bangumi",
 };
 
+/*
+ * Profils publics de démonstration, un par plateforme, avec des tailles
+ * variées pour montrer les différents rendus. Tous vérifiés le 2026-10-29 :
+ * listes publiques et notées.
+ */
+const EXAMPLES: {
+  platform: TopPlatform;
+  username: string;
+  media: TopMediaType;
+  size: number;
+}[] = [
+  { platform: "anilist", username: "PedroKarim64", media: "anime", size: 5 },
+  { platform: "mal", username: "PedroKarim64", media: "manga", size: 7 },
+  { platform: "kitsu", username: "Nuck", media: "anime", size: 3 },
+  { platform: "shikimori", username: "morr", media: "anime", size: 10 },
+  { platform: "bangumi", username: "sai", media: "anime", size: 5 },
+];
+
 interface PreparedProfile {
   platform: TopPlatform;
   username: string;
@@ -170,6 +188,25 @@ export default function TopsPage() {
     const trimmed = value.trim();
     if (!trimmed || prepareTop.isPending) return;
     prepareTop.mutate({ platform, username: trimmed });
+  };
+
+  /**
+   * Un exemple règle tout le formulaire puis lance la lecture : on voit le
+   * résultat sans avoir de pseudo sous la main. L'aperçu précédent est
+   * retiré d'abord, sinon l'ancien profil s'afficherait un instant avec les
+   * réglages du nouveau.
+   */
+  const tryExample = (example: (typeof EXAMPLES)[number]) => {
+    if (prepareTop.isPending) return;
+    setPrepared(null);
+    setError(null);
+    setPlatform(example.platform);
+    setMedia(example.media);
+    setRawSize(example.size);
+    setCustomSize(!(TOP_PRESET_SIZES as readonly number[]).includes(example.size));
+    setDraft(example.username);
+    prepareTop.mutate({ platform: example.platform, username: example.username });
+    captureAnalytics("top_example", { platform: example.platform });
   };
 
   // Arriver par un lien partagé (`?username=…`) lance la lecture tout seul.
@@ -358,6 +395,48 @@ export default function TopsPage() {
                 {error}
               </p>
             )}
+          </div>
+
+          <div className="border-t border-border/60 pt-4">
+            <p className="mb-2 text-[12.5px] text-muted-foreground">
+              {t.tops.examplesTitle}
+            </p>
+            <ul className="flex flex-col gap-1">
+              {EXAMPLES.map((example) => {
+                const mediaLabel = t.tops[example.media].toLowerCase();
+                return (
+                  <li key={`${example.platform}-${example.username}`}>
+                    <button
+                      type="button"
+                      onClick={() => tryExample(example)}
+                      disabled={prepareTop.isPending}
+                      aria-label={t.tops.exampleAria(
+                        example.size,
+                        mediaLabel,
+                        example.username,
+                        PLATFORM_LABELS[example.platform]
+                      )}
+                      className="flex w-full min-w-0 items-center gap-2.5 rounded-lg px-2 py-1.5 text-left text-[13px] transition-colors hover:bg-accent/60 disabled:pointer-events-none disabled:opacity-50 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <PlatformIcon
+                        platform={example.platform}
+                        size={18}
+                        className="shrink-0 rounded"
+                      />
+                      <span
+                        title={example.username}
+                        className="min-w-0 truncate font-medium text-foreground"
+                      >
+                        {example.username}
+                      </span>
+                      <span className="ml-auto shrink-0 text-muted-foreground">
+                        {t.tops.topOf(example.size)} {mediaLabel}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
           </div>
         </form>
 

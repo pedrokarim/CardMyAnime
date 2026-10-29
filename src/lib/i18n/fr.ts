@@ -261,10 +261,13 @@ export const fr = {
     submit: "Créer mon top",
     loading: "Lecture de la liste…",
     changeProfile: "Changer de profil",
+    examplesTitle: "Pas de pseudo sous la main ? Essayez un exemple :",
+    exampleAria: (size: number, media: string, username: string, platform: string) =>
+      `Voir le top ${size} ${media} de ${username} sur ${platform}`,
     previewAlt: (size: number, media: string, username: string) =>
       `Top ${size} ${media} de ${username}`,
     previewEmpty:
-      "Choisissez une plateforme et un pseudo : l'aperçu de votre top s'affichera ici.",
+      "Choisissez une plateforme et un pseudo, ou cliquez sur un exemple : l'aperçu de votre top s'affichera ici.",
     fewerRated: (count: number, size: number) =>
       count === 0
         ? "Aucune œuvre notée pour l'instant. Le top se remplira tout seul dès vos premières notes."

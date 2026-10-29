@@ -250,10 +250,13 @@ export const en: Dictionnaire = {
     submit: "Create my top",
     loading: "Reading your list…",
     changeProfile: "Change profile",
+    examplesTitle: "No username handy? Try an example:",
+    exampleAria: (size: number, media: string, username: string, platform: string) =>
+      `See ${username}'s top ${size} ${media} on ${platform}`,
     previewAlt: (size: number, media: string, username: string) =>
       `${username}'s top ${size} ${media}`,
     previewEmpty:
-      "Pick a platform and a username: your top will show up here.",
+      "Pick a platform and a username, or click an example: your top will show up here.",
     fewerRated: (count: number, size: number) =>
       count === 0
         ? "No rated titles yet. The top will fill itself as soon as you rate something."
